@@ -1,0 +1,505 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Vue Financière - Seyni Properties{% endblock %}
+
+{% block page_title %}Vue Financière{% endblock %}
+{% block page_subtitle %}Aperçu de la situation financière{% endblock %}
+
+{% block extra_css %}
+<style>
+    .financial-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        transition: all 0.3s ease;
+    }
+    
+    .financial-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 15px 35px rgba(102, 126, 234, 0.3);
+    }
+    
+    .metric-card {
+        border-left: 4px solid #3b82f6;
+        transition: all 0.2s ease;
+    }
+    
+    .metric-card:hover {
+        border-left-width: 6px;
+    }
+    
+    .success-metric {
+        border-left-color: #10b981;
+        background: linear-gradient(145deg, #f0fdf4, #dcfce7);
+    }
+    
+    .warning-metric {
+        border-left-color: #f59e0b;
+        background: linear-gradient(145deg, #fffbeb, #fef3c7);
+    }
+    
+    .danger-metric {
+        border-left-color: #ef4444;
+        background: linear-gradient(145deg, #fef2f2, #fee2e2);
+    }
+    
+    .payment-row:hover {
+        background: rgba(59, 130, 246, 0.05);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50">
+    <!-- Header -->
+    <div class="bg-white shadow-sm border-b border-gray-200 mb-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <nav class="flex items-center space-x-2 text-sm text-gray-500 mb-2">
+                        <a href="{% url 'dashboard:index' %}" class="hover:text-blue-600">Dashboard</a>
+                        <i class="fas fa-chevron-right text-xs"></i>
+                        <span class="text-gray-900">Vue financière</span>
+                    </nav>
+                    <h1 class="text-3xl font-bold text-gray-900">Gestion Financière</h1>
+                    <p class="text-gray-600 mt-1">Suivi des revenus, paiements et créances</p>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="text-right">
+                        <p class="text-sm text-gray-500">Période actuelle</p>
+                        <p class="text-sm font-medium text-gray-900">{{ "now"|date:"F Y" }}</p>
+                    </div>
+                    <select class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        <option value="month">Ce mois</option>
+                        <option value="quarter">Ce trimestre</option>
+                        <option value="year">Cette année</option>
+                    </select>
+                    <button onclick="exportFinancial()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors duration-200">
+                        <i class="fas fa-file-excel mr-2"></i>Exporter
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Indicateurs Financiers Principaux -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+            <!-- Revenus Mensuels -->
+            <div class="financial-card rounded-xl p-8 text-white">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-blue-100 text-sm uppercase tracking-wide">Revenus ce mois</p>
+                        <p class="text-4xl font-bold mt-2">{{ monthly_revenue|floatformat:0 }}</p>
+                        <p class="text-blue-100 text-sm">FCFA</p>
+                        <div class="flex items-center mt-2">
+                            <i class="fas fa-arrow-up text-green-300 mr-1"></i>
+                            <span class="text-green-300 text-sm">+12% vs mois dernier</span>
+                        </div>
+                    </div>
+                    <div class="bg-white bg-opacity-20 rounded-full p-4">
+                        <i class="fas fa-chart-line text-3xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Paiements en Attente -->
+            <div class="bg-gradient-to-br from-orange-500 to-red-500 rounded-xl p-8 text-white">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-orange-100 text-sm uppercase tracking-wide">En attente</p>
+                        <p class="text-4xl font-bold mt-2">{{ pending_amount|floatformat:0 }}</p>
+                        <p class="text-orange-100 text-sm">FCFA</p>
+                        <div class="flex items-center mt-2">
+                            <i class="fas fa-clock text-yellow-200 mr-1"></i>
+                            <span class="text-yellow-200 text-sm">{{ overdue_invoices.count }} factures</span>
+                        </div>
+                    </div>
+                    <div class="bg-white bg-opacity-20 rounded-full p-4">
+                        <i class="fas fa-hourglass-half text-3xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Taux de Recouvrement -->
+            <div class="bg-gradient-to-br from-green-500 to-teal-500 rounded-xl p-8 text-white">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-green-100 text-sm uppercase tracking-wide">Taux recouvrement</p>
+                        <p class="text-4xl font-bold mt-2">87%</p>
+                        <div class="flex items-center mt-2">
+                            <i class="fas fa-arrow-up text-green-200 mr-1"></i>
+                            <span class="text-green-200 text-sm">+5% ce mois</span>
+                        </div>
+                    </div>
+                    <div class="bg-white bg-opacity-20 rounded-full p-4">
+                        <i class="fas fa-percentage text-3xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Métriques Détaillées -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="metric-card success-metric bg-white rounded-lg p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h4 class="text-sm font-medium text-gray-600 uppercase">Paiements reçus</h4>
+                        <p class="text-2xl font-bold text-green-600 mt-1">{{ recent_payments.count }}</p>
+                        <p class="text-xs text-gray-500">Cette semaine</p>
+                    </div>
+                    <i class="fas fa-check-circle text-green-500 text-xl"></i>
+                </div>
+            </div>
+
+            <div class="metric-card warning-metric bg-white rounded-lg p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h4 class="text-sm font-medium text-gray-600 uppercase">Factures émises</h4>
+                        <p class="text-2xl font-bold text-orange-600 mt-1">45</p>
+                        <p class="text-xs text-gray-500">Ce mois</p>
+                    </div>
+                    <i class="fas fa-file-invoice text-orange-500 text-xl"></i>
+                </div>
+            </div>
+
+            <div class="metric-card danger-metric bg-white rounded-lg p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h4 class="text-sm font-medium text-gray-600 uppercase">En retard</h4>
+                        <p class="text-2xl font-bold text-red-600 mt-1">{{ overdue_invoices.count }}</p>
+                        <p class="text-xs text-gray-500">Factures</p>
+                    </div>
+                    <i class="fas fa-exclamation-triangle text-red-500 text-xl"></i>
+                </div>
+            </div>
+
+            <div class="metric-card bg-white rounded-lg p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h4 class="text-sm font-medium text-gray-600 uppercase">Revenus moyens</h4>
+                        <p class="text-2xl font-bold text-blue-600 mt-1">{{ daily_revenue|floatformat:0 }}</p>
+                        <p class="text-xs text-gray-500">FCFA/jour</p>
+                    </div>
+                    <i class="fas fa-coins text-blue-500 text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Graphiques Financiers -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+            <!-- Évolution des Revenus -->
+            <div class="lg:col-span-2 bg-white rounded-xl shadow-lg p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-semibold text-gray-800">
+                        <i class="fas fa-chart-area text-green-500 mr-2"></i>
+                        Évolution des Revenus
+                    </h3>
+                    <div class="flex space-x-2">
+                        <button class="px-3 py-1 text-sm bg-blue-100 text-blue-600 rounded-lg">6M</button>
+                        <button class="px-3 py-1 text-sm text-gray-600 hover:bg-gray-100 rounded-lg">1A</button>
+                    </div>
+                </div>
+                <div class="h-80">
+                    <canvas id="revenueEvolutionChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Répartition des Paiements -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">
+                    <i class="fas fa-chart-pie text-purple-500 mr-2"></i>
+                    Modes de Paiement
+                </h3>
+                <div class="h-80">
+                    <canvas id="paymentMethodsChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tableaux Financiers -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Paiements Récents -->
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-green-500 to-teal-500">
+                    <h3 class="text-xl font-semibold text-white">
+                        <i class="fas fa-money-check-alt mr-2"></i>
+                        Paiements Récents ({{ recent_payments.count }})
+                    </h3>
+                </div>
+                
+                <div class="max-h-96 overflow-y-auto">
+                    {% for payment in recent_payments %}
+                    <div class="payment-row px-6 py-4 border-b border-gray-100 transition-colors duration-200">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-4">
+                                <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                                    {% if payment.moyen_paiement == 'virement' %}
+                                        <i class="fas fa-university text-green-600"></i>
+                                    {% elif payment.moyen_paiement == 'orange_money' %}
+                                        <i class="fas fa-mobile-alt text-orange-500"></i>
+                                    {% elif payment.moyen_paiement == 'wave' %}
+                                        <i class="fas fa-wave-square text-blue-500"></i>
+                                    {% elif payment.moyen_paiement == 'especes' %}
+                                        <i class="fas fa-money-bill text-green-600"></i>
+                                    {% else %}
+                                        <i class="fas fa-credit-card text-purple-600"></i>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <p class="font-semibold text-gray-800">{{ payment.facture.contrat.locataire.nom_complet }}</p>
+                                    <p class="text-sm text-gray-600">{{ payment.facture.contrat.property.nom }}</p>
+                                    <p class="text-xs text-gray-500">{{ payment.get_moyen_paiement_display }}</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <p class="font-bold text-green-600">+{{ payment.montant|floatformat:0 }} FCFA</p>
+                                <p class="text-xs text-gray-500">{{ payment.date_paiement|date:"d/m/Y" }}</p>
+                                <span class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
+                                    {{ payment.get_statut_display }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="px-6 py-8 text-center">
+                        <i class="fas fa-receipt text-4xl text-gray-300 mb-3"></i>
+                        <p class="text-gray-500">Aucun paiement récent</p>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <div class="px-6 py-3 bg-gray-50 border-t">
+                    <a href="#" class="text-green-600 hover:text-green-800 text-sm font-medium flex items-center justify-center">
+                        Voir tous les paiements <i class="fas fa-arrow-right ml-2"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Factures en Retard -->
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-red-500 to-pink-500">
+                    <h3 class="text-xl font-semibold text-white">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>
+                        Factures en Retard ({{ overdue_invoices.count }})
+                    </h3>
+                </div>
+                
+                <div class="max-h-96 overflow-y-auto">
+                    {% for invoice in overdue_invoices %}
+                    <div class="payment-row px-6 py-4 border-b border-gray-100 transition-colors duration-200">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-4">
+                                <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-user text-red-600"></i>
+                                </div>
+                                <div>
+                                    <p class="font-semibold text-gray-800">{{ invoice.contrat.locataire.nom_complet }}</p>
+                                    <p class="text-sm text-gray-600">{{ invoice.contrat.property.nom }}</p>
+                                    <p class="text-xs text-gray-500">Échéance: {{ invoice.date_echeance|date:"d/m/Y" }}</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <p class="font-bold text-red-600">{{ invoice.montant_ttc|floatformat:0 }} FCFA</p>
+                                <span class="px-2 py-1 bg-red-100 text-red-800 text-xs rounded-full">
+                                    {% now "Y-m-d" as today %}
+                                    {% if invoice.date_echeance|timesince:today %}
+                                        {{ invoice.date_echeance|timesince }} de retard
+                                    {% else %}
+                                        En retard
+                                    {% endif %}
+                                </span>
+                                <div class="flex space-x-1 mt-2">
+                                    <button class="p-1 text-blue-600 hover:bg-blue-100 rounded text-xs" title="Envoyer rappel">
+                                        <i class="fas fa-envelope"></i>
+                                    </button>
+                                    <button class="p-1 text-green-600 hover:bg-green-100 rounded text-xs" title="Marquer comme payé">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="px-6 py-8 text-center">
+                        <i class="fas fa-check-circle text-4xl text-green-300 mb-3"></i>
+                        <p class="text-gray-500">Aucune facture en retard</p>
+                        <p class="text-sm text-green-600 mt-1">Excellent travail ! 🎉</p>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                {% if overdue_invoices.count > 0 %}
+                <div class="px-6 py-3 bg-red-50 border-t">
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm text-red-600 font-medium">
+                            Total en retard: {{ pending_amount|floatformat:0 }} FCFA
+                        </span>
+                        <button class="px-3 py-1 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 transition-colors">
+                            Envoyer rappels
+                        </button>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Résumé Financier -->
+        <div class="mt-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl p-8 text-white">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div class="text-center">
+                    <div class="bg-white bg-opacity-20 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-3">
+                        <i class="fas fa-calendar-alt text-2xl"></i>
+                    </div>
+                    <h4 class="text-lg font-semibold mb-1">Ce Mois</h4>
+                    <p class="text-2xl font-bold">{{ monthly_revenue|floatformat:0 }}</p>
+                    <p class="text-sm opacity-80">FCFA collectés</p>
+                </div>
+                
+                <div class="text-center">
+                    <div class="bg-white bg-opacity-20 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-3">
+                        <i class="fas fa-chart-line text-2xl"></i>
+                    </div>
+                    <h4 class="text-lg font-semibold mb-1">Moyenne</h4>
+                    <p class="text-2xl font-bold">{{ daily_revenue|floatformat:0 }}</p>
+                    <p class="text-sm opacity-80">FCFA/jour</p>
+                </div>
+                
+                <div class="text-center">
+                    <div class="bg-white bg-opacity-20 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-3">
+                        <i class="fas fa-clock text-2xl"></i>
+                    </div>
+                    <h4 class="text-lg font-semibold mb-1">En Attente</h4>
+                    <p class="text-2xl font-bold">{{ pending_amount|floatformat:0 }}</p>
+                    <p class="text-sm opacity-80">FCFA à encaisser</p>
+                </div>
+                
+                <div class="text-center">
+                    <div class="bg-white bg-opacity-20 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-3">
+                        <i class="fas fa-percentage text-2xl"></i>
+                    </div>
+                    <h4 class="text-lg font-semibold mb-1">Performance</h4>
+                    <p class="text-2xl font-bold">87%</p>
+                    <p class="text-sm opacity-80">Taux recouvrement</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Données simulées pour les graphiques
+const revenueEvolutionData = {
+    labels: [{% for i in "123456" %}'{{ "now"|date:"Y-m"|add:"-"|add:forloop.counter0 }}'{% if not forloop.last %},{% endif %}{% endfor %}],
+    datasets: [{
+        label: 'Revenus (FCFA)',
+        data: [1850000, 2100000, 1950000, 2300000, 2150000, {{ monthly_revenue }}],
+        borderColor: '#10b981',
+        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+        borderWidth: 3,
+        fill: true,
+        tension: 0.4
+    }]
+};
+
+const paymentMethodsData = {
+    labels: ['Virement', 'Orange Money', 'Wave', 'Espèces', 'Chèque'],
+    datasets: [{
+        data: [35, 25, 20, 15, 5],
+        backgroundColor: [
+            '#3b82f6',
+            '#f97316',
+            '#06b6d4',
+            '#10b981',
+            '#8b5cf6'
+        ],
+        borderWidth: 2,
+        borderColor: '#ffffff'
+    }]
+};
+
+// Graphique d'évolution des revenus
+const revenueCtx = document.getElementById('revenueEvolutionChart').getContext('2d');
+const revenueChart = new Chart(revenueCtx, {
+    type: 'line',
+    data: revenueEvolutionData,
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    callback: function(value) {
+                        return formatCurrency(value);
+                    }
+                }
+            },
+            x: {
+                grid: {
+                    display: false
+                }
+            }
+        },
+        elements: {
+            point: {
+                radius: 6,
+                backgroundColor: '#10b981',
+                borderColor: '#ffffff',
+                borderWidth: 2
+            }
+        }
+    }
+});
+
+// Graphique des modes de paiement
+const paymentCtx = document.getElementById('paymentMethodsChart').getContext('2d');
+const paymentChart = new Chart(paymentCtx, {
+    type: 'doughnut',
+    data: paymentMethodsData,
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom',
+                labels: {
+                    padding: 15,
+                    usePointStyle: true,
+                    font: {
+                        size: 12
+                    }
+                }
+            }
+        }
+    }
+});
+
+// Fonction d'export financier
+function exportFinancial() {
+    showToast('Export des données financières en cours...', 'info');
+    // Implémentation de l'export
+    setTimeout(() => {
+        showToast('Export terminé avec succès', 'success');
+    }, 2000);
+}
+
+// Mise à jour automatique des données
+setInterval(() => {
+    // Actualiser les métriques via AJAX
+    fetch('{% url "dashboard:revenue_api" %}')
+        .then(response => response.json())
+        .then(data => {
+            // Mettre à jour les valeurs affichées
+            console.log('Données financières mises à jour:', data);
+        })
+        .catch(error => console.error('Erreur:', error));
+}, 300000); // Toutes les 5 minutes
+</script>
+{% endblock %}

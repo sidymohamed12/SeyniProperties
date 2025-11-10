@@ -1,0 +1,469 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}{% if travail %}Modifier Travail{% else %}Nouveau Travail{% endif %}{% endblock %}
+
+{% block page_title %}{% if travail %}Modifier Travail{% else %}Nouveau Travail{% endif %}{% endblock %}
+{% block page_subtitle %}{% if travail %}Modifiez les informations du travail{% else %}Créez et assignez un nouveau travail{% endif %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .imani-card {
+        background: white;
+        border-radius: 0.75rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+    }
+
+    .imani-card:hover {
+        box-shadow: 0 4px 12px rgba(35, 69, 107, 0.15);
+    }
+
+    .imani-input {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.5rem;
+        transition: all 0.2s;
+    }
+
+    .imani-input:focus {
+        outline: none;
+        border-color: #23456b;
+        box-shadow: 0 0 0 3px rgba(35, 69, 107, 0.1);
+    }
+
+    .imani-label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #374151;
+        margin-bottom: 0.5rem;
+    }
+
+    .imani-section-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #23456b;
+        margin-bottom: 1.25rem;
+        display: flex;
+        align-items: center;
+    }
+
+    .imani-btn-primary {
+        width: 100%;
+        padding: 0.75rem 1.5rem;
+        background: linear-gradient(135deg, #23456b 0%, #a25946 100%);
+        color: white;
+        border-radius: 0.5rem;
+        font-weight: 500;
+        transition: all 0.3s;
+        border: none;
+        cursor: pointer;
+    }
+
+    .imani-btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(35, 69, 107, 0.3);
+    }
+
+    .imani-btn-secondary {
+        width: 100%;
+        padding: 0.75rem 1.5rem;
+        background: white;
+        color: #23456b;
+        border: 2px solid #23456b;
+        border-radius: 0.5rem;
+        font-weight: 500;
+        transition: all 0.3s;
+        cursor: pointer;
+    }
+
+    .imani-btn-secondary:hover {
+        background: #23456b;
+        color: white;
+    }
+
+    .imani-btn-demande-achat {
+        width: 100%;
+        padding: 0.75rem 1.5rem;
+        background: linear-gradient(135deg, #a25946 0%, #d4a574 100%);
+        color: white;
+        border-radius: 0.5rem;
+        font-weight: 500;
+        transition: all 0.3s;
+        border: none;
+        cursor: pointer;
+    }
+
+    .imani-btn-demande-achat:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(162, 89, 70, 0.3);
+    }
+
+    .priority-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+
+    /* Section Actions Sticky et Centrée */
+    @media (min-width: 1024px) {
+        .actions-sidebar {
+            position: sticky;
+            top: 6rem;
+            align-self: flex-start;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <!-- Navigation -->
+    <div class="mb-6">
+        <a href="{% url 'maintenance:travail_list' %}" class="inline-flex items-center text-gray-600 hover:text-imani-primary transition-colors">
+            <i class="fas fa-arrow-left mr-2"></i>
+            Retour à la liste des travaux
+        </a>
+    </div>
+
+    <form method="post" id="travail-form" enctype="multipart/form-data">
+        {% csrf_token %}
+        <!-- Champ caché pour nature (par défaut: reactif) -->
+        <input type="hidden" name="nature" value="reactif">
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Colonne principale -->
+            <div class="lg:col-span-2 space-y-6">
+
+                <!-- Section 1: Informations générales -->
+                <div class="imani-card p-6">
+                    <h2 class="imani-section-title">
+                        <i class="fas fa-info-circle text-imani-primary mr-2"></i>
+                        Informations Générales
+                    </h2>
+
+                    <div class="space-y-4">
+                        <!-- Titre -->
+                        <div>
+                            <label for="id_titre" class="imani-label">
+                                Titre du travail <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" id="id_titre" name="titre" required
+                                   value="{{ travail.titre }}"
+                                   placeholder="Ex: Réparation fuite d'eau salle de bain"
+                                   class="imani-input">
+                        </div>
+
+                        <!-- Description -->
+                        <div>
+                            <label for="id_description" class="imani-label">
+                                Description détaillée <span class="text-red-500">*</span>
+                            </label>
+                            <textarea id="id_description" name="description" rows="4" required
+                                      placeholder="Décrivez le travail à effectuer de manière détaillée..."
+                                      class="imani-input">{{ travail.description }}</textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 2: Type et Priorité -->
+                <div class="imani-card p-6">
+                    <h2 class="imani-section-title">
+                        <i class="fas fa-tag text-imani-primary mr-2"></i>
+                        Type et Priorité
+                    </h2>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="id_type_travail" class="imani-label">
+                                Type de travail <span class="text-red-500">*</span>
+                            </label>
+                            <select id="id_type_travail" name="type_travail" required class="imani-input">
+                                <option value="">Sélectionner un type</option>
+                                <option value="plomberie" {% if travail.type_travail == 'plomberie' %}selected{% endif %}>🔧 Plomberie</option>
+                                <option value="electricite" {% if travail.type_travail == 'electricite' %}selected{% endif %}>⚡ Électricité</option>
+                                <option value="peinture" {% if travail.type_travail == 'peinture' %}selected{% endif %}>🎨 Peinture</option>
+                                <option value="menuiserie" {% if travail.type_travail == 'menuiserie' %}selected{% endif %}>🪚 Menuiserie</option>
+                                <option value="climatisation" {% if travail.type_travail == 'climatisation' %}selected{% endif %}>❄️ Climatisation</option>
+                                <option value="serrurerie" {% if travail.type_travail == 'serrurerie' %}selected{% endif %}>🔑 Serrurerie</option>
+                                <option value="menage" {% if travail.type_travail == 'menage' %}selected{% endif %}>🧹 Ménage</option>
+                                <option value="jardinage" {% if travail.type_travail == 'jardinage' %}selected{% endif %}>🌿 Jardinage</option>
+                                <option value="maconnerie" {% if travail.type_travail == 'maconnerie' %}selected{% endif %}>🧱 Maçonnerie</option>
+                                <option value="vitrerie" {% if travail.type_travail == 'vitrerie' %}selected{% endif %}>🪟 Vitrerie</option>
+                                <option value="toiture" {% if travail.type_travail == 'toiture' %}selected{% endif %}>🏠 Toiture</option>
+                                <option value="etat_lieux" {% if travail.type_travail == 'etat_lieux' %}selected{% endif %}>📋 État des lieux</option>
+                                <option value="visite_controle" {% if travail.type_travail == 'visite_controle' %}selected{% endif %}>🔍 Visite de contrôle</option>
+                                <option value="autre" {% if travail.type_travail == 'autre' %}selected{% endif %}>➕ Autre</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label for="id_priorite" class="imani-label">
+                                Priorité <span class="text-red-500">*</span>
+                            </label>
+                            <select id="id_priorite" name="priorite" required class="imani-input">
+                                <option value="urgente" {% if travail.priorite == 'urgente' %}selected{% endif %}>🔴 Urgente</option>
+                                <option value="haute" {% if travail.priorite == 'haute' %}selected{% endif %}>🟠 Haute</option>
+                                <option value="normale" {% if travail.priorite == 'normale' or not travail %}selected{% endif %}>🟡 Normale</option>
+                                <option value="basse" {% if travail.priorite == 'basse' %}selected{% endif %}>🟢 Basse</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 3: Localisation -->
+                <div class="imani-card p-6">
+                    <h2 class="imani-section-title">
+                        <i class="fas fa-map-marker-alt text-imani-primary mr-2"></i>
+                        Localisation
+                    </h2>
+
+                    <div class="space-y-4">
+                        <!-- Appartement -->
+                        <div>
+                            <label for="id_appartement" class="imani-label">
+                                Appartement
+                            </label>
+                            <select id="id_appartement" name="appartement" class="imani-input">
+                                <option value="">Sélectionner un appartement</option>
+                                {% for appt in appartements %}
+                                <option value="{{ appt.id }}"
+                                        {% if travail.appartement_id == appt.id %}selected{% endif %}
+                                        data-residence="{{ appt.residence.nom }}">
+                                    {{ appt.residence.nom }} - {{ appt.nom }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- OU Résidence seule -->
+                        <div>
+                            <label for="id_residence" class="imani-label">
+                                Ou Résidence <span class="text-xs text-gray-500">(si non spécifique à un appartement)</span>
+                            </label>
+                            <select id="id_residence" name="residence" class="imani-input">
+                                <option value="">Sélectionner une résidence</option>
+                                {% for res in residences %}
+                                <option value="{{ res.id }}"
+                                        {% if travail.residence_id == res.id %}selected{% endif %}>
+                                    {{ res.nom }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <p class="text-xs text-gray-500 mt-1">Pour travaux communs (jardin, hall, parties communes...)</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 4: Planification -->
+                <div class="imani-card p-6">
+                    <h2 class="imani-section-title">
+                        <i class="fas fa-user-clock text-imani-primary mr-2"></i>
+                        Planification et Assignment
+                    </h2>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Assigné à -->
+                        <div class="md:col-span-2">
+                            <label for="id_assigne_a" class="imani-label">
+                                Assigner à un employé
+                            </label>
+                            <select id="id_assigne_a" name="assigne_a" class="imani-input">
+                                <option value="">-- Assigner plus tard --</option>
+                                {% for employe in employes %}
+                                <option value="{{ employe.id }}"
+                                        {% if travail.assigne_a_id == employe.id %}selected{% endif %}>
+                                    {{ employe.get_full_name }}
+                                    {% if employe.user_type %}
+                                        - {{ employe.get_user_type_display }}
+                                    {% endif %}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Date prévue -->
+                        <div>
+                            <label for="id_date_prevue" class="imani-label">
+                                Date prévue
+                            </label>
+                            <input type="date" id="id_date_prevue" name="date_prevue"
+                                   value="{{ travail.date_prevue|date:'Y-m-d' }}"
+                                   class="imani-input">
+                        </div>
+
+                        <!-- Récurrence -->
+                        <div>
+                            <label for="id_recurrence" class="imani-label">
+                                Récurrence
+                            </label>
+                            <select id="id_recurrence" name="recurrence" class="imani-input">
+                                <option value="aucune" {% if travail.recurrence == 'aucune' or not travail %}selected{% endif %}>Aucune</option>
+                                <option value="quotidien" {% if travail.recurrence == 'quotidien' %}selected{% endif %}>Quotidien</option>
+                                <option value="hebdomadaire" {% if travail.recurrence == 'hebdomadaire' %}selected{% endif %}>Hebdomadaire</option>
+                                <option value="mensuelle" {% if travail.recurrence == 'mensuelle' %}selected{% endif %}>Mensuelle</option>
+                                <option value="trimestrielle" {% if travail.recurrence == 'trimestrielle' %}selected{% endif %}>Trimestrielle</option>
+                                <option value="annuelle" {% if travail.recurrence == 'annuelle' %}selected{% endif %}>Annuelle</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 5: Coûts -->
+                <div class="imani-card p-6">
+                    <h2 class="imani-section-title">
+                        <i class="fas fa-coins text-imani-secondary mr-2"></i>
+                        Estimation Budgétaire
+                    </h2>
+
+                    <div>
+                        <label for="id_cout_estime" class="imani-label">
+                            Coût estimé (FCFA)
+                        </label>
+                        <input type="number" id="id_cout_estime" name="cout_estime" min="0" step="1000"
+                               value="{{ travail.cout_estime }}"
+                               placeholder="Ex: 50000"
+                               class="imani-input">
+                        <p class="text-xs text-gray-500 mt-1">Estimation du coût total des travaux (main d'œuvre + matériel)</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar - Sticky et Centrée -->
+            <div class="actions-sidebar space-y-6">
+                <!-- Actions -->
+                <div class="imani-card p-6">
+                    <h3 class="imani-section-title text-base mb-4">
+                        <i class="fas fa-tasks text-imani-primary mr-2"></i>
+                        Actions
+                    </h3>
+
+                    <div class="space-y-3">
+                        <button type="submit" name="action" value="save" class="imani-btn-primary">
+                            <i class="fas fa-save mr-2"></i>
+                            {% if travail %}Mettre à jour{% else %}Créer le travail{% endif %}
+                        </button>
+
+                        {% if not travail %}
+                        <button type="button" id="btn-save-and-create-demande" class="imani-btn-demande-achat">
+                            <i class="fas fa-shopping-cart mr-2"></i>
+                            Créer + Demande d'achat
+                        </button>
+                        {% endif %}
+
+                        <a href="{% url 'maintenance:travail_list' %}" class="imani-btn-secondary block text-center">
+                            <i class="fas fa-times mr-2"></i>
+                            Annuler
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Aide -->
+                <div class="imani-card p-6" style="background: linear-gradient(135deg, rgba(35, 69, 107, 0.05) 0%, rgba(162, 89, 70, 0.05) 100%);">
+                    <h3 class="text-sm font-semibold text-imani-primary mb-3 flex items-center">
+                        <i class="fas fa-lightbulb mr-2"></i>
+                        Conseils
+                    </h3>
+                    <ul class="space-y-2 text-sm text-gray-700">
+                        <li class="flex items-start">
+                            <i class="fas fa-check text-imani-secondary mr-2 mt-0.5"></i>
+                            <span>Soyez précis dans la description du travail</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check text-imani-secondary mr-2 mt-0.5"></i>
+                            <span>Choisissez le bon type selon la spécialité requise</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check text-imani-secondary mr-2 mt-0.5"></i>
+                            <span>Assignez à un employé disponible et qualifié</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check text-imani-secondary mr-2 mt-0.5"></i>
+                            <span>Estimez un budget réaliste pour le travail</span>
+                        </li>
+                    </ul>
+                </div>
+
+                {% if travail %}
+                <!-- Info création -->
+                <div class="imani-card p-4">
+                    <h4 class="text-xs font-semibold text-gray-500 uppercase mb-2">Informations</h4>
+                    <p class="text-xs text-gray-600 mb-1">
+                        <i class="fas fa-calendar-plus text-imani-primary mr-1"></i>
+                        <strong>Créé:</strong> {{ travail.created_at|date:"d/m/Y à H:i" }}
+                    </p>
+                    {% if travail.cree_par %}
+                    <p class="text-xs text-gray-600 mb-1">
+                        <i class="fas fa-user text-imani-primary mr-1"></i>
+                        <strong>Par:</strong> {{ travail.cree_par.get_full_name }}
+                    </p>
+                    {% endif %}
+                    {% if travail.modified_at %}
+                    <p class="text-xs text-gray-600 mt-2">
+                        <i class="fas fa-edit text-imani-secondary mr-1"></i>
+                        <strong>Modifié:</strong> {{ travail.modified_at|date:"d/m/Y à H:i" }}
+                    </p>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Exclusion mutuelle appartement/résidence
+    const appartementSelect = document.getElementById('id_appartement');
+    const residenceSelect = document.getElementById('id_residence');
+
+    if (appartementSelect && residenceSelect) {
+        appartementSelect.addEventListener('change', function() {
+            if (this.value) {
+                residenceSelect.value = '';
+            }
+        });
+
+        residenceSelect.addEventListener('change', function() {
+            if (this.value) {
+                appartementSelect.value = '';
+            }
+        });
+    }
+
+    // Bouton "Créer + Demande d'achat"
+    const btnSaveAndCreateDemande = document.getElementById('btn-save-and-create-demande');
+    if (btnSaveAndCreateDemande) {
+        btnSaveAndCreateDemande.addEventListener('click', function(e) {
+            e.preventDefault();
+
+            // Validation rapide des champs requis
+            const titre = document.getElementById('id_titre').value.trim();
+            const description = document.getElementById('id_description').value.trim();
+            const typeTravail = document.getElementById('id_type_travail').value;
+
+            if (!titre || !description || !typeTravail) {
+                alert('Veuillez remplir au minimum le titre, la description et le type de travail avant de continuer.');
+                return;
+            }
+
+            // Ajouter un champ caché pour indiquer l'action
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'action';
+            input.value = 'save_and_create_demande';
+            document.getElementById('travail-form').appendChild(input);
+
+            // Soumettre le formulaire
+            document.getElementById('travail-form').submit();
+        });
+    }
+});
+</script>
+{% endblock %}

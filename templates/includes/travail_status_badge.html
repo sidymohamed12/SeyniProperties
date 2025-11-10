@@ -1,0 +1,84 @@
+{% load static %}
+{# Composant réutilisable: Badge Statut Travail #}
+{# Usage: {% include 'includes/travail_status_badge.html' with statut='en_cours' size='normal' %} #}
+{# Paramètres: statut (requis), size ('small'|'normal') #}
+
+{% if size == 'small' %}
+    {# Version compacte pour cards #}
+    {% if statut == 'signale' %}
+    <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
+        Signalé
+    </span>
+    {% elif statut == 'planifie' %}
+    <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+        Planifié
+    </span>
+    {% elif statut == 'assigne' %}
+    <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-indigo-100 text-indigo-800">
+        Assigné
+    </span>
+    {% elif statut == 'en_cours' %}
+    <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-purple-100 text-purple-800">
+        En cours
+    </span>
+    {% elif statut == 'en_attente_materiel' %}
+    <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-orange-100 text-orange-800">
+        <i class="fas fa-shopping-cart mr-1"></i>Attente
+    </span>
+    {% elif statut == 'en_pause' %}
+    <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
+        Pause
+    </span>
+    {% elif statut == 'termine' %}
+    <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+        <i class="fas fa-check mr-1"></i>Terminé
+    </span>
+    {% elif statut == 'annule' %}
+    <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+        Annulé
+    </span>
+    {% else %}
+    <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
+        Inconnu
+    </span>
+    {% endif %}
+{% else %}
+    {# Version normale pour tables et détails #}
+    {% if statut == 'signale' %}
+    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-yellow-100 text-yellow-800">
+        <i class="fas fa-flag mr-2"></i>Signalé
+    </span>
+    {% elif statut == 'planifie' %}
+    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-blue-100 text-blue-800">
+        <i class="fas fa-calendar-check mr-2"></i>Planifié
+    </span>
+    {% elif statut == 'assigne' %}
+    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-indigo-100 text-indigo-800">
+        <i class="fas fa-user-check mr-2"></i>Assigné
+    </span>
+    {% elif statut == 'en_cours' %}
+    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-purple-100 text-purple-800">
+        <i class="fas fa-play-circle mr-2"></i>En cours
+    </span>
+    {% elif statut == 'en_attente_materiel' %}
+    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-orange-100 text-orange-800">
+        <i class="fas fa-shopping-cart mr-2"></i>En attente matériel
+    </span>
+    {% elif statut == 'en_pause' %}
+    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-gray-100 text-gray-800">
+        <i class="fas fa-pause-circle mr-2"></i>En pause
+    </span>
+    {% elif statut == 'termine' %}
+    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-green-100 text-green-800">
+        <i class="fas fa-check-circle mr-2"></i>Terminé
+    </span>
+    {% elif statut == 'annule' %}
+    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-red-100 text-red-800">
+        <i class="fas fa-times-circle mr-2"></i>Annulé
+    </span>
+    {% else %}
+    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-gray-100 text-gray-800">
+        <i class="fas fa-question-circle mr-2"></i>Inconnu
+    </span>
+    {% endif %}
+{% endif %}

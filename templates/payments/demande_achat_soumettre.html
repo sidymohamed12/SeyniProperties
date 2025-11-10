@@ -1,0 +1,150 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Soumettre Demande {{ demande.numero_facture }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Navigation -->
+    <div class="mb-6">
+        <a href="{% url 'payments:demande_achat_detail' demande.pk %}" class="text-gray-600 hover:text-gray-900 flex items-center">
+            <i class="fas fa-arrow-left mr-2"></i>
+            Retour au détail
+        </a>
+    </div>
+
+    <!-- Confirmation -->
+    <div class="max-w-2xl mx-auto">
+        <div class="bg-white rounded-lg shadow-md p-8">
+            <!-- Icône et titre -->
+            <div class="text-center mb-8">
+                <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-yellow-100 mb-4">
+                    <i class="fas fa-paper-plane text-yellow-600 text-2xl"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-900 mb-2">
+                    Soumettre la demande pour validation
+                </h2>
+                <p class="text-gray-600">
+                    Vous êtes sur le point de soumettre cette demande d'achat pour validation
+                </p>
+            </div>
+
+            <!-- Récapitulatif -->
+            <div class="bg-gray-50 rounded-lg p-6 mb-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Récapitulatif</h3>
+
+                <div class="space-y-3">
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Numéro</span>
+                        <span class="font-medium text-gray-900">{{ demande.numero_facture }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Demandeur</span>
+                        <span class="font-medium text-gray-900">{{ demande.demandeur.get_full_name }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Service</span>
+                        <span class="font-medium text-gray-900">{{ demande.service_fonction }}</span>
+                    </div>
+                    {% if demande.date_echeance %}
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Date d'échéance</span>
+                        <span class="font-medium text-gray-900">{{ demande.date_echeance|date:"d/m/Y" }}</span>
+                    </div>
+                    {% endif %}
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Nombre d'articles</span>
+                        <span class="font-medium text-gray-900">{{ demande.lignes_achat.count }}</span>
+                    </div>
+                    <div class="flex justify-between pt-3 border-t border-gray-200">
+                        <span class="text-gray-900 font-semibold">Montant total</span>
+                        <span class="font-bold text-blue-600">{{ demande.montant_ttc|floatformat:0 }} FCFA</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Avertissement -->
+            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-exclamation-triangle text-yellow-400"></i>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm text-yellow-700">
+                            <strong class="font-medium">Attention :</strong>
+                            Une fois soumise, la demande ne pourra plus être modifiée. Elle sera envoyée au responsable pour validation.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Workflow info -->
+            <div class="bg-blue-50 rounded-lg p-4 mb-6">
+                <h4 class="text-sm font-semibold text-blue-900 mb-3 flex items-center">
+                    <i class="fas fa-route mr-2"></i>
+                    Circuit de validation
+                </h4>
+                <ol class="space-y-2">
+                    <li class="flex items-start text-sm text-blue-800">
+                        <span class="flex-shrink-0 h-6 w-6 rounded-full bg-blue-200 flex items-center justify-center mr-3 mt-0.5">
+                            1
+                        </span>
+                        <span>Validation par le responsable de service</span>
+                    </li>
+                    <li class="flex items-start text-sm text-blue-800">
+                        <span class="flex-shrink-0 h-6 w-6 rounded-full bg-blue-200 flex items-center justify-center mr-3 mt-0.5">
+                            2
+                        </span>
+                        <span>Préparation du chèque par la comptabilité</span>
+                    </li>
+                    <li class="flex items-start text-sm text-blue-800">
+                        <span class="flex-shrink-0 h-6 w-6 rounded-full bg-blue-200 flex items-center justify-center mr-3 mt-0.5">
+                            3
+                        </span>
+                        <span>Validation finale par la Direction Générale</span>
+                    </li>
+                    <li class="flex items-start text-sm text-blue-800">
+                        <span class="flex-shrink-0 h-6 w-6 rounded-full bg-blue-200 flex items-center justify-center mr-3 mt-0.5">
+                            4
+                        </span>
+                        <span>Réception de la marchandise</span>
+                    </li>
+                </ol>
+            </div>
+
+            <!-- Formulaire de confirmation -->
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+
+                <!-- Checkbox de confirmation -->
+                <div class="flex items-start">
+                    <div class="flex items-center h-5">
+                        <input id="confirm" name="confirm" type="checkbox" required
+                               class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded">
+                    </div>
+                    <div class="ml-3 text-sm">
+                        <label for="confirm" class="font-medium text-gray-700">
+                            Je confirme que les informations sont exactes et je souhaite soumettre cette demande pour validation
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Boutons -->
+                <div class="flex justify-between items-center pt-6 border-t border-gray-200">
+                    <a href="{% url 'payments:demande_achat_detail' demande.pk %}"
+                       class="text-gray-600 hover:text-gray-900 flex items-center">
+                        <i class="fas fa-times mr-2"></i>
+                        Annuler
+                    </a>
+
+                    <button type="submit"
+                            class="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-lg font-medium transition-colors flex items-center">
+                        <i class="fas fa-paper-plane mr-2"></i>
+                        Soumettre la demande
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

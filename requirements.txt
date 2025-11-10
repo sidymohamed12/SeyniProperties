@@ -1,0 +1,65 @@
+# Core Django
+Django==4.2.7
+sqlparse==0.5.3
+
+# Database
+psycopg2-binary==2.9.9
+dj-database-url==2.1.0
+
+# Web Server
+gunicorn==21.2.0
+whitenoise==6.5.0
+
+# Environment & Configuration
+django-environ==0.11.2
+python-dotenv==1.0.0
+tzdata==2025.2
+
+# API & REST
+djangorestframework==3.14.0
+django-cors-headers==4.3.1
+django-filter==23.3
+PyJWT==2.10.1
+
+# Forms & UI
+django-widget-tweaks==1.5.0
+django-crispy-forms==2.1
+crispy-bootstrap4==2022.1
+
+# Image Processing
+Pillow==10.0.1
+
+# HTTP Clients
+requests==2.31.0
+urllib3==2.5.0
+certifi==2025.7.14
+charset-normalizer==3.4.2
+idna==3.10
+
+# Async HTTP
+aiohttp==3.12.15
+aiohttp-retry==2.9.1
+aiohappyeyeballs==2.6.1
+aiosignal==1.4.0
+async-timeout==5.0.1
+attrs==25.3.0
+frozenlist==1.7.0
+multidict==6.6.3
+propcache==0.3.2
+yarl==1.20.1
+
+# Notifications
+twilio==8.9.1
+
+# Utilities
+typing_extensions==4.14.1
+asgiref==3.9.1
+
+# Cron Jobs
+django-cron==0.6.0
+
+# Date utilities
+python-dateutil==2.9.0
+
+# PDF Generation
+reportlab==4.2.5

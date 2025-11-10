@@ -1,0 +1,189 @@
+<!-- widgets/stats_cards.html -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    {% for stat in stats %}
+    <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-{{ stat.color }}-500 hover:shadow-xl transition-shadow">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-{{ stat.color }}-600 text-sm font-medium uppercase tracking-wide">{{ stat.label }}</p>
+                <p class="text-3xl font-bold text-gray-900 mt-2">{{ stat.value }}</p>
+                {% if stat.change %}
+                <div class="flex items-center mt-2">
+                    <i class="fas fa-arrow-{{ stat.change_direction }} text-{{ stat.change_color }}-500 mr-1"></i>
+                    <span class="text-{{ stat.change_color }}-600 text-sm">{{ stat.change }}%</span>
+                    <span class="text-gray-500 text-sm ml-1">vs dernière période</span>
+                </div>
+                {% endif %}
+            </div>
+            <div class="w-12 h-12 bg-{{ stat.color }}-100 rounded-full flex items-center justify-center">
+                <i class="{{ stat.icon }} text-{{ stat.color }}-600 text-xl"></i>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- widgets/alerts.html -->
+<div class="bg-white rounded-xl shadow-lg p-6">
+    <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold text-gray-800">
+            <i class="fas fa-bell text-yellow-500 mr-2"></i>
+            Alertes Système
+        </h3>
+        <button class="text-blue-600 hover:text-blue-800 text-sm">Tout voir</button>
+    </div>
+    
+    <div class="space-y-3" id="alerts-container">
+        <!-- Les alertes seront chargées via AJAX -->
+        <div class="flex items-center justify-center py-8">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        </div>
+    </div>
+</div>
+
+<!-- widgets/quick_actions.html -->
+<div class="bg-white rounded-xl shadow-lg p-6">
+    <h3 class="text-lg font-semibold text-gray-800 mb-4">
+        <i class="fas fa-bolt text-yellow-500 mr-2"></i>
+        Actions Rapides
+    </h3>
+    
+    <div class="grid grid-cols-2 gap-4">
+        <button onclick="quickAddProperty()" class="flex flex-col items-center p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors group">
+            <div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
+                <i class="fas fa-plus text-white text-xl"></i>
+            </div>
+            <span class="text-sm font-medium text-gray-700">Nouveau Bien</span>
+        </button>
+        
+        <button onclick="quickAddContract()" class="flex flex-col items-center p-4 bg-green-50 hover:bg-green-100 rounded-lg transition-colors group">
+            <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
+                <i class="fas fa-file-contract text-white text-xl"></i>
+            </div>
+            <span class="text-sm font-medium text-gray-700">Nouveau Contrat</span>
+        </button>
+        
+        <button onclick="quickPayment()" class="flex flex-col items-center p-4 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors group">
+            <div class="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
+                <i class="fas fa-money-bill-wave text-white text-xl"></i>
+            </div>
+            <span class="text-sm font-medium text-gray-700">Saisir Paiement</span>
+        </button>
+        
+        <button onclick="quickIntervention()" class="flex flex-col items-center p-4 bg-orange-50 hover:bg-orange-100 rounded-lg transition-colors group">
+            <div class="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
+                <i class="fas fa-tools text-white text-xl"></i>
+            </div>
+            <span class="text-sm font-medium text-gray-700">Intervention</span>
+        </button>
+    </div>
+</div>
+
+<!-- widgets/timeline.html -->
+<div class="bg-white rounded-xl shadow-lg p-6">
+    <h3 class="text-lg font-semibold text-gray-800 mb-6">
+        <i class="fas fa-clock text-purple-500 mr-2"></i>
+        Activités Récentes
+    </h3>
+    <div class="relative">
+        <div class="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-200"></div>
+        
+        {% for event in recent_events %}
+        <div class="relative flex items-start mb-6 last:mb-0">
+            <div class="w-8 h-8 bg-{{ event.color }}-500 rounded-full flex items-center justify-center text-white text-sm relative z-10">
+                <i class="{{ event.icon }}"></i>
+            </div>
+            <div class="ml-4 flex-1">
+                <div class="flex items-center justify-between">
+                    <p class="font-medium text-gray-800">{{ event.title }}</p>
+                    <span class="text-xs text-gray-500">{{ event.time|timesince }}</span>
+                </div>
+                <p class="text-sm text-gray-600">{{ event.description }}</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+// Fonctions pour les actions rapides
+function quickAddProperty() {
+    // Ouvrir modal ou rediriger
+    showToast('Fonction en développement', 'info');
+}
+
+function quickAddContract() {
+    showToast('Fonction en développement', 'info');
+}
+
+function quickPayment() {
+    showToast('Fonction en développement', 'info');
+}
+
+function quickIntervention() {
+    showToast('Fonction en développement', 'info');
+}
+
+// Charger les alertes via AJAX
+document.addEventListener('DOMContentLoaded', function() {
+    loadAlerts();
+});
+
+function loadAlerts() {
+    fetch('/dashboard/api/alerts/')
+        .then(response => response.json())
+        .then(data => {
+            const container = document.getElementById('alerts-container');
+            if (data.alerts && data.alerts.length > 0) {
+                container.innerHTML = data.alerts.map(alert => `
+                    <div class="flex items-center p-3 bg-${alert.color}-50 border-l-4 border-${alert.color}-500 rounded-r-lg">
+                        <i class="${alert.icon} text-${alert.color}-500 mr-3"></i>
+                        <div class="flex-1">
+                            <p class="font-medium text-${alert.color}-800">${alert.title}</p>
+                            <p class="text-sm text-${alert.color}-600">${alert.description}</p>
+                        </div>
+                        <button onclick="handleQuickAction('${alert.action}')" class="px-3 py-1 bg-${alert.color}-500 text-white text-sm rounded-lg hover:bg-${alert.color}-600">
+                            Traiter
+                        </button>
+                    </div>
+                `).join('');
+            } else {
+                container.innerHTML = `
+                    <div class="text-center py-4 text-gray-500">
+                        <i class="fas fa-check-circle text-green-500 text-2xl mb-2"></i>
+                        <p>Aucune alerte active</p>
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            console.error('Erreur lors du chargement des alertes:', error);
+        });
+}
+
+function handleQuickAction(action) {
+    fetch('/dashboard/api/quick-action/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify({ action: action })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast(data.message, 'success');
+            if (data.redirect) {
+                window.location.href = data.redirect;
+            } else {
+                loadAlerts(); // Recharger les alertes
+            }
+        } else {
+            showToast(data.error || 'Erreur lors de l\'action', 'error');
+        }
+    })
+    .catch(error => {
+        showToast('Erreur de communication', 'error');
+    });
+}
+</script>

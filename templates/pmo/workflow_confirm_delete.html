@@ -1,0 +1,140 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Confirmer la suppression - PMO{% endblock %}
+
+{% block page_title %}
+    <i class="fas fa-exclamation-triangle text-red-600 mr-2"></i>Confirmer la suppression
+{% endblock %}
+{% block page_subtitle %}Workflow PMO - {{ contrat.numero_contrat }}{% endblock %}
+
+{% block content %}
+<!-- Avertissement -->
+<div class="imani-card p-6 mb-6 border-l-4 border-red-500 bg-red-50">
+    <div class="flex items-start gap-4">
+        <div class="w-12 h-12 rounded-xl bg-red-500 flex items-center justify-center flex-shrink-0">
+            <i class="fas fa-exclamation-triangle text-white text-xl"></i>
+        </div>
+        <div class="flex-1">
+            <h3 class="font-bold text-red-900 mb-2">⚠️ Attention : Action irréversible</h3>
+            <p class="text-sm text-red-800 mb-2">
+                Vous êtes sur le point de <strong>supprimer définitivement</strong> ce workflow PMO et le contrat associé.
+            </p>
+            <p class="text-sm text-red-800">
+                <strong>Cette action ne peut pas être annulée.</strong> Tous les documents et données associés seront perdus.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Informations du workflow à supprimer -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+    <!-- Informations du contrat -->
+    <div class="imani-card p-6">
+        <h3 class="font-bold text-lg mb-4 text-imani-primary flex items-center">
+            <i class="fas fa-file-contract mr-2"></i>Contrat
+        </h3>
+        <div class="space-y-3">
+            <div>
+                <p class="text-xs text-gray-500">Numéro de contrat</p>
+                <p class="font-semibold text-gray-900">{{ contrat.numero_contrat }}</p>
+            </div>
+            <div>
+                <p class="text-xs text-gray-500">Locataire</p>
+                <p class="font-semibold text-gray-900">{{ contrat.locataire.nom_complet }}</p>
+            </div>
+            <div>
+                <p class="text-xs text-gray-500">Appartement</p>
+                <p class="font-semibold text-gray-900">{{ contrat.appartement.nom }}</p>
+                <p class="text-xs text-gray-600">{{ contrat.appartement.residence.nom }}</p>
+            </div>
+            <div class="pt-3 border-t">
+                <p class="text-xs text-gray-500">Loyer mensuel</p>
+                <p class="font-bold text-blue-600">{{ contrat.loyer_mensuel|floatformat:0 }} FCFA</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Informations du workflow -->
+    <div class="imani-card p-6">
+        <h3 class="font-bold text-lg mb-4 text-imani-primary flex items-center">
+            <i class="fas fa-tasks mr-2"></i>Workflow PMO
+        </h3>
+        <div class="space-y-3">
+            <div>
+                <p class="text-xs text-gray-500">Étape actuelle</p>
+                <p class="font-semibold text-gray-900">{{ workflow.get_etape_actuelle_display }}</p>
+            </div>
+            <div>
+                <p class="text-xs text-gray-500">Statut du dossier</p>
+                <p class="font-semibold text-gray-900">{{ workflow.get_statut_dossier_display }}</p>
+            </div>
+            <div>
+                <p class="text-xs text-gray-500">Responsable PMO</p>
+                <p class="font-semibold text-gray-900">{{ workflow.responsable_pmo.get_full_name }}</p>
+            </div>
+            <div>
+                <p class="text-xs text-gray-500">Date de création</p>
+                <p class="font-semibold text-gray-900">{{ workflow.created_at|date:"d/m/Y à H:i" }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Documents associés -->
+{% if workflow.documents.exists %}
+<div class="imani-card p-6 mb-6">
+    <h3 class="font-bold text-lg mb-4 text-gray-900 flex items-center">
+        <i class="fas fa-folder-open mr-2"></i>
+        Documents qui seront supprimés ({{ workflow.documents.count }})
+    </h3>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        {% for document in workflow.documents.all %}
+        <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+            <i class="fas fa-file text-gray-400"></i>
+            <div class="flex-1">
+                <p class="text-sm font-medium text-gray-900">{{ document.get_type_document_display }}</p>
+                <p class="text-xs text-gray-500">
+                    {% if document.fichier %}
+                        <i class="fas fa-check text-green-600 mr-1"></i>Fichier uploadé
+                    {% else %}
+                        <i class="fas fa-clock text-gray-400 mr-1"></i>En attente
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Confirmation -->
+<div class="imani-card p-6">
+    <h3 class="font-bold text-lg mb-4 text-gray-900">Confirmer la suppression</h3>
+    <p class="text-sm text-gray-600 mb-6">
+        Pour confirmer la suppression de ce workflow et du contrat <strong>{{ contrat.numero_contrat }}</strong>,
+        cliquez sur le bouton "Supprimer définitivement" ci-dessous.
+    </p>
+
+    <form method="post" class="flex gap-3">
+        {% csrf_token %}
+        <a href="{% url 'contracts:pmo_workflow_detail' workflow.id %}"
+           class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all font-medium">
+            <i class="fas fa-arrow-left mr-2"></i>Annuler et revenir
+        </a>
+        <button type="submit"
+                class="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all font-medium flex-1">
+            <i class="fas fa-trash mr-2"></i>Supprimer définitivement
+        </button>
+    </form>
+</div>
+
+<script>
+// Confirmation supplémentaire en JavaScript
+document.querySelector('form').addEventListener('submit', function(e) {
+    if (!confirm('⚠️ ATTENTION :\n\nÊtes-vous ABSOLUMENT SÛR de vouloir supprimer ce workflow et ce contrat ?\n\nCette action est IRRÉVERSIBLE et supprimera :\n- Le contrat {{ contrat.numero_contrat }}\n- Le workflow PMO complet\n- Tous les documents associés\n\nTaper "OUI" pour confirmer.')) {
+        e.preventDefault();
+    }
+});
+</script>
+{% endblock %}

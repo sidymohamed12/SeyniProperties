@@ -1,0 +1,1043 @@
+<!-- templates/employees/mobile/interventions_list.html - VERSION COMPLÈTE -->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#23456b">
+    
+    <title>Mes Interventions - Seyni Employés</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'seyni-primary': '#a25946',
+                        'seyni-secondary': '#23456b',
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        body {
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+            -webkit-tap-highlight-color: transparent;
+            overscroll-behavior: none;
+        }
+        
+        .safe-area {
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        
+        .card-shadow {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .priority-urgente { border-left: 4px solid #EF4444; }
+        .priority-haute { border-left: 4px solid #F59E0B; }
+        .priority-normale { border-left: 4px solid #a25946; }
+        .priority-basse { border-left: 4px solid #10B981; }
+        
+        .status-assigne { background: #FEF3C7; color: #92400E; }
+        .status-en_cours { background: #FED7AA; color: #9A3412; }
+        .status-complete { background: #D1FAE5; color: #065F46; }
+        .status-annule { background: #FEE2E2; color: #991B1B; }
+        
+        .btn-ripple {
+            position: relative;
+            overflow: hidden;
+            transform: translate3d(0, 0, 0);
+        }
+        
+        .btn-ripple:active {
+            transform: scale(0.98);
+        }
+        
+        .filter-chip {
+            transition: all 0.3s ease;
+        }
+        
+        .filter-chip.active {
+            background: #a25946;
+            color: white;
+        }
+        
+        .pull-to-refresh {
+            transform: translateY(-100px);
+            transition: transform 0.3s ease;
+        }
+        
+        .pull-to-refresh.show {
+            transform: translateY(0);
+        }
+        
+        /* Animation de chargement pour pull-to-refresh */
+        .refresh-spinner {
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Style pour les interventions urgentes */
+        .intervention-urgent {
+            background: linear-gradient(45deg, #FEF2F2, #FECACA);
+            border-left-color: #DC2626;
+        }
+        
+        /* Skeleton loading */
+        .skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+        }
+        
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #23456b 0%, #a25946 100%);
+        }
+        
+        .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        .intervention-type-badge {
+            background: rgba(162, 89, 70, 0.1);
+            color: #a25946;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 safe-area">
+    <!-- Pull to refresh indicator -->
+    <div id="pull-refresh" class="fixed top-0 left-0 right-0 text-white p-4 text-center pull-to-refresh z-40" style="background-color: #23456b;">
+        <div class="flex items-center justify-center space-x-2">
+            <i id="refresh-icon" class="fas fa-arrow-down"></i>
+            <span id="refresh-text">Tirez pour actualiser</span>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="gradient-bg text-white sticky top-0 z-50 shadow-lg">
+        <div class="px-4 py-3">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <button onclick="goBack()" class="p-2 hover:bg-black hover:bg-opacity-20 rounded-lg transition-colors">
+                        <i class="fas fa-arrow-left text-xl"></i>
+                    </button>
+                    <div>
+                        <h1 class="font-bold text-lg">Mes Interventions</h1>
+                        <p class="text-blue-200 text-sm">{{ total_interventions|default:0 }} intervention{{ total_interventions|pluralize }}</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center space-x-2">
+                    <button onclick="toggleFilters()" class="p-2 hover:bg-black hover:bg-opacity-20 rounded-lg transition-colors">
+                        <i class="fas fa-filter text-xl"></i>
+                    </button>
+                    
+                    <button onclick="refreshInterventions()" class="p-2 hover:bg-black hover:bg-opacity-20 rounded-lg transition-colors">
+                        <i id="refresh-btn-icon" class="fas fa-sync-alt text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Filtres -->
+    <div id="filters-section" class="bg-white border-b border-gray-200 p-4 transform -translate-y-full transition-transform duration-300">
+        <div class="space-y-4">
+            <!-- Filtres par statut -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Statut</label>
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="applyFilter('status', 'active')" 
+                            class="filter-chip px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-700">
+                        Actives
+                    </button>
+                    <button onclick="applyFilter('status', 'assigne')" 
+                            class="filter-chip px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-700">
+                        Assignées
+                    </button>
+                    <button onclick="applyFilter('status', 'en_cours')" 
+                            class="filter-chip px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-700">
+                        En cours
+                    </button>
+                    <button onclick="applyFilter('status', 'complete')" 
+                            class="filter-chip px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-700">
+                        Terminées
+                    </button>
+                    <button onclick="applyFilter('status', 'all')" 
+                            class="filter-chip px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-700">
+                        Toutes
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenu principal -->
+    <main class="p-4 pb-24">
+        <!-- Statistiques rapides -->
+        <div class="grid grid-cols-3 gap-3 mb-4">
+            <div class="bg-white rounded-lg p-3 card-shadow text-center">
+                <p class="text-2xl font-bold" style="color: #a25946;">{{ stats.total_interventions|default:0 }}</p>
+                <p class="text-xs text-gray-600">Total</p>
+            </div>
+            <div class="bg-white rounded-lg p-3 card-shadow text-center">
+                <p class="text-2xl font-bold text-orange-600">{{ stats.active_interventions|default:0 }}</p>
+                <p class="text-xs text-gray-600">Actives</p>
+            </div>
+            <div class="bg-white rounded-lg p-3 card-shadow text-center">
+                <p class="text-2xl font-bold text-green-600">{{ stats.completed_interventions|default:0 }}</p>
+                <p class="text-xs text-gray-600">Terminées</p>
+            </div>
+        </div>
+
+        <!-- Liste des interventions -->
+        <div id="interventions-container">
+            {% if page_obj.object_list %}
+                {% for intervention in page_obj.object_list %}
+                <div class="bg-white rounded-xl p-4 card-shadow mb-3 priority-{{ intervention.priorite }} {% if intervention.priorite == 'urgente' %}intervention-urgent{% endif %}" 
+                     data-intervention-id="{{ intervention.id }}">
+                    
+                    <!-- En-tête de l'intervention -->
+                    <div class="flex items-start justify-between mb-3">
+                        <div class="flex-1">
+                            <div class="flex items-center space-x-2 mb-1">
+                                <h3 class="font-medium text-gray-900">{{ intervention.titre|default:"Intervention" }}</h3>
+                                {% if intervention.priorite == 'urgente' %}
+                                <span class="bg-red-100 text-red-700 px-2 py-0.5 rounded text-xs font-medium">
+                                    URGENT
+                                </span>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="flex items-center space-x-2 mb-2">
+                                <span class="intervention-type-badge px-2 py-1 rounded text-xs font-medium">
+                                    {{ intervention.get_type_intervention_display }}
+                                </span>
+                            </div>
+                            
+                            {% if intervention.description %}
+                            <p class="text-sm text-gray-600 mb-2 line-clamp-2">{{ intervention.description|truncatechars:80 }}</p>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="ml-3 text-right">
+                            <span class="status-{{ intervention.statut }} px-2 py-1 rounded-full text-xs font-medium">
+                                {{ intervention.get_statut_display }}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <!-- Détails de l'intervention -->
+                    <div class="grid grid-cols-2 gap-3 text-xs text-gray-500 mb-3">
+                        <div class="flex items-center space-x-1">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span>{{ intervention.date_signalement|date:"d/m H:i" }}</span>
+                        </div>
+                        
+                        <div class="flex items-center space-x-1">
+                            <i class="fas fa-flag"></i>
+                            <span>{{ intervention.get_priorite_display }}</span>
+                        </div>
+                        
+                        {% if intervention.bien %}
+                        <div class="flex items-center space-x-1 col-span-2">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>{{ intervention.bien.name|truncatechars:30 }}</span>
+                        </div>
+                        {% endif %}
+                        
+                        {% if intervention.locataire %}
+                        <div class="flex items-center space-x-1 col-span-2">
+                            <i class="fas fa-user"></i>
+                            <span>{{ intervention.locataire.nom_complet|truncatechars:25 }}</span>
+                        </div>
+                        {% endif %}
+                        
+                        {% if intervention.duree_estimee %}
+                        <div class="flex items-center space-x-1">
+                            <i class="fas fa-clock"></i>
+                            <span>{{ intervention.duree_estimee }}min</span>
+                        </div>
+                        {% endif %}
+                        
+                        {% if intervention.cout_estime %}
+                        <div class="flex items-center space-x-1">
+                            <i class="fas fa-euro-sign"></i>
+                            <span>{{ intervention.cout_estime|floatformat:0 }}€</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Actions -->
+                    <div class="flex items-center justify-between">
+                        <button onclick="viewInterventionDetail({{ intervention.id }})" 
+                                class="text-sm font-medium flex items-center space-x-1" style="color: #23456b;">
+                            <i class="fas fa-eye"></i>
+                            <span>Voir détail</span>
+                        </button>
+                        
+                        <div class="flex space-x-2">
+                            {% if intervention.statut == 'assigne' %}
+                            <button onclick="quickStartIntervention({{ intervention.id }})" 
+                                    class="text-white px-3 py-1 rounded-lg text-xs font-medium btn-ripple" style="background-color: #a25946;">
+                                <i class="fas fa-play mr-1"></i>
+                                Démarrer
+                            </button>
+                            {% elif intervention.statut == 'en_cours' %}
+                            <button onclick="viewInterventionDetail({{ intervention.id }})" 
+                                    class="bg-green-600 text-white px-3 py-1 rounded-lg text-xs font-medium btn-ripple">
+                                <i class="fas fa-check mr-1"></i>
+                                Terminer
+                            </button>
+                            {% elif intervention.statut == 'complete' %}
+                            <span class="text-green-600 text-xs flex items-center">
+                                <i class="fas fa-check-circle mr-1"></i>
+                                Terminée
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <!-- État vide -->
+                <div class="text-center py-12">
+                    <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-tools text-gray-400 text-2xl"></i>
+                    </div>
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">Aucune intervention</h3>
+                    <p class="text-gray-600 text-sm">
+                        {% if current_filters.status %}
+                            Aucune intervention ne correspond aux filtres sélectionnés.
+                        {% else %}
+                            Vous n'avez aucune intervention assignée pour le moment.
+                        {% endif %}
+                    </p>
+                    {% if current_filters.status %}
+                    <button onclick="clearAllFilters()" 
+                            class="mt-4 text-white px-4 py-2 rounded-lg text-sm font-medium" style="background-color: #a25946;">
+                        Effacer les filtres
+                    </button>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            {% else %}
+                <!-- État vide par défaut -->
+                <div class="text-center py-12">
+                    <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-tools text-gray-400 text-2xl"></i>
+                    </div>
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">Aucune intervention</h3>
+                    <p class="text-gray-600 text-sm">Vous n'avez aucune intervention assignée pour le moment.</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+        <div class="mt-6">
+            <div class="flex items-center justify-center space-x-1">
+                {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}{% if current_filters.status %}&status={{ current_filters.status }}{% endif %}" 
+                   class="px-3 py-2 bg-white rounded-lg text-gray-600 border border-gray-200 text-sm">
+                    <i class="fas fa-chevron-left"></i>
+                </a>
+                {% endif %}
+                
+                <span class="px-4 py-2 text-sm text-gray-700">
+                    Page {{ page_obj.number }} sur {{ page_obj.paginator.num_pages }}
+                </span>
+                
+                {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}{% if current_filters.status %}&status={{ current_filters.status }}{% endif %}" 
+                   class="px-3 py-2 bg-white rounded-lg text-gray-600 border border-gray-200 text-sm">
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </main>
+
+    <!-- Loading skeleton -->
+    <div id="loading-skeleton" class="hidden p-4">
+        {% for i in "123" %}
+        <div class="bg-white rounded-xl p-4 card-shadow mb-3 skeleton">
+            <div class="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+            <div class="h-3 bg-gray-200 rounded w-1/2 mb-3"></div>
+            <div class="grid grid-cols-2 gap-3 mb-3">
+                <div class="h-3 bg-gray-200 rounded"></div>
+                <div class="h-3 bg-gray-200 rounded"></div>
+            </div>
+            <div class="flex justify-between">
+                <div class="h-6 bg-gray-200 rounded w-20"></div>
+                <div class="h-6 bg-gray-200 rounded w-16"></div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Navigation bottom fixe -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 safe-area">
+        <div class="grid grid-cols-4 py-2">
+            <a href="{% url 'employees:employee_dashboard_mobile' %}" 
+               class="flex flex-col items-center justify-center py-2 text-gray-500 hover:text-blue-600">
+                <i class="fas fa-home text-xl mb-1"></i>
+                <span class="text-xs">Accueil</span>
+            </a>
+            
+            <a href="{% url 'employees:my_tasks_mobile' %}" 
+               class="flex flex-col items-center justify-center py-2 text-gray-500 hover:text-blue-600">
+                <i class="fas fa-tasks text-xl mb-1"></i>
+                <span class="text-xs">Tâches</span>
+            </a>
+            
+            <a href="{% url 'employees:my_interventions_mobile' %}" 
+               class="flex flex-col items-center justify-center py-2" style="color: #a25946;">
+                <i class="fas fa-tools text-xl mb-1"></i>
+                <span class="text-xs">Maintenance</span>
+            </a>
+            
+            <a href="{% url 'employees:my_schedule_mobile' %}" 
+               class="flex flex-col items-center justify-center py-2 text-gray-500 hover:text-blue-600">
+                <i class="fas fa-calendar-alt text-xl mb-1"></i>
+                <span class="text-xs">Planning</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Toast container -->
+    <div id="toast-container" class="fixed top-20 left-4 right-4 z-50"></div>
+
+    <!-- Loading overlay -->
+    <div id="loading-overlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl p-6 flex flex-col items-center">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-3"></div>
+            <p class="text-gray-700">Chargement...</p>
+        </div>
+    </div>
+
+    <script>
+        let currentFilters = {
+            status: '{{ current_filters.status|default:"active" }}'
+        };
+        
+        let isFiltersVisible = false;
+        let isRefreshing = false;
+        let startY = 0;
+        let currentY = 0;
+        let pullDistance = 0;
+        
+        // ===== Navigation =====
+        function goBack() {
+            window.history.back();
+        }
+        
+        function viewInterventionDetail(interventionId) {
+            window.location.href = `/employees/mobile/interventions/${interventionId}/`;
+        }
+        
+        // ===== Gestion des filtres =====
+        function toggleFilters() {
+            const filtersSection = document.getElementById('filters-section');
+            
+            if (isFiltersVisible) {
+                filtersSection.classList.add('-translate-y-full');
+                isFiltersVisible = false;
+            } else {
+                filtersSection.classList.remove('-translate-y-full');
+                isFiltersVisible = true;
+            }
+        }
+        
+        function applyFilter(type, value) {
+            currentFilters[type] = value;
+            
+            // Mettre à jour l'apparence des filtres
+            updateFilterButtons();
+            
+            // Appliquer les filtres
+            const url = new URL(window.location);
+            url.searchParams.set(type, value);
+            
+            // Supprimer le paramètre si c'est "all"
+            if (value === 'all') {
+                url.searchParams.delete(type);
+            }
+            
+            window.location.href = url.toString();
+        }
+        
+        function clearAllFilters() {
+            currentFilters = { status: 'active' };
+            
+            const url = new URL(window.location);
+            url.searchParams.delete('status');
+            url.searchParams.delete('page');
+            
+            window.location.href = url.toString();
+        }
+        
+        function updateFilterButtons() {
+            // Mettre à jour l'apparence des boutons de filtre
+            document.querySelectorAll('.filter-chip').forEach(button => {
+                button.classList.remove('active');
+            });
+            
+            // Activer les boutons sélectionnés
+            Object.keys(currentFilters).forEach(filterType => {
+                const value = currentFilters[filterType];
+                const button = document.querySelector(`[onclick="applyFilter('${filterType}', '${value}')"]`);
+                if (button) {
+                    button.classList.add('active');
+                }
+            });
+        }
+        
+        // ===== Actions rapides =====
+        async function quickStartIntervention(interventionId) {
+            try {
+                showLoading(true);
+                const response = await fetch(`/employees/mobile/interventions/${interventionId}/start/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken'),
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showToast(data.message, 'success');
+                    
+                    // Mettre à jour l'intervention dans la liste
+                    const interventionElement = document.querySelector(`[data-intervention-id="${interventionId}"]`);
+                    if (interventionElement) {
+                        updateInterventionInList(interventionElement, 'en_cours');
+                    }
+                } else {
+                    showToast(data.error, 'error');
+                }
+            } catch (error) {
+                showToast('Erreur de connexion', 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+        
+        function updateInterventionInList(interventionElement, newStatus) {
+            // Mettre à jour le statut visuel
+            const statusBadge = interventionElement.querySelector('.status-assigne, .status-en_cours, .status-complete');
+            if (statusBadge) {
+                statusBadge.className = `status-${newStatus} px-2 py-1 rounded-full text-xs font-medium`;
+                statusBadge.textContent = newStatus === 'en_cours' ? 'En cours' : 
+                                         newStatus === 'complete' ? 'Terminée' : 'Assignée';
+            }
+            
+            // Mettre à jour le bouton d'action
+            const actionButton = interventionElement.querySelector('[style*="background-color: #a25946"]');
+            if (actionButton && newStatus === 'en_cours') {
+                actionButton.className = 'bg-green-600 text-white px-3 py-1 rounded-lg text-xs font-medium btn-ripple';
+                actionButton.innerHTML = '<i class="fas fa-check mr-1"></i>Terminer';
+                actionButton.onclick = () => viewInterventionDetail(interventionElement.dataset.interventionId);
+            }
+        }
+        
+        // ===== Pull to refresh =====
+        function setupPullToRefresh() {
+            let pullToRefreshElement = document.getElementById('pull-refresh');
+            let refreshIcon = document.getElementById('refresh-icon');
+            let refreshText = document.getElementById('refresh-text');
+            
+            document.addEventListener('touchstart', (e) => {
+                if (window.scrollY === 0) {
+                    startY = e.touches[0].pageY;
+                }
+            });
+            
+            document.addEventListener('touchmove', (e) => {
+                if (window.scrollY === 0 && !isRefreshing) {
+                    currentY = e.touches[0].pageY;
+                    pullDistance = currentY - startY;
+                    
+                    if (pullDistance > 0 && pullDistance < 150) {
+                        e.preventDefault();
+                        pullToRefreshElement.style.transform = `translateY(${pullDistance - 100}px)`;
+                        
+                        // Changer l'icône selon la distance
+                        if (pullDistance > 80) {
+                            refreshIcon.className = 'fas fa-sync-alt';
+                            refreshText.textContent = 'Relâchez pour actualiser';
+                        } else {
+                            refreshIcon.className = 'fas fa-arrow-down';
+                            refreshText.textContent = 'Tirez pour actualiser';
+                        }
+                    }
+                }
+            });
+            
+            document.addEventListener('touchend', (e) => {
+                if (pullDistance > 80 && !isRefreshing) {
+                    performRefresh();
+                } else {
+                    resetPullToRefresh();
+                }
+            });
+        }
+        
+        function performRefresh() {
+            isRefreshing = true;
+            const pullToRefreshElement = document.getElementById('pull-refresh');
+            const refreshIcon = document.getElementById('refresh-icon');
+            const refreshText = document.getElementById('refresh-text');
+            
+            pullToRefreshElement.style.transform = 'translateY(0px)';
+            refreshIcon.className = 'fas fa-sync-alt refresh-spinner';
+            refreshText.textContent = 'Actualisation...';
+            
+            // Simuler le rafraîchissement
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        }
+        
+        function resetPullToRefresh() {
+            pullDistance = 0;
+            const pullToRefreshElement = document.getElementById('pull-refresh');
+            const refreshIcon = document.getElementById('refresh-icon');
+            const refreshText = document.getElementById('refresh-text');
+            
+            pullToRefreshElement.style.transform = 'translateY(-100px)';
+            refreshIcon.className = 'fas fa-arrow-down';
+            refreshText.textContent = 'Tirez pour actualiser';
+        }
+        
+        // ===== Refresh manuel =====
+        function refreshInterventions() {
+            const refreshBtn = document.getElementById('refresh-btn-icon');
+            refreshBtn.classList.add('refresh-spinner');
+            
+            showLoading(true);
+            
+            setTimeout(() => {
+                window.location.reload();
+            }, 500);
+        }
+        
+        // ===== Utilitaires =====
+        function showToast(message, type = 'info') {
+            const toastContainer = document.getElementById('toast-container');
+            
+            const toast = document.createElement('div');
+            toast.className = `mb-2 p-3 rounded-lg text-white shadow-lg transform transition-all duration-300 translate-x-full`;
+            
+            // Couleurs selon le type
+            const colors = {
+                'success': 'bg-green-500',
+                'error': 'bg-red-500',
+                'warning': 'bg-yellow-500',
+                'info': 'bg-blue-500'
+            };
+            
+            toast.classList.add(colors[type] || colors.info);
+            
+            // Contenu du toast
+            toast.innerHTML = `
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-2">
+                        <i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'times' : type === 'warning' ? 'exclamation' : 'info'}-circle"></i>
+                        <span class="text-sm font-medium">${message}</span>
+                    </div>
+                    <button onclick="this.parentElement.parentElement.remove()" class="ml-4 text-white hover:text-gray-200">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+            
+            toastContainer.appendChild(toast);
+            
+            // Animation d'entrée
+            setTimeout(() => {
+                toast.classList.remove('translate-x-full');
+            }, 100);
+            
+            // Auto-suppression après 4 secondes
+            setTimeout(() => {
+                if (toast.parentElement) {
+                    toast.classList.add('translate-x-full');
+                    setTimeout(() => {
+                        if (toast.parentElement) {
+                            toast.remove();
+                        }
+                    }, 300);
+                }
+            }, 4000);
+        }
+        
+        function showLoading(show) {
+            const loadingOverlay = document.getElementById('loading-overlay');
+            
+            if (show) {
+                loadingOverlay.classList.remove('hidden');
+            } else {
+                loadingOverlay.classList.add('hidden');
+            }
+        }
+        
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        
+        // ===== Gestion offline =====
+        function checkOnlineStatus() {
+            if (!navigator.onLine) {
+                showToast('Mode hors ligne activé', 'warning');
+                document.body.classList.add('offline');
+            } else {
+                document.body.classList.remove('offline');
+            }
+        }
+        
+        function cacheInterventionsData() {
+            // Sauvegarder les données des interventions en local storage pour usage hors ligne
+            const interventionsData = {
+                interventions: Array.from(document.querySelectorAll('[data-intervention-id]')).map(el => ({
+                    id: el.dataset.interventionId,
+                    html: el.outerHTML
+                })),
+                timestamp: Date.now()
+            };
+            
+            try {
+                localStorage.setItem('cached_interventions', JSON.stringify(interventionsData));
+            } catch (e) {
+                console.warn('Impossible de sauvegarder en cache:', e);
+            }
+        }
+        
+        function loadCachedInterventions() {
+            try {
+                const cached = localStorage.getItem('cached_interventions');
+                if (cached) {
+                    const data = JSON.parse(cached);
+                    const ageInHours = (Date.now() - data.timestamp) / (1000 * 60 * 60);
+                    
+                    // Utiliser le cache seulement s'il a moins de 2 heures
+                    if (ageInHours < 2) {
+                        return data.interventions;
+                    }
+                }
+            } catch (e) {
+                console.warn('Erreur lecture cache:', e);
+            }
+            return null;
+        }
+        
+        // ===== Initialisation =====
+        document.addEventListener('DOMContentLoaded', function() {
+            // Configurer pull-to-refresh
+            setupPullToRefresh();
+            
+            // Mettre à jour l'apparence des filtres selon l'état actuel
+            updateFilterButtons();
+            
+            // Vérifier le statut en ligne/hors ligne
+            checkOnlineStatus();
+            window.addEventListener('online', checkOnlineStatus);
+            window.addEventListener('offline', checkOnlineStatus);
+            
+            // Cacher le skeleton de chargement s'il est visible
+            const skeleton = document.getElementById('loading-skeleton');
+            if (skeleton) {
+                skeleton.classList.add('hidden');
+            }
+            
+            // Sauvegarder les données en cache
+            cacheInterventionsData();
+            
+            // Configuration pour éviter le zoom sur double tap
+            let lastTouchEnd = 0;
+            document.addEventListener('touchend', function (event) {
+                const now = (new Date()).getTime();
+                if (now - lastTouchEnd <= 300) {
+                    event.preventDefault();
+                }
+                lastTouchEnd = now;
+            }, false);
+            
+            // Prévenir le comportement par défaut du scroll overscroll
+            document.addEventListener('touchmove', function(e) {
+                if (e.touches.length > 1) {
+                    e.preventDefault();
+                }
+            }, { passive: false });
+            
+            // Animation d'entrée pour les interventions
+            const interventions = document.querySelectorAll('[data-intervention-id]');
+            interventions.forEach((intervention, index) => {
+                intervention.style.opacity = '0';
+                intervention.style.transform = 'translateY(20px)';
+                
+                setTimeout(() => {
+                    intervention.style.transition = 'all 0.4s ease';
+                    intervention.style.opacity = '1';
+                    intervention.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+            
+            // Feedback haptique pour les actions (si supporté)
+            if ('vibrate' in navigator) {
+                document.addEventListener('click', function(e) {
+                    if (e.target.closest('.btn-ripple')) {
+                        navigator.vibrate(10); // Vibration courte
+                    }
+                });
+            }
+        });
+        
+        // ===== Service Worker pour PWA (optionnel) =====
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(function(registration) {
+                        console.log('SW enregistré avec succès:', registration.scope);
+                    })
+                    .catch(function(registrationError) {
+                        console.log('Échec enregistrement SW:', registrationError);
+                    });
+            });
+        }
+        
+        // ===== Gestion des erreurs globales =====
+        window.addEventListener('error', function(e) {
+            console.error('Erreur JavaScript:', e.error);
+            showToast('Une erreur est survenue', 'error');
+        });
+        
+        window.addEventListener('unhandledrejection', function(e) {
+            console.error('Promise rejetée:', e.reason);
+            showToast('Erreur de connexion', 'error');
+        });
+        
+        // ===== Performance monitoring =====
+        function trackPerformance() {
+            if ('performance' in window) {
+                window.addEventListener('load', function() {
+                    setTimeout(function() {
+                        const perfData = performance.timing;
+                        const loadTime = perfData.loadEventEnd - perfData.navigationStart;
+                        
+                        // Envoyer les métriques si nécessaire
+                        console.log('Temps de chargement:', loadTime + 'ms');
+                        
+                        if (loadTime > 3000) {
+                            console.warn('Chargement lent détecté');
+                        }
+                    }, 0);
+                });
+            }
+        }
+        
+        trackPerformance();
+        
+        // ===== Touches de raccourci pour développement =====
+        document.addEventListener('keydown', function(e) {
+            // Ctrl + R : Rafraîchir
+            if (e.ctrlKey && e.key === 'r') {
+                e.preventDefault();
+                refreshInterventions();
+            }
+            
+            // Ctrl + F : Filtres
+            if (e.ctrlKey && e.key === 'f') {
+                e.preventDefault();
+                toggleFilters();
+            }
+        });
+        
+        // ===== Analytics et tracking (optionnel) =====
+        function trackUserAction(action, details = {}) {
+            // Envoyer les données d'usage pour améliorer l'app
+            const trackingData = {
+                action: action,
+                details: details,
+                timestamp: new Date().toISOString(),
+                page: 'mobile_interventions_list',
+                userAgent: navigator.userAgent,
+                viewportWidth: window.innerWidth,
+                viewportHeight: window.innerHeight
+            };
+            
+            // Envoyer à votre service d'analytics
+            console.log('Tracking:', trackingData);
+        }
+        
+        // Exemple d'utilisation du tracking
+        document.addEventListener('click', function(e) {
+            const button = e.target.closest('button');
+            if (button) {
+                const action = button.getAttribute('onclick') || button.className;
+                trackUserAction('button_click', { action: action });
+            }
+        });
+        
+        // ===== Optimisations pour mobile =====
+        
+        // Prévenir le zoom accidentel
+        document.addEventListener('gesturestart', function (e) {
+            e.preventDefault();
+        });
+        
+        // Optimiser les images lazy loading
+        if ('IntersectionObserver' in window) {
+            const imageObserver = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const img = entry.target;
+                        if (img.dataset.src) {
+                            img.src = img.dataset.src;
+                            img.classList.remove('lazy');
+                            imageObserver.unobserve(img);
+                        }
+                    }
+                });
+            });
+            
+            document.querySelectorAll('img[data-src]').forEach(img => {
+                imageObserver.observe(img);
+            });
+        }
+        
+        // ===== Préchargement des pages fréquentes =====
+        function preloadFrequentPages() {
+            const frequentPages = [
+                '/employees/mobile/dashboard/',
+                '/employees/mobile/tasks/',
+                '/employees/mobile/schedule/',
+            ];
+            
+            frequentPages.forEach(url => {
+                const link = document.createElement('link');
+                link.rel = 'prefetch';
+                link.href = url;
+                document.head.appendChild(link);
+            });
+        }
+        
+        // Précharger après que la page soit chargée
+        window.addEventListener('load', function() {
+            setTimeout(preloadFrequentPages, 2000);
+        });
+        
+        // ===== Gestion des notifications push (optionnel) =====
+        function setupPushNotifications() {
+            if ('Notification' in window && 'serviceWorker' in navigator) {
+                // Demander la permission pour les notifications
+                if (Notification.permission === 'default') {
+                    Notification.requestPermission().then(permission => {
+                        if (permission === 'granted') {
+                            console.log('Notifications autorisées');
+                        }
+                    });
+                }
+            }
+        }
+        
+        // Configurer les notifications push après chargement
+        window.addEventListener('load', setupPushNotifications);
+        
+        // ===== Gestion des états de connexion =====
+        function updateUIForConnectionStatus(isOnline) {
+            const interventionsContainer = document.getElementById('interventions-container');
+            
+            if (!isOnline) {
+                // Afficher un message d'avertissement
+                const offlineWarning = document.createElement('div');
+                offlineWarning.id = 'offline-warning';
+                offlineWarning.className = 'bg-orange-100 border border-orange-300 text-orange-700 px-4 py-3 rounded-lg mb-4';
+                offlineWarning.innerHTML = `
+                    <div class="flex items-center space-x-2">
+                        <i class="fas fa-wifi-slash"></i>
+                        <span class="text-sm">Mode hors ligne - Certaines fonctions peuvent être limitées</span>
+                    </div>
+                `;
+                
+                interventionsContainer.insertBefore(offlineWarning, interventionsContainer.firstChild);
+            } else {
+                // Supprimer le message d'avertissement
+                const offlineWarning = document.getElementById('offline-warning');
+                if (offlineWarning) {
+                    offlineWarning.remove();
+                }
+            }
+        }
+        
+        // Surveiller les changements de connexion
+        window.addEventListener('online', () => updateUIForConnectionStatus(true));
+        window.addEventListener('offline', () => updateUIForConnectionStatus(false));
+        
+        // ===== Fonctions d'urgence =====
+        function handleUrgentIntervention(interventionId) {
+            // Logique spéciale pour les interventions urgentes
+            if ('vibrate' in navigator) {
+                navigator.vibrate([200, 100, 200]); // Pattern de vibration
+            }
+            
+            showToast('Intervention urgente détectée!', 'warning');
+            
+            // Mettre en évidence visuellement
+            const element = document.querySelector(`[data-intervention-id="${interventionId}"]`);
+            if (element) {
+                element.classList.add('intervention-urgent');
+                element.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+        
+        // Vérifier s'il y a des interventions urgentes au chargement
+        document.addEventListener('DOMContentLoaded', function() {
+            const urgentInterventions = document.querySelectorAll('.intervention-urgent');
+            if (urgentInterventions.length > 0) {
+                showToast(`${urgentInterventions.length} intervention(s) urgente(s) nécessite(nt) votre attention`, 'warning');
+            }
+        });
+        
+        // ===== Fin du script =====
+        
+    </script>
+</body>
+</html>

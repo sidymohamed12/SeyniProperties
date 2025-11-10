@@ -1,0 +1,589 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Créer un Workflow PMO - Imani{% endblock %}
+
+{% block page_title %}{% if is_edit %}<i class="fas fa-edit mr-2"></i>Modifier{% else %}Nouveau{% endif %} Workflow PMO{% endblock %}
+{% block page_subtitle %}{% if is_edit %}Modifier le workflow {{ workflow.contrat.numero_contrat }}{% else %}Démarrer un nouveau cycle de traitement de contrat{% endif %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-section {
+        background: white;
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border: 1px solid #e5e7eb;
+    }
+    .form-section h2 {
+        font-size: 1.125rem;
+        font-weight: 700;
+        color: #23456B;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #f3f4f6;
+    }
+    .form-input, .form-select, .form-textarea {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #d1d5db;
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        transition: all 0.2s;
+    }
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+        outline: none;
+        border-color: #23456B;
+        box-shadow: 0 0 0 3px rgba(35, 69, 107, 0.1);
+    }
+    .field-wrapper {
+        margin-bottom: 1.5rem;
+    }
+    .field-label {
+        display: block;
+        font-weight: 600;
+        font-size: 0.875rem;
+        color: #374151;
+        margin-bottom: 0.5rem;
+    }
+    .help-text {
+        font-size: 0.75rem;
+        color: #6b7280;
+        margin-top: 0.25rem;
+    }
+    .error-message {
+        color: #dc2626;
+        font-size: 0.75rem;
+        margin-top: 0.25rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Information sur le workflow PMO -->
+<div class="imani-card p-6 mb-6 border-l-4 border-blue-500">
+    <div class="flex items-start gap-4">
+        <div class="w-12 h-12 rounded-xl imani-gradient flex items-center justify-center flex-shrink-0">
+            <i class="fas fa-info-circle text-white text-xl"></i>
+        </div>
+        <div class="flex-1">
+            <h3 class="font-bold text-imani-primary mb-2">Cycle de vie du workflow PMO</h3>
+            <p class="text-sm text-gray-600 mb-3">
+                Ce formulaire crée un nouveau contrat en mode <strong>brouillon</strong> et démarre le workflow PMO complet :
+            </p>
+            <ol class="text-sm text-gray-700 space-y-1 list-decimal list-inside">
+                <li><strong>Vérification dossier</strong> - Validation des documents du locataire</li>
+                <li><strong>Attente facture</strong> - Envoi au service Finance (Marie)</li>
+                <li><strong>Facture validée</strong> - Confirmation du paiement initial</li>
+                <li><strong>Rédaction contrat</strong> - Préparation du contrat final</li>
+                <li><strong>Visite d'entrée</strong> - État des lieux + planification visite</li>
+                <li><strong>Remise des clés</strong> - Finalisation et activation du contrat</li>
+                <li><strong>Terminé</strong> - Le contrat passe en statut <span class="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">Actif</span></li>
+            </ol>
+        </div>
+    </div>
+</div>
+
+<!-- Formulaire -->
+<form method="post" class="space-y-6">
+    {% csrf_token %}
+
+    <!-- Erreurs globales -->
+    {% if form.non_field_errors %}
+    <div class="imani-card p-4 border-l-4 border-red-500 bg-red-50">
+        <div class="flex items-center gap-3">
+            <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+            <div class="flex-1">
+                {% for error in form.non_field_errors %}
+                <p class="text-sm text-red-800">{{ error }}</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Section 1: Bien et Locataire -->
+    <div class="form-section">
+        <h2><i class="fas fa-home mr-2"></i>1. Bien et Locataire</h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Appartement -->
+            <div class="field-wrapper">
+                <label for="{{ form.appartement.id_for_label }}" class="field-label">
+                    {{ form.appartement.label }} <span class="text-red-500">*</span>
+                </label>
+                {{ form.appartement }}
+                {% if form.appartement.help_text %}
+                <p class="help-text">{{ form.appartement.help_text }}</p>
+                {% endif %}
+                {% if form.appartement.errors %}
+                <div class="error-message">
+                    {% for error in form.appartement.errors %}
+                    <i class="fas fa-exclamation-circle mr-1"></i>{{ error }}
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Locataire -->
+            <div class="field-wrapper">
+                <label for="{{ form.locataire.id_for_label }}" class="field-label">
+                    {{ form.locataire.label }} <span class="text-red-500">*</span>
+                </label>
+                {{ form.locataire }}
+                {% if form.locataire.help_text %}
+                <p class="help-text">{{ form.locataire.help_text }}</p>
+                {% endif %}
+                {% if form.locataire.errors %}
+                <div class="error-message">
+                    {% for error in form.locataire.errors %}
+                    <i class="fas fa-exclamation-circle mr-1"></i>{{ error }}
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 2: Période du contrat -->
+    <div class="form-section">
+        <h2><i class="fas fa-calendar-alt mr-2"></i>2. Période du Contrat</h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Date de début -->
+            <div class="field-wrapper">
+                <label for="{{ form.date_debut_prevue.id_for_label }}" class="field-label">
+                    {{ form.date_debut_prevue.label }} <span class="text-red-500">*</span>
+                </label>
+                {{ form.date_debut_prevue }}
+                {% if form.date_debut_prevue.help_text %}
+                <p class="help-text">{{ form.date_debut_prevue.help_text }}</p>
+                {% endif %}
+                {% if form.date_debut_prevue.errors %}
+                <div class="error-message">
+                    {% for error in form.date_debut_prevue.errors %}
+                    <i class="fas fa-exclamation-circle mr-1"></i>{{ error }}
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Durée en mois -->
+            <div class="field-wrapper">
+                <label for="{{ form.duree_mois.id_for_label }}" class="field-label">
+                    {{ form.duree_mois.label }} <span class="text-red-500">*</span>
+                </label>
+                {{ form.duree_mois }}
+                {% if form.duree_mois.help_text %}
+                <p class="help-text">{{ form.duree_mois.help_text }}</p>
+                {% endif %}
+                {% if form.duree_mois.errors %}
+                <div class="error-message">
+                    {% for error in form.duree_mois.errors %}
+                    <i class="fas fa-exclamation-circle mr-1"></i>{{ error }}
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Type de contrat -->
+        <div class="mt-4">
+            <div class="field-wrapper">
+                <label for="{{ form.type_contrat_usage.id_for_label }}" class="field-label">
+                    {{ form.type_contrat_usage.label }} <span class="text-red-500">*</span>
+                </label>
+                {{ form.type_contrat_usage }}
+                {% if form.type_contrat_usage.help_text %}
+                <p class="help-text">{{ form.type_contrat_usage.help_text }}</p>
+                {% endif %}
+                {% if form.type_contrat_usage.errors %}
+                <div class="error-message">
+                    {% for error in form.type_contrat_usage.errors %}
+                    <i class="fas fa-exclamation-circle mr-1"></i>{{ error }}
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Calcul date de fin (JavaScript) -->
+        <div class="mt-4 p-4 bg-blue-50 rounded-lg">
+            <div class="flex items-center gap-2">
+                <i class="fas fa-calendar-check text-blue-600"></i>
+                <span class="text-sm text-gray-700">Date de fin calculée :</span>
+                <span id="date-fin-calculated" class="font-bold text-imani-primary">-</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 3: Informations Financières -->
+    <div class="form-section">
+        <h2><i class="fas fa-money-bill-wave mr-2"></i>3. Informations Financières</h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Loyer mensuel -->
+            <div class="field-wrapper">
+                <label for="{{ form.loyer_mensuel.id_for_label }}" class="field-label">
+                    {{ form.loyer_mensuel.label }} <span class="text-red-500">*</span>
+                </label>
+                {{ form.loyer_mensuel }}
+                {% if form.loyer_mensuel.errors %}
+                <div class="error-message">
+                    {% for error in form.loyer_mensuel.errors %}
+                    <i class="fas fa-exclamation-circle mr-1"></i>{{ error }}
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Charges mensuelles -->
+            <div class="field-wrapper">
+                <label for="{{ form.charges_mensuelles.id_for_label }}" class="field-label">
+                    {{ form.charges_mensuelles.label }}
+                </label>
+                {{ form.charges_mensuelles }}
+                {% if form.charges_mensuelles.help_text %}
+                <p class="help-text">{{ form.charges_mensuelles.help_text }}</p>
+                {% endif %}
+                {% if form.charges_mensuelles.errors %}
+                <div class="error-message">
+                    {% for error in form.charges_mensuelles.errors %}
+                    <i class="fas fa-exclamation-circle mr-1"></i>{{ error }}
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Frais d'agence (ajustable en %) -->
+            <div class="field-wrapper">
+                <label class="field-label">
+                    Frais d'agence (%)
+                    <span class="text-xs text-gray-500 ml-2">(Standard: 5%)</span>
+                </label>
+                <div class="flex gap-3 items-center">
+                    <div class="flex-1">
+                        <input type="number"
+                               id="id_frais_agence_pct"
+                               class="form-input w-full"
+                               min="0"
+                               max="100"
+                               step="0.5"
+                               value="5"
+                               placeholder="5.0">
+                        <p class="help-text mt-1">Pourcentage du loyer mensuel (ajustable)</p>
+                    </div>
+                    <div class="text-2xl font-bold text-gray-400">=</div>
+                    <div class="flex-1">
+                        <input type="text"
+                               id="id_frais_agence_montant"
+                               class="form-input w-full bg-gray-50 font-bold text-right"
+                               readonly
+                               placeholder="0 FCFA">
+                        <p class="help-text mt-1">Montant calculé automatiquement</p>
+                    </div>
+                </div>
+                <!-- Champ caché pour soumettre la valeur en FCFA -->
+                <input type="hidden" id="{{ form.frais_agence.id_for_label }}" name="frais_agence" value="0">
+                {% if form.frais_agence.errors %}
+                <div class="error-message mt-2">
+                    {% for error in form.frais_agence.errors %}
+                    <i class="fas fa-exclamation-circle mr-1"></i>{{ error }}
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Dépôt de garantie -->
+            <div class="field-wrapper">
+                <label for="{{ form.depot_garantie.id_for_label }}" class="field-label">
+                    {{ form.depot_garantie.label }} <span class="text-red-500">*</span>
+                </label>
+                {{ form.depot_garantie }}
+                {% if form.depot_garantie.errors %}
+                <div class="error-message">
+                    {% for error in form.depot_garantie.errors %}
+                    <i class="fas fa-exclamation-circle mr-1"></i>{{ error }}
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Travaux réalisés -->
+            <div class="field-wrapper">
+                <label for="{{ form.travaux_realises.id_for_label }}" class="field-label">
+                    {{ form.travaux_realises.label }}
+                </label>
+                {{ form.travaux_realises }}
+                {% if form.travaux_realises.help_text %}
+                <p class="help-text">{{ form.travaux_realises.help_text }}</p>
+                {% endif %}
+                {% if form.travaux_realises.errors %}
+                <div class="error-message">
+                    {% for error in form.travaux_realises.errors %}
+                    <i class="fas fa-exclamation-circle mr-1"></i>{{ error }}
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Calculs financiers détaillés -->
+        <div class="mt-6 space-y-4">
+            <!-- Total locataire -->
+            <div class="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <div class="flex items-center justify-between">
+                    <span class="text-sm font-medium text-blue-800">
+                        <i class="fas fa-user mr-2"></i>Total mensuel (locataire)
+                    </span>
+                    <span id="total-locataire" class="text-2xl font-bold text-blue-700">0 FCFA</span>
+                </div>
+            </div>
+
+            <!-- Déductions -->
+            <div class="p-4 bg-red-50 border border-red-200 rounded-lg">
+                <h4 class="text-sm font-semibold text-red-900 mb-3">
+                    <i class="fas fa-minus-circle mr-2"></i>Déductions (à retenir sur le loyer)
+                </h4>
+                <div class="grid grid-cols-2 gap-3 mb-3">
+                    <div>
+                        <span class="text-xs text-gray-600 block">TOM (3,6%)</span>
+                        <span class="text-lg font-bold text-red-600" id="montant-tom">0 FCFA</span>
+                    </div>
+                    <div>
+                        <span class="text-xs text-gray-600 block">Frais agence (<span id="display-frais-pct">5</span>%)</span>
+                        <span class="text-lg font-bold text-red-600" id="montant-frais">0 FCFA</span>
+                    </div>
+                </div>
+                <div class="pt-3 border-t border-red-200">
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm font-medium text-red-800">Total déductions</span>
+                        <span class="text-xl font-bold text-red-700" id="total-deductions">0 FCFA</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loyer net propriétaire -->
+            <div class="p-4 bg-green-50 border border-green-200 rounded-lg">
+                <div class="flex items-center justify-between">
+                    <span class="text-sm font-medium text-green-800">
+                        <i class="fas fa-user-tie mr-2"></i>Loyer net propriétaire
+                    </span>
+                    <span id="loyer-net" class="text-2xl font-bold text-green-700">0 FCFA</span>
+                </div>
+                <p class="text-xs text-gray-600 mt-2">
+                    = Loyer brut - TOM - Frais d'agence
+                </p>
+            </div>
+
+            <!-- Info facture initiale -->
+            <div class="p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                <h4 class="text-sm font-semibold text-purple-900 mb-2">
+                    <i class="fas fa-file-invoice mr-2"></i>Facture initiale (générée automatiquement)
+                </h4>
+                <div class="space-y-2 text-sm text-gray-700">
+                    <div class="flex justify-between">
+                        <span>Dépôt de garantie :</span>
+                        <span id="depot-display" class="font-semibold">0 FCFA</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>3 mois de loyer (condition) :</span>
+                        <span id="trois-mois-loyer" class="font-semibold">0 FCFA</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Charges (3 mois) :</span>
+                        <span id="charges-display" class="font-semibold">0 FCFA</span>
+                    </div>
+                    <div class="flex justify-between pt-2 border-t border-purple-300 text-base">
+                        <span class="font-bold">Total à payer :</span>
+                        <span id="facture-totale" class="font-bold text-purple-700">0 FCFA</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Montant Global Investissement -->
+            <div class="p-6 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg text-white">
+                <h4 class="text-sm font-semibold text-indigo-100 mb-3">
+                    <i class="fas fa-calculator mr-2"></i>Montant Global Investissement Initial
+                </h4>
+                <div class="flex items-center justify-between">
+                    <div class="flex-1">
+                        <p class="text-4xl font-bold" id="montant-global">0 FCFA</p>
+                        <p class="text-xs text-indigo-100 mt-2">
+                            = Loyer + Frais agence + Charges + Travaux
+                        </p>
+                        <p class="text-xs text-indigo-200 mt-1" id="montant-global-details">
+                            (0 + 0 + 0 + 0)
+                        </p>
+                    </div>
+                    <div>
+                        <i class="fas fa-coins text-6xl opacity-20"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 4: Notes -->
+    <div class="form-section">
+        <h2><i class="fas fa-sticky-note mr-2"></i>4. Notes et Observations</h2>
+
+        <div class="field-wrapper">
+            <label for="{{ form.notes_initiales.id_for_label }}" class="field-label">
+                {{ form.notes_initiales.label }}
+            </label>
+            {{ form.notes_initiales }}
+            {% if form.notes_initiales.help_text %}
+            <p class="help-text">{{ form.notes_initiales.help_text }}</p>
+            {% endif %}
+            {% if form.notes_initiales.errors %}
+            <div class="error-message">
+                {% for error in form.notes_initiales.errors %}
+                <i class="fas fa-exclamation-circle mr-1"></i>{{ error }}
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Boutons d'action -->
+    <div class="flex gap-4 justify-end">
+        <a href="{% url 'contracts:pmo_dashboard' %}"
+           class="px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-medium transition-all">
+            <i class="fas fa-times mr-2"></i>Annuler
+        </a>
+        <button type="submit"
+                class="px-8 py-3 imani-gradient text-white rounded-lg font-medium hover:opacity-90 transition-all shadow-lg">
+            <i class="fas fa-{% if is_edit %}save{% else %}check{% endif %} mr-2"></i>{% if is_edit %}Enregistrer les modifications{% else %}Créer le Workflow{% endif %}
+        </button>
+    </div>
+</form>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Constantes
+    const TAUX_TOM = 0.036;  // 3,6%
+    const TAUX_FRAIS_AGENCE = 0.05;  // 5%
+
+    // Fonction de formatage
+    function formatMontant(montant) {
+        return new Intl.NumberFormat('fr-FR', {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+        }).format(montant) + ' FCFA';
+    }
+
+    // Calcul automatique complet
+    function calculateTotal() {
+        const loyer = parseFloat(document.getElementById('{{ form.loyer_mensuel.id_for_label }}').value) || 0;
+        const charges = parseFloat(document.getElementById('{{ form.charges_mensuelles.id_for_label }}').value) || 0;
+        const depot = parseFloat(document.getElementById('{{ form.depot_garantie.id_for_label }}').value) || 0;
+        const travaux = parseFloat(document.getElementById('{{ form.travaux_realises.id_for_label }}').value) || 0;
+
+        // Calculer les frais d'agence à partir du pourcentage
+        const fraisAgencePct = parseFloat(document.getElementById('id_frais_agence_pct').value) || 5;
+        const montantFrais = loyer * (fraisAgencePct / 100);
+
+        // Mettre à jour l'affichage du pourcentage dans la section déductions
+        document.getElementById('display-frais-pct').textContent = fraisAgencePct;
+
+        // Mettre à jour l'affichage du montant calculé
+        document.getElementById('id_frais_agence_montant').value = formatMontant(montantFrais);
+
+        // Mettre à jour le champ caché pour la soumission du formulaire
+        document.getElementById('{{ form.frais_agence.id_for_label }}').value = Math.round(montantFrais);
+
+        // Total locataire
+        const totalLocataire = loyer + charges;
+        document.getElementById('total-locataire').textContent = formatMontant(totalLocataire);
+
+        // TOM (3,6% du loyer)
+        const montantTom = loyer * TAUX_TOM;
+        document.getElementById('montant-tom').textContent = formatMontant(montantTom);
+
+        // Frais d'agence (calculé à partir du pourcentage)
+        document.getElementById('montant-frais').textContent = formatMontant(montantFrais);
+
+        // Total déductions
+        const totalDeductions = montantTom + montantFrais;
+        document.getElementById('total-deductions').textContent = formatMontant(totalDeductions);
+
+        // Loyer net propriétaire
+        const loyerNet = loyer - totalDeductions;
+        document.getElementById('loyer-net').textContent = formatMontant(loyerNet);
+
+        // Facture initiale (3 mois de condition)
+        const troisMoisLoyer = loyer * 3;
+        const troisMoisCharges = charges * 3;
+
+        document.getElementById('depot-display').textContent = formatMontant(depot);
+        document.getElementById('trois-mois-loyer').textContent = formatMontant(troisMoisLoyer);
+        document.getElementById('charges-display').textContent = formatMontant(troisMoisCharges);
+
+        const factureTotal = depot + troisMoisLoyer + troisMoisCharges;
+        document.getElementById('facture-totale').textContent = formatMontant(factureTotal);
+
+        // Montant Global = Loyer + Frais agence + Charges + Travaux
+        const montantGlobal = loyer + montantFrais + charges + travaux;
+        document.getElementById('montant-global').textContent = formatMontant(montantGlobal);
+
+        // Détails de la formule
+        const detailsFormule = `(${formatMontant(loyer)} + ${formatMontant(montantFrais)} + ${formatMontant(charges)} + ${formatMontant(travaux)})`;
+        document.getElementById('montant-global-details').textContent = detailsFormule;
+    }
+
+    // Calcul de la date de fin
+    function calculateDateFin() {
+        const dateDebutInput = document.getElementById('{{ form.date_debut_prevue.id_for_label }}');
+        const dureeMoisInput = document.getElementById('{{ form.duree_mois.id_for_label }}');
+        const dateFinDisplay = document.getElementById('date-fin-calculated');
+
+        if (!dateDebutInput.value || !dureeMoisInput.value) {
+            dateFinDisplay.textContent = '-';
+            return;
+        }
+
+        const dateDebut = new Date(dateDebutInput.value);
+        const dureeMois = parseInt(dureeMoisInput.value) || 0;
+
+        // Ajouter les mois
+        const dateFin = new Date(dateDebut);
+        dateFin.setMonth(dateFin.getMonth() + dureeMois);
+
+        // Formater la date
+        const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
+        dateFinDisplay.textContent = dateFin.toLocaleDateString('fr-FR', options);
+    }
+
+    // Écouter les changements
+    document.addEventListener('DOMContentLoaded', function() {
+        const loyerInput = document.getElementById('{{ form.loyer_mensuel.id_for_label }}');
+        const chargesInput = document.getElementById('{{ form.charges_mensuelles.id_for_label }}');
+        const fraisAgencePctInput = document.getElementById('id_frais_agence_pct');
+        const depotInput = document.getElementById('{{ form.depot_garantie.id_for_label }}');
+        const travauxInput = document.getElementById('{{ form.travaux_realises.id_for_label }}');
+        const dateDebutInput = document.getElementById('{{ form.date_debut_prevue.id_for_label }}');
+        const dureeMoisInput = document.getElementById('{{ form.duree_mois.id_for_label }}');
+
+        // Calculs financiers
+        if (loyerInput && chargesInput && fraisAgencePctInput && depotInput && travauxInput) {
+            loyerInput.addEventListener('input', calculateTotal);
+            chargesInput.addEventListener('input', calculateTotal);
+            fraisAgencePctInput.addEventListener('input', calculateTotal);
+            depotInput.addEventListener('input', calculateTotal);
+            travauxInput.addEventListener('input', calculateTotal);
+            calculateTotal();
+        }
+
+        // Calcul date de fin
+        if (dateDebutInput && dureeMoisInput) {
+            dateDebutInput.addEventListener('change', calculateDateFin);
+            dureeMoisInput.addEventListener('input', calculateDateFin);
+            calculateDateFin();
+        }
+    });
+</script>
+{% endblock %}

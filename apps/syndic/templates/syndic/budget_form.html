@@ -1,0 +1,118 @@
+{% extends 'base_dashboard.html' %}
+
+{% block page_title %}{% if action == 'create' %}Nouveau budget{% else %}Modifier budget{% endif %}{% endblock %}
+{% block page_subtitle %}{% if action == 'create' %}Créer un budget prévisionnel{% else %}Modifier le budget{% endif %}{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <nav class="text-sm text-gray-600">
+        <a href="{% url 'syndic:dashboard' %}" class="hover:text-imani-primary">Syndic</a>
+        <span class="mx-2">/</span>
+        <a href="{% url 'syndic:budget_list' %}" class="hover:text-imani-primary">Budgets</a>
+        <span class="mx-2">/</span>
+        <span class="text-gray-900 font-medium">{% if action == 'create' %}Nouveau{% else %}Modifier{% endif %}</span>
+    </nav>
+</div>
+
+<div class="max-w-4xl">
+    <div class="imani-card p-8">
+        <form method="post" enctype="multipart/form-data" class="space-y-6">
+            {% csrf_token %}
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="md:col-span-2">
+                    <label for="{{ form.copropriete.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Copropriété <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.copropriete }}
+                    {% if form.copropriete.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.copropriete.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label for="{{ form.annee.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Année <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.annee }}
+                    {% if form.annee.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.annee.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label for="{{ form.montant_total.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Montant total (FCFA) <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.montant_total }}
+                    {% if form.montant_total.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.montant_total.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label for="{{ form.date_ag.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Date de l'AG
+                    </label>
+                    {{ form.date_ag }}
+                    {% if form.date_ag.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.date_ag.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label for="{{ form.date_vote.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Date du vote
+                    </label>
+                    {{ form.date_vote }}
+                    {% if form.date_vote.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.date_vote.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label for="{{ form.statut.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Statut <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.statut }}
+                    {% if form.statut.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.statut.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div class="md:col-span-2">
+                    <label for="{{ form.document.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Document (PDF)
+                    </label>
+                    {{ form.document }}
+                    {% if form.document.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.document.errors.0 }}</p>
+                    {% endif %}
+                    <p class="mt-1 text-xs text-gray-500">Document du budget voté en AG</p>
+                </div>
+
+                <div class="md:col-span-2">
+                    <label for="{{ form.notes.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Notes
+                    </label>
+                    {{ form.notes }}
+                    {% if form.notes.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.notes.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+                <a href="{% if action == 'update' %}{% url 'syndic:budget_detail' budget.pk %}{% else %}{% url 'syndic:budget_list' %}{% endif %}"
+                   class="px-6 py-2.5 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                    Annuler
+                </a>
+                <button type="submit" class="imani-gradient text-white px-6 py-2.5 rounded-lg hover:opacity-90 transition-opacity flex items-center space-x-2">
+                    <i class="fas fa-save"></i>
+                    <span>{% if action == 'create' %}Créer{% else %}Enregistrer{% endif %}</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

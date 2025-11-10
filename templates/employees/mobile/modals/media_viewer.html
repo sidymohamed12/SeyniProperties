@@ -1,0 +1,248 @@
+<!-- templates/employees/mobile/modals/media_viewer.html -->
+<div id="media-viewer" class="fixed inset-0 bg-black bg-opacity-90 z-50 hidden flex items-center justify-center p-4">
+    <div class="relative max-w-full max-h-full">
+        <!-- Header -->
+        <div class="absolute top-0 left-0 right-0 bg-black bg-opacity-50 text-white p-4 z-10">
+            <div class="flex items-center justify-between">
+                <p id="media-description" class="text-sm"></p>
+                <button onclick="closeMediaViewer()" class="text-white hover:text-gray-300">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Image -->
+        <img id="media-image" src="" alt="Média" 
+             class="max-w-full max-h-full object-contain rounded-lg">
+        
+        <!-- Actions -->
+        <div class="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white p-4">
+            <div class="flex items-center justify-center space-x-4">
+                <button onclick="downloadMedia()" 
+                        class="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2">
+                    <i class="fas fa-download"></i>
+                    <span>Télécharger</span>
+                </button>
+                
+                <button onclick="shareMedia()" 
+                        class="bg-green-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2">
+                    <i class="fas fa-share"></i>
+                    <span>Partager</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let selectedMediaType = 'photo_apres';
+    
+    // ===== Camera Modal =====
+    function closeCameraModal() {
+        document.getElementById('camera-modal').classList.add('hidden');
+    }
+    
+    function selectMediaType(type) {
+        selectedMediaType = type;
+        
+        // Mettre à jour l'apparence des boutons
+        document.querySelectorAll('.media-type-btn').forEach(btn => {
+            btn.classList.remove('ring-2', 'ring-offset-2');
+            btn.classList.remove('ring-blue-500', 'ring-green-500', 'ring-yellow-500', 'ring-purple-500');
+        });
+        
+        const selectedBtn = document.getElementById(`btn-${type.replace('_', '-')}`);
+        if (selectedBtn) {
+            selectedBtn.classList.add('ring-2', 'ring-offset-2');
+            const colorMap = {
+                'photo_avant': 'ring-blue-500',
+                'photo_apres': 'ring-green-500',
+                'facture': 'ring-yellow-500',
+                'rapport': 'ring-purple-500'
+            };
+            selectedBtn.classList.add(colorMap[type] || 'ring-blue-500');
+        }
+    }
+    
+    function takePicture() {
+        const input = document.getElementById('file-input');
+        input.setAttribute('capture', 'environment');
+        input.setAttribute('accept', 'image/*');
+        input.click();
+    }
+    
+    function selectFromGallery() {
+        const input = document.getElementById('file-input');
+        input.removeAttribute('capture');
+        input.setAttribute('accept', 'image/*,application/pdf');
+        input.click();
+    }
+    
+    // Event listener pour l'upload de fichier
+    document.getElementById('file-input').addEventListener('change', async function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        const description = document.getElementById('media-description').value;
+        
+        try {
+            showLoading(true);
+            
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('type_media', selectedMediaType);
+            formData.append('description', description);
+            
+            const response = await fetch(`/employees/mobile/upload/intervention/${intervention.id}/`, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                }
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                showToast('Média ajouté avec succès', 'success');
+                closeCameraModal();
+                setTimeout(() => window.location.reload(), 1000);
+            } else {
+                showToast(data.error, 'error');
+            }
+        } catch (error) {
+            showToast('Erreur lors de l\'upload', 'error');
+        } finally {
+            showLoading(false);
+        }
+        
+        // Reset
+        e.target.value = '';
+        document.getElementById('media-description').value = '';
+    });
+    
+    // ===== Report Modal =====
+    function closeReportModal() {
+        document.getElementById('report-modal').classList.add('hidden');
+    }
+    
+    function setQuickReport(text) {
+        document.getElementById('report-content').value = text;
+    }
+    
+    function addPartField() {
+        const container = document.getElementById('parts-list');
+        const div = document.createElement('div');
+        div.className = 'flex items-center space-x-2';
+        div.innerHTML = `
+            <input type="text" name="parts[]" 
+                   class="flex-1 p-2 border border-gray-300 rounded-lg text-sm"
+                   placeholder="Ex: Joint d'étanchéité, Vis, etc.">
+            <button type="button" onclick="this.parentElement.remove()" 
+                    class="bg-red-100 text-red-600 p-2 rounded-lg">
+                <i class="fas fa-minus"></i>
+            </button>
+        `;
+        container.appendChild(div);
+    }
+    
+    // Event listener pour le formulaire de rapport
+    document.getElementById('report-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        
+        try {
+            showLoading(true);
+            
+            const response = await fetch(`/maintenance/interventions/${intervention.id}/update-report/`, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                }
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                showToast('Rapport sauvegardé avec succès', 'success');
+                closeReportModal();
+                setTimeout(() => window.location.reload(), 1000);
+            } else {
+                showToast(data.error, 'error');
+            }
+        } catch (error) {
+            showToast('Erreur lors de la sauvegarde', 'error');
+        } finally {
+            showLoading(false);
+        }
+    });
+    
+    // ===== Media Viewer =====
+    function closeMediaViewer() {
+        document.getElementById('media-viewer').classList.add('hidden');
+    }
+    
+    function downloadMedia() {
+        const img = document.getElementById('media-image');
+        const link = document.createElement('a');
+        link.download = 'intervention_media.jpg';
+        link.href = img.src;
+        link.click();
+    }
+    
+    async function shareMedia() {
+        const img = document.getElementById('media-image');
+        
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: 'Média d\'intervention',
+                    text: document.getElementById('media-description').textContent,
+                    url: img.src
+                });
+            } catch (error) {
+                copyToClipboard(img.src);
+            }
+        } else {
+            copyToClipboard(img.src);
+        }
+    }
+    
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(() => {
+            showToast('Lien copié dans le presse-papier', 'success');
+        }).catch(() => {
+            showToast('Impossible de copier le lien', 'error');
+        });
+    }
+    
+    // ===== Initialisation des modals =====
+    document.addEventListener('DOMContentLoaded', function() {
+        // Sélectionner le type de média par défaut
+        selectMediaType('photo_apres');
+        
+        // Fermer les modals en cliquant à l'extérieur
+        document.addEventListener('click', function(e) {
+            if (e.target.id === 'camera-modal') {
+                closeCameraModal();
+            }
+            if (e.target.id === 'report-modal') {
+                closeReportModal();
+            }
+            if (e.target.id === 'media-viewer') {
+                closeMediaViewer();
+            }
+        });
+        
+        // Gestion des touches clavier
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeCameraModal();
+                closeReportModal();
+                closeMediaViewer();
+            }
+        });
+    });
+</script>

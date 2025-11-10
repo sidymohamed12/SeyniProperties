@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#23456b">
+
+    <title>Terminer - {{ travail.titre }}</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'imani-primary': '#23456b',
+                        'imani-secondary': '#a25946',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        body {
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+            -webkit-tap-highlight-color: transparent;
+            overscroll-behavior: none;
+        }
+
+        .safe-area {
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #23456b 0%, #a25946 100%);
+        }
+
+        .card-shadow {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .imani-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            font-size: 0.9375rem;
+            transition: all 0.2s;
+        }
+
+        .imani-input:focus {
+            outline: none;
+            border-color: #23456b;
+            box-shadow: 0 0 0 3px rgba(35, 69, 107, 0.1);
+        }
+
+        .imani-textarea {
+            min-height: 150px;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .btn-complete {
+            padding: 1rem 1.5rem;
+            background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%);
+            color: white;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            text-align: center;
+            transition: all 0.2s;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .btn-complete:active {
+            transform: scale(0.98);
+        }
+
+        .btn-complete:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-cancel {
+            padding: 1rem 1.5rem;
+            background: #f3f4f6;
+            color: #6b7280;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            text-align: center;
+            transition: all 0.2s;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .btn-cancel:active {
+            transform: scale(0.98);
+        }
+
+        .photo-preview {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .photo-item {
+            position: relative;
+            aspect-ratio: 1;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            border: 2px solid #e5e7eb;
+        }
+
+        .photo-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .photo-item .remove-btn {
+            position: absolute;
+            top: 0.25rem;
+            right: 0.25rem;
+            background: rgba(239, 68, 68, 0.9);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 0.75rem;
+        }
+
+        .checklist-summary {
+            background: linear-gradient(135deg, rgba(35, 69, 107, 0.05) 0%, rgba(162, 89, 70, 0.05) 100%);
+            border-left: 4px solid #23456b;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .status-en_cours {
+            background: #FED7AA;
+            color: #C2410C;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 safe-area">
+    <!-- Header -->
+    <header class="gradient-bg text-white sticky top-0 z-50 shadow-lg">
+        <div class="px-4 py-4">
+            <div class="flex items-center justify-between mb-3">
+                <a href="{% url 'employees_mobile:travail_detail' travail.id %}" class="text-white">
+                    <i class="fas fa-arrow-left text-xl"></i>
+                </a>
+                <span class="text-sm opacity-90">{{ travail.numero_travail }}</span>
+            </div>
+
+            <h1 class="text-xl font-bold mb-2">
+                <i class="fas fa-check-circle mr-2"></i>
+                Terminer le travail
+            </h1>
+
+            <p class="text-sm opacity-90">{{ travail.titre }}</p>
+        </div>
+    </header>
+
+    <!-- Contenu principal -->
+    <main class="p-4 pb-20">
+        <!-- Résumé du travail -->
+        <div class="bg-white rounded-xl p-4 card-shadow mb-4">
+            <h2 class="font-bold text-gray-900 mb-3 flex items-center">
+                <i class="fas fa-info-circle text-imani-primary mr-2"></i>
+                Résumé du travail
+            </h2>
+
+            <div class="space-y-2 text-sm">
+                <div class="flex items-center justify-between">
+                    <span class="text-gray-600">Statut actuel:</span>
+                    <span class="status-badge status-{{ travail.statut }}">
+                        {{ travail.get_statut_display }}
+                    </span>
+                </div>
+
+                <div class="flex items-center justify-between">
+                    <span class="text-gray-600">Type de travail:</span>
+                    <span class="font-medium text-gray-900">{{ travail.get_type_travail_display }}</span>
+                </div>
+
+                {% if travail.date_debut %}
+                <div class="flex items-center justify-between">
+                    <span class="text-gray-600">Démarré le:</span>
+                    <span class="font-medium text-gray-900">{{ travail.date_debut|date:"d/m/Y à H:i" }}</span>
+                </div>
+                {% endif %}
+
+                {% if travail.date_prevue %}
+                <div class="flex items-center justify-between">
+                    <span class="text-gray-600">Date prévue:</span>
+                    <span class="font-medium text-gray-900">{{ travail.date_prevue|date:"d/m/Y à H:i" }}</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+
+        <!-- Formulaire de complétion -->
+        <form method="post" id="completionForm" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <!-- Notes de complétion -->
+            <div class="bg-white rounded-xl p-4 card-shadow mb-4">
+                <label class="block mb-3">
+                    <span class="font-bold text-gray-900 flex items-center mb-2">
+                        <i class="fas fa-clipboard-list text-imani-primary mr-2"></i>
+                        Rapport de fin de travail
+                        <span class="text-red-500 ml-1">*</span>
+                    </span>
+                    <textarea
+                        name="notes"
+                        class="imani-input imani-textarea"
+                        placeholder="Décrivez le travail effectué, les matériaux utilisés, et toute observation importante..."
+                        required
+                        id="notesTextarea"></textarea>
+                    <p class="text-xs text-gray-500 mt-1">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        Minimum 20 caractères requis
+                    </p>
+                </label>
+            </div>
+
+            <!-- Actions -->
+            <div class="space-y-3">
+                <button type="submit" class="btn-complete" id="submitBtn">
+                    <i class="fas fa-check-circle mr-2"></i>
+                    Terminer et enregistrer
+                </button>
+
+                <a href="{% url 'employees_mobile:travail_detail' travail.id %}" class="block">
+                    <button type="button" class="btn-cancel">
+                        <i class="fas fa-times mr-2"></i>
+                        Annuler
+                    </button>
+                </a>
+            </div>
+        </form>
+
+        <!-- Avertissement -->
+        <div class="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <div class="flex items-start">
+                <i class="fas fa-exclamation-triangle text-yellow-600 mr-2 mt-0.5"></i>
+                <div class="text-xs text-yellow-800">
+                    <p class="font-medium mb-1">Attention</p>
+                    <p>Une fois le travail terminé, vous ne pourrez plus le modifier. Assurez-vous d'avoir complété toutes les tâches et ajouté toutes les informations nécessaires.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Validation du formulaire
+        document.getElementById('completionForm').addEventListener('submit', function(e) {
+            const notes = document.getElementById('notesTextarea').value.trim();
+
+            if (notes.length < 20) {
+                e.preventDefault();
+                alert('Le rapport doit contenir au moins 20 caractères. Veuillez décrire le travail effectué.');
+                document.getElementById('notesTextarea').focus();
+                return false;
+            }
+
+            // Confirmation avant soumission
+            if (!confirm('Êtes-vous sûr de vouloir terminer ce travail ? Cette action est définitive.')) {
+                e.preventDefault();
+                return false;
+            }
+
+            // Désactiver le bouton pour éviter les doubles soumissions
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Enregistrement...';
+        });
+
+        // Compteur de caractères en temps réel
+        const textarea = document.getElementById('notesTextarea');
+        textarea.addEventListener('input', function() {
+            const length = this.value.trim().length;
+            const submitBtn = document.getElementById('submitBtn');
+
+            if (length < 20) {
+                submitBtn.disabled = true;
+                submitBtn.style.opacity = '0.5';
+            } else {
+                submitBtn.disabled = false;
+                submitBtn.style.opacity = '1';
+            }
+        });
+
+        // Désactiver le bouton submit au chargement
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('submitBtn').disabled = true;
+        });
+    </script>
+</body>
+</html>

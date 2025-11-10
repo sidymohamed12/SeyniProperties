@@ -1,0 +1,339 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Dashboard - Imani{% endblock %}
+
+{% block page_title %}Dashboard{% endblock %}
+{% block page_subtitle %}Vue d'ensemble de votre plateforme{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- KPI Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- Revenus du mois -->
+        <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-lg p-6 text-white">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-money-bill-wave text-2xl"></i>
+                </div>
+                <span class="text-xs bg-white bg-opacity-20 px-2 py-1 rounded-full">Ce mois</span>
+            </div>
+            <h3 class="text-sm font-medium opacity-90">Revenus du mois</h3>
+            <p class="text-3xl font-bold mt-2">{{ revenus_mois|floatformat:0 }} <span class="text-lg">FCFA</span></p>
+        </div>
+
+        <!-- Taux d'occupation -->
+        <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg p-6 text-white">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-home text-2xl"></i>
+                </div>
+                <span class="text-xs bg-white bg-opacity-20 px-2 py-1 rounded-full">Temps réel</span>
+            </div>
+            <h3 class="text-sm font-medium opacity-90">Taux d'occupation</h3>
+            <p class="text-3xl font-bold mt-2">{{ taux_occupation }}%</p>
+            <p class="text-xs mt-1 opacity-80">{{ appartements_occupes }}/{{ total_appartements }} biens loués</p>
+        </div>
+
+        <!-- Contrats actifs -->
+        <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-lg p-6 text-white">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-file-contract text-2xl"></i>
+                </div>
+                {% if contrats_expires > 0 %}
+                <span class="text-xs bg-red-500 px-2 py-1 rounded-full">{{ contrats_expires }} à renouveler</span>
+                {% endif %}
+            </div>
+            <h3 class="text-sm font-medium opacity-90">Contrats actifs</h3>
+            <p class="text-3xl font-bold mt-2">{{ contrats_actifs }}</p>
+        </div>
+
+        <!-- Impayés -->
+        <div class="bg-gradient-to-br from-red-500 to-red-600 rounded-xl shadow-lg p-6 text-white">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-exclamation-triangle text-2xl"></i>
+                </div>
+                <span class="text-xs bg-white bg-opacity-20 px-2 py-1 rounded-full">{{ factures_impayees }}</span>
+            </div>
+            <h3 class="text-sm font-medium opacity-90">Factures impayées</h3>
+            <p class="text-3xl font-bold mt-2">{{ montant_impaye|floatformat:0 }} <span class="text-lg">FCFA</span></p>
+        </div>
+    </div>
+
+    <!-- Graphiques et statistiques -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Revenus sur 6 mois -->
+        <div class="lg:col-span-2 bg-white rounded-xl shadow-md p-6">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-xl font-bold text-gray-900">Évolution des revenus</h2>
+                <div class="flex items-center space-x-2 text-sm text-gray-600">
+                    <i class="fas fa-chart-line text-green-500"></i>
+                    <span>6 derniers mois</span>
+                </div>
+            </div>
+            <div style="height: 300px; position: relative;">
+                <canvas id="revenusChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Répartition tiers -->
+        <div class="bg-white rounded-xl shadow-md p-6">
+            <h2 class="text-xl font-bold text-gray-900 mb-6">Répartition des tiers</h2>
+            <div style="height: 250px; position: relative;">
+                <canvas id="tiersChart"></canvas>
+            </div>
+            <div class="mt-4 space-y-2">
+                <div class="flex items-center justify-between text-sm">
+                    <div class="flex items-center">
+                        <div class="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
+                        <span class="text-gray-600">Propriétaires</span>
+                    </div>
+                    <span class="font-semibold">{{ tiers_proprietaires }}</span>
+                </div>
+                <div class="flex items-center justify-between text-sm">
+                    <div class="flex items-center">
+                        <div class="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                        <span class="text-gray-600">Locataires</span>
+                    </div>
+                    <span class="font-semibold">{{ tiers_locataires }}</span>
+                </div>
+                <div class="flex items-center justify-between text-sm">
+                    <div class="flex items-center">
+                        <div class="w-3 h-3 bg-orange-500 rounded-full mr-2"></div>
+                        <span class="text-gray-600">Prestataires</span>
+                    </div>
+                    <span class="font-semibold">{{ tiers_prestataires }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Opérations -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Travaux -->
+        <div class="bg-white rounded-xl shadow-md p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-bold text-gray-900">Travaux</h3>
+                <a href="{% url 'maintenance:travail_list' %}" class="text-sm text-imani-primary hover:text-imani-secondary">
+                    Voir tout <i class="fas fa-arrow-right text-xs ml-1"></i>
+                </a>
+            </div>
+            <div class="space-y-4">
+                <div class="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-tools text-white"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600">En cours</p>
+                            <p class="text-2xl font-bold text-orange-600">{{ travaux_en_cours }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                {% if travaux_urgents > 0 %}
+                <div class="flex items-center p-3 bg-red-50 rounded-lg border border-red-200">
+                    <i class="fas fa-exclamation-triangle text-red-500 mr-3"></i>
+                    <div>
+                        <p class="text-sm font-semibold text-red-900">{{ travaux_urgents }} travaux urgent{{ travaux_urgents|pluralize }}</p>
+                        <p class="text-xs text-red-700">Nécessitent une attention immédiate</p>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="flex items-center justify-between text-sm">
+                    <span class="text-gray-600">Terminés ce mois</span>
+                    <span class="font-semibold text-green-600">{{ travaux_termines_mois }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Demandes d'achat -->
+        <div class="bg-white rounded-xl shadow-md p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-bold text-gray-900">Demandes d'achat</h3>
+                <a href="{% url 'payments:demande_achat_list' %}" class="text-sm text-imani-primary hover:text-imani-secondary">
+                    Voir tout <i class="fas fa-arrow-right text-xs ml-1"></i>
+                </a>
+            </div>
+            <div class="space-y-4">
+                <div class="flex items-center justify-between p-3 bg-indigo-50 rounded-lg">
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 bg-indigo-500 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-shopping-cart text-white"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600">En attente</p>
+                            <p class="text-2xl font-bold text-indigo-600">{{ demandes_achat_en_attente }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                {% if demandes_achat_en_attente > 0 %}
+                <div class="text-xs text-gray-600 bg-gray-50 p-3 rounded-lg">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    Demandes en cours de validation
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Biens immobiliers -->
+        <div class="bg-white rounded-xl shadow-md p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-bold text-gray-900">Biens immobiliers</h3>
+                <a href="{% url 'dashboard:properties_overview' %}" class="text-sm text-imani-primary hover:text-imani-secondary">
+                    Voir tout <i class="fas fa-arrow-right text-xs ml-1"></i>
+                </a>
+            </div>
+            <div class="space-y-3">
+                <div class="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                    <span class="text-sm text-gray-600">Résidences</span>
+                    <span class="text-lg font-bold text-blue-600">{{ total_residences }}</span>
+                </div>
+                <div class="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                    <span class="text-sm text-gray-600">Biens loués</span>
+                    <span class="text-lg font-bold text-green-600">{{ appartements_occupes }}</span>
+                </div>
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <span class="text-sm text-gray-600">Biens disponibles</span>
+                    <span class="text-lg font-bold text-gray-600">{{ appartements_libres }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Activités récentes -->
+    {% if recent_activities %}
+    <div class="bg-white rounded-xl shadow-md p-6">
+        <h2 class="text-xl font-bold text-gray-900 mb-6">Activités récentes</h2>
+        <div class="space-y-4">
+            {% for activity in recent_activities %}
+            <div class="flex items-start space-x-4 p-4 hover:bg-gray-50 rounded-lg transition-colors">
+                <div class="w-10 h-10 bg-{{ activity.color }}-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <i class="fas {{ activity.icon }} text-{{ activity.color }}-600"></i>
+                </div>
+                <div class="flex-1">
+                    <p class="font-semibold text-gray-900">{{ activity.title }}</p>
+                    <p class="text-sm text-gray-600">{{ activity.description }}</p>
+                    <p class="text-xs text-gray-400 mt-1">{{ activity.date|timesince }} ago</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<script>
+// Graphique des revenus
+const revenusData = {{ revenus_par_mois|safe }};
+const revenusCtx = document.getElementById('revenusChart');
+new Chart(revenusCtx, {
+    type: 'line',
+    data: {
+        labels: revenusData.map(r => r.mois),
+        datasets: [{
+            label: 'Revenus (FCFA)',
+            data: revenusData.map(r => r.montant),
+            borderColor: '#10b981',
+            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+            borderWidth: 3,
+            fill: true,
+            tension: 0.4,
+            pointRadius: 4,
+            pointHoverRadius: 6,
+            pointBackgroundColor: '#10b981',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false
+            },
+            tooltip: {
+                backgroundColor: '#1f2937',
+                padding: 12,
+                titleColor: '#fff',
+                bodyColor: '#fff',
+                displayColors: false,
+                callbacks: {
+                    label: function(context) {
+                        return context.parsed.y.toLocaleString() + ' FCFA';
+                    }
+                }
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    callback: function(value) {
+                        return value.toLocaleString();
+                    }
+                },
+                grid: {
+                    drawBorder: false,
+                    color: 'rgba(0, 0, 0, 0.05)'
+                }
+            },
+            x: {
+                grid: {
+                    display: false
+                }
+            }
+        }
+    }
+});
+
+// Graphique des tiers (donut)
+const tiersCtx = document.getElementById('tiersChart');
+new Chart(tiersCtx, {
+    type: 'doughnut',
+    data: {
+        labels: ['Propriétaires', 'Locataires', 'Prestataires'],
+        datasets: [{
+            data: [{{ tiers_proprietaires }}, {{ tiers_locataires }}, {{ tiers_prestataires }}],
+            backgroundColor: [
+                '#3b82f6',
+                '#10b981',
+                '#f59e0b'
+            ],
+            borderWidth: 0,
+            hoverOffset: 10
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false
+            },
+            tooltip: {
+                backgroundColor: '#1f2937',
+                padding: 12,
+                displayColors: true,
+                callbacks: {
+                    label: function(context) {
+                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                        const percentage = ((context.parsed / total) * 100).toFixed(1);
+                        return context.label + ': ' + context.parsed + ' (' + percentage + '%)';
+                    }
+                }
+            }
+        },
+        cutout: '65%'
+    }
+});
+</script>
+{% endblock %}

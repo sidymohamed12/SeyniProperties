@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#9333ea">
+
+    <title>Demander du matériel - {{ travail.titre }}</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'imani-primary': '#23456b',
+                        'imani-secondary': '#a25946',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        body {
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+            -webkit-tap-highlight-color: transparent;
+            overscroll-behavior: none;
+        }
+
+        .safe-area {
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #9333ea 0%, #a855f7 100%);
+        }
+
+        .card-shadow {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .article-item {
+            border: 2px dashed #e5e7eb;
+            transition: all 0.3s ease;
+        }
+
+        .article-item.filled {
+            border-color: #9333ea;
+            border-style: solid;
+            background: #faf5ff;
+        }
+
+        .btn-action {
+            padding: 1rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            text-align: center;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .btn-action:active {
+            transform: scale(0.98);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 safe-area">
+    <!-- Header -->
+    <header class="gradient-bg text-white sticky top-0 z-50 shadow-lg">
+        <div class="px-4 py-4">
+            <div class="flex items-center justify-between mb-3">
+                <a href="{% url 'employees_mobile:travail_detail' travail.id %}" class="text-white">
+                    <i class="fas fa-arrow-left text-xl"></i>
+                </a>
+                <span class="text-sm opacity-90">{{ travail.numero_travail }}</span>
+            </div>
+
+            <h1 class="text-xl font-bold mb-1">Demander du matériel</h1>
+            <p class="text-purple-200 text-sm">{{ travail.titre }}</p>
+        </div>
+    </header>
+
+    <!-- Contenu principal -->
+    <main class="p-4 pb-20">
+        <!-- Info box -->
+        <div class="bg-purple-50 border-l-4 border-purple-500 rounded-lg p-4 mb-4">
+            <div class="flex items-start">
+                <i class="fas fa-info-circle text-purple-600 mr-3 mt-1"></i>
+                <div class="text-sm text-purple-900">
+                    <p class="font-semibold mb-1">Information</p>
+                    <p>Votre demande sera envoyée à votre responsable pour validation. Vous serez notifié dès que le matériel sera disponible.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Formulaire -->
+        <form method="post" enctype="multipart/form-data" id="materiel-form">
+            {% csrf_token %}
+
+            <!-- Motif principal -->
+            <div class="bg-white rounded-xl p-4 card-shadow mb-4">
+                <label class="block text-sm font-semibold text-gray-900 mb-2">
+                    <i class="fas fa-comment-dots text-purple-600 mr-2"></i>
+                    Pourquoi avez-vous besoin de matériel ?
+                </label>
+                <textarea name="motif_principal"
+                          class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          rows="3"
+                          placeholder="Ex: Fuite importante nécessitant remplacement tuyauterie"
+                          required></textarea>
+            </div>
+
+            <!-- Articles -->
+            <div class="bg-white rounded-xl p-4 card-shadow mb-4">
+                <h2 class="font-bold text-gray-900 mb-3 flex items-center">
+                    <i class="fas fa-list text-purple-600 mr-2"></i>
+                    Liste du matériel
+                </h2>
+
+                <div id="articles-container" class="space-y-3 mb-3">
+                    <!-- Article 1 (obligatoire) -->
+                    <div class="article-item rounded-lg p-3" data-index="0">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-sm font-semibold text-gray-700">Article 1</span>
+                        </div>
+
+                        <input type="text"
+                               name="articles[0][designation]"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm mb-2"
+                               placeholder="Désignation (ex: Tuyau PVC 50mm)"
+                               required>
+
+                        <div class="grid grid-cols-3 gap-2 mb-2">
+                            <input type="number"
+                                   name="articles[0][quantite]"
+                                   class="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                                   placeholder="Qté"
+                                   min="1"
+                                   required>
+
+                            <input type="text"
+                                   name="articles[0][unite]"
+                                   class="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                                   placeholder="Unité"
+                                   value="unité">
+
+                            <input type="number"
+                                   name="articles[0][prix_estime]"
+                                   class="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                                   placeholder="Prix est."
+                                   min="0"
+                                   step="100">
+                        </div>
+
+                        <input type="text"
+                               name="articles[0][fournisseur]"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                               placeholder="Fournisseur suggéré (optionnel)">
+                    </div>
+                </div>
+
+                <!-- Bouton ajouter article -->
+                <button type="button"
+                        onclick="addArticle()"
+                        class="w-full py-3 border-2 border-dashed border-purple-300 rounded-lg text-purple-600 font-medium text-sm hover:bg-purple-50">
+                    <i class="fas fa-plus mr-2"></i>
+                    Ajouter un article
+                </button>
+            </div>
+
+            <!-- Photos (optionnel) -->
+            <div class="bg-white rounded-xl p-4 card-shadow mb-4">
+                <label class="block text-sm font-semibold text-gray-900 mb-2">
+                    <i class="fas fa-camera text-purple-600 mr-2"></i>
+                    Photos (optionnel)
+                </label>
+                <p class="text-xs text-gray-600 mb-3">Ajoutez des photos pour mieux expliquer le besoin</p>
+
+                <input type="file"
+                       name="photos"
+                       accept="image/*"
+                       multiple
+                       capture="camera"
+                       class="w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100">
+
+                <div id="photos-preview" class="grid grid-cols-3 gap-2 mt-3"></div>
+            </div>
+
+            <!-- Buttons -->
+            <div class="space-y-3">
+                <button type="submit"
+                        class="w-full btn-action text-white"
+                        style="background: linear-gradient(135deg, #9333ea 0%, #a855f7 100%);">
+                    <i class="fas fa-paper-plane mr-2"></i>
+                    Envoyer la demande
+                </button>
+
+                <a href="{% url 'employees_mobile:travail_detail' travail.id %}"
+                   class="block w-full btn-action bg-gray-100 text-gray-700">
+                    <i class="fas fa-times mr-2"></i>
+                    Annuler
+                </a>
+            </div>
+        </form>
+    </main>
+
+    <script>
+        let articleCount = 1;
+
+        // Ajouter un article
+        function addArticle() {
+            const container = document.getElementById('articles-container');
+            const newIndex = articleCount;
+
+            const articleHtml = `
+                <div class="article-item rounded-lg p-3" data-index="${newIndex}">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm font-semibold text-gray-700">Article ${newIndex + 1}</span>
+                        <button type="button"
+                                onclick="removeArticle(${newIndex})"
+                                class="text-red-600 hover:text-red-800">
+                            <i class="fas fa-trash text-sm"></i>
+                        </button>
+                    </div>
+
+                    <input type="text"
+                           name="articles[${newIndex}][designation]"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm mb-2"
+                           placeholder="Désignation"
+                           required>
+
+                    <div class="grid grid-cols-3 gap-2 mb-2">
+                        <input type="number"
+                               name="articles[${newIndex}][quantite]"
+                               class="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                               placeholder="Qté"
+                               min="1"
+                               required>
+
+                        <input type="text"
+                               name="articles[${newIndex}][unite]"
+                               class="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                               placeholder="Unité"
+                               value="unité">
+
+                        <input type="number"
+                               name="articles[${newIndex}][prix_estime]"
+                               class="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                               placeholder="Prix est."
+                               min="0"
+                               step="100">
+                    </div>
+
+                    <input type="text"
+                           name="articles[${newIndex}][fournisseur]"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                           placeholder="Fournisseur suggéré (optionnel)">
+                </div>
+            `;
+
+            container.insertAdjacentHTML('beforeend', articleHtml);
+            articleCount++;
+        }
+
+        // Supprimer un article
+        function removeArticle(index) {
+            const article = document.querySelector(`[data-index="${index}"]`);
+            if (article) {
+                article.remove();
+            }
+        }
+
+        // Preview photos
+        document.querySelector('input[name="photos"]').addEventListener('change', function(e) {
+            const preview = document.getElementById('photos-preview');
+            preview.innerHTML = '';
+
+            Array.from(e.target.files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const div = document.createElement('div');
+                    div.className = 'aspect-square rounded-lg overflow-hidden';
+                    div.innerHTML = `<img src="${e.target.result}" class="w-full h-full object-cover">`;
+                    preview.appendChild(div);
+                };
+                reader.readAsDataURL(file);
+            });
+        });
+
+        // Marquer les articles remplis
+        document.addEventListener('input', function(e) {
+            if (e.target.matches('[name*="articles"]')) {
+                const articleItem = e.target.closest('.article-item');
+                const inputs = articleItem.querySelectorAll('input[required]');
+                const allFilled = Array.from(inputs).every(input => input.value.trim() !== '');
+
+                if (allFilled) {
+                    articleItem.classList.add('filled');
+                } else {
+                    articleItem.classList.remove('filled');
+                }
+            }
+        });
+
+        // Validation avant envoi
+        document.getElementById('materiel-form').addEventListener('submit', function(e) {
+            const articles = document.querySelectorAll('.article-item');
+
+            if (articles.length === 0) {
+                e.preventDefault();
+                alert('Veuillez ajouter au moins un article');
+                return false;
+            }
+
+            // Confirmation
+            if (!confirm('Êtes-vous sûr de vouloir envoyer cette demande de matériel ?')) {
+                e.preventDefault();
+                return false;
+            }
+        });
+    </script>
+</body>
+</html>

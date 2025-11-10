@@ -1,0 +1,775 @@
+<!-- templates/contracts/detail.html -->
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Contrat {{ contract.numero_contrat }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .info-card {
+        background: white;
+        border-radius: 0.5rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        padding: 1.5rem;
+    }
+    .section-header {
+        border-bottom: 2px solid #e5e7eb;
+        padding-bottom: 0.75rem;
+        margin-bottom: 1.5rem;
+    }
+    .status-badge-lg {
+        font-size: 0.875rem;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        font-weight: 600;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <!-- En-tête -->
+    <div class="mb-6">
+        <div class="flex items-center mb-4">
+            <a href="{% url 'contracts:list' %}" class="text-blue-600 hover:text-blue-700 mr-3">
+                <i class="fas fa-arrow-left mr-2"></i>Retour à la liste
+            </a>
+        </div>
+        
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">
+                    <i class="fas fa-file-contract text-blue-600 mr-3"></i>
+                    Contrat {{ contract.numero_contrat }}
+                </h1>
+                <p class="text-gray-600">Détails complets du contrat de location</p>
+            </div>
+            
+            <div class="mt-4 md:mt-0">
+                <span class="status-badge-lg 
+                    {% if contract.statut == 'actif' %}bg-green-100 text-green-800
+                    {% elif contract.statut == 'expire' %}bg-red-100 text-red-800
+                    {% elif contract.statut == 'brouillon' %}bg-gray-100 text-gray-800
+                    {% elif contract.statut == 'resilie' %}bg-yellow-100 text-yellow-800
+                    {% else %}bg-blue-100 text-blue-800{% endif %}">
+                    <i class="fas fa-circle text-xs mr-2"></i>
+                    {{ contract.get_statut_display }}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="mb-6 flex flex-wrap gap-3">
+        <a href="{% url 'contracts:preview_pdf' contract.pk %}" target="_blank"
+           class="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg transition duration-200">
+            <i class="fas fa-eye mr-2"></i>Aperçu PDF
+        </a>
+        <a href="{% url 'contracts:download_pdf' contract.pk %}"
+           class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition duration-200">
+            <i class="fas fa-download mr-2"></i>Télécharger PDF
+        </a>
+
+        {% if can_edit and contract.statut == 'brouillon' %}
+            <a href="{% url 'contracts:edit' contract.pk %}" 
+               class="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg transition duration-200">
+                <i class="fas fa-edit mr-2"></i>Modifier
+            </a>
+        {% endif %}
+        
+        {% if can_edit and contract.statut == 'actif' %}
+            <a href="{% url 'contracts:renew' contract.pk %}" 
+               class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition duration-200">
+                <i class="fas fa-redo mr-2"></i>Renouveler
+            </a>
+            
+            <a href="{% url 'contracts:terminate' contract.pk %}" 
+               class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition duration-200">
+                <i class="fas fa-ban mr-2"></i>Résilier
+            </a>
+        {% endif %}
+        
+        {% if can_edit %}
+            <a href="{% url 'contracts:delete' contract.pk %}" 
+               class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition duration-200">
+                <i class="fas fa-trash mr-2"></i>Supprimer
+            </a>
+        {% endif %}
+    </div>
+
+    <!-- Alertes -->
+    {% if contract.statut == 'actif' and jours_restants <= 30 %}
+        <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-exclamation-triangle text-red-500 text-xl"></i>
+                </div>
+                <div class="ml-3">
+                    <h3 class="text-sm font-medium text-red-800">Contrat arrivant à échéance</h3>
+                    <div class="mt-2 text-sm text-red-700">
+                        <p>Ce contrat expire dans {{ jours_restants }} jours ({{ contract.date_fin|date:"d/m/Y" }}). 
+                           Pensez à le renouveler ou à entamer les démarches de fin de contrat.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Colonne gauche - Informations principales -->
+        <div class="lg:col-span-2 space-y-6">
+            <!-- Informations du contrat -->
+            <div class="info-card">
+                <h2 class="section-header text-xl font-semibold text-gray-900">
+                    <i class="fas fa-info-circle text-blue-600 mr-2"></i>
+                    Informations du contrat
+                </h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-500 mb-1">Numéro de contrat</label>
+                        <p class="text-lg font-semibold text-gray-900">{{ contract.numero_contrat }}</p>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-500 mb-1">Type de contrat</label>
+                        <p class="text-lg text-gray-900">{{ contract.get_type_contrat_display }}</p>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-500 mb-1">Date de début</label>
+                        <p class="text-lg text-gray-900">{{ contract.date_debut|date:"d/m/Y" }}</p>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-500 mb-1">Date de fin</label>
+                        <p class="text-lg text-gray-900">{{ contract.date_fin|date:"d/m/Y" }}</p>
+                    </div>
+                    
+                    {% if contract.statut == 'actif' %}
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-500 mb-1">Durée restante</label>
+                            <div class="flex items-center">
+                                <div class="flex-1 bg-gray-200 rounded-full h-3 mr-3">
+                                    {% widthratio jours_restants contract.duree_totale 100 as percent %}
+                                    <div class="bg-blue-600 h-3 rounded-full" style="width: {{ percent }}%"></div>
+                                </div>
+                                <span class="text-sm font-medium text-gray-900">{{ jours_restants }} jours</span>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Informations financières -->
+            <div class="info-card">
+                <h2 class="section-header text-xl font-semibold text-gray-900">
+                    <i class="fas fa-money-bill-wave text-green-600 mr-2"></i>
+                    Informations financières
+                </h2>
+
+                <!-- Vue Locataire -->
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                    <h3 class="font-semibold text-blue-900 mb-3 flex items-center">
+                        <i class="fas fa-user mr-2"></i>Paiement du locataire
+                        {% if contract.type_contrat_usage == 'professionnel' %}
+                            <span class="ml-2 text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded">Contrat Professionnel</span>
+                        {% endif %}
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-1">Loyer mensuel HT</label>
+                            <p class="text-2xl font-bold text-blue-700">{{ contract.loyer_mensuel|floatformat:0 }} FCFA</p>
+                        </div>
+
+                        {% if contract.type_contrat_usage == 'professionnel' and contract.taux_tva > 0 %}
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-1">TVA ({{ contract.taux_tva }}%)</label>
+                            <p class="text-2xl font-bold text-purple-700">{{ contract.montant_tva|floatformat:0 }} FCFA</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-1">Loyer TTC</label>
+                            <p class="text-2xl font-bold text-blue-800">{{ contract.loyer_ttc|floatformat:0 }} FCFA</p>
+                        </div>
+                        {% endif %}
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-1">Charges mensuelles</label>
+                            <p class="text-2xl font-bold text-blue-600">{{ contract.charges_mensuelles|floatformat:0 }} FCFA</p>
+                        </div>
+
+                        <div class="md:col-span-2 bg-blue-100 p-4 rounded-lg border-2 border-blue-300">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Total mensuel à payer</label>
+                            <p class="text-3xl font-bold text-blue-800">{{ montant_total_mensuel|floatformat:0 }} FCFA</p>
+                            {% if contract.type_contrat_usage == 'professionnel' and contract.taux_tva > 0 %}
+                            <p class="text-xs text-gray-600 mt-2">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                Loyer TTC ({{ contract.loyer_ttc|floatformat:0 }}) + Charges ({{ contract.charges_mensuelles|floatformat:0 }})
+                            </p>
+                            {% else %}
+                            <p class="text-xs text-gray-600 mt-2">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                Loyer ({{ contract.loyer_mensuel|floatformat:0 }}) + Charges ({{ contract.charges_mensuelles|floatformat:0 }})
+                            </p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Déductions (TOM + Frais d'agence) -->
+                <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                    <h3 class="font-semibold text-red-900 mb-3 flex items-center">
+                        <i class="fas fa-minus-circle mr-2"></i>Déductions
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-1">TOM (3,6%)</label>
+                            <p class="text-xl font-bold text-red-600">{{ contract.montant_tom|floatformat:0 }} FCFA</p>
+                            <p class="text-xs text-gray-500 mt-1">Taxe d'Ordures Ménagères</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-1">Frais d'agence</label>
+                            <p class="text-xl font-bold text-red-600">{{ contract.frais_agence|floatformat:0 }} FCFA</p>
+                            <p class="text-xs text-gray-500 mt-1">Commission de gestion (ajustable)</p>
+                        </div>
+
+                        <div class="md:col-span-2 bg-red-100 p-4 rounded-lg border-2 border-red-300">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Total des déductions</label>
+                            <p class="text-2xl font-bold text-red-700">{{ contract.total_deductions|floatformat:0 }} FCFA</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Vue Propriétaire (Loyer net) -->
+                <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+                    <h3 class="font-semibold text-green-900 mb-3 flex items-center">
+                        <i class="fas fa-user-tie mr-2"></i>Reversement au propriétaire
+                    </h3>
+                    <div class="grid grid-cols-1 gap-4">
+                        <div class="bg-green-100 p-4 rounded-lg border-2 border-green-300">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Loyer net propriétaire</label>
+                            <p class="text-3xl font-bold text-green-700">{{ contract.loyer_net_proprietaire|floatformat:0 }} FCFA</p>
+                            <p class="text-xs text-gray-600 mt-2">
+                                <i class="fas fa-calculator mr-1"></i>
+                                = Loyer brut ({{ contract.loyer_mensuel|floatformat:0 }}) - TOM ({{ contract.montant_tom|floatformat:0 }}) - Frais agence ({{ contract.frais_agence|floatformat:0 }})
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dépôt de garantie et Travaux -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                        <label class="block text-sm font-medium text-gray-600 mb-1">Dépôt de garantie</label>
+                        <p class="text-2xl font-bold text-gray-900">{{ contract.depot_garantie|floatformat:0 }} FCFA</p>
+                        <p class="text-xs text-gray-500 mt-1">Restitué en fin de contrat</p>
+                    </div>
+
+                    <div class="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                        <label class="block text-sm font-medium text-gray-600 mb-1">Revenus annuels nets</label>
+                        <p class="text-2xl font-bold text-purple-700">
+                            {% widthratio contract.loyer_net_proprietaire 1 12 as revenus_nets_annuels %}
+                            {{ revenus_nets_annuels|floatformat:0 }} FCFA
+                        </p>
+                        <p class="text-xs text-gray-500 mt-1">Loyer net × 12 mois</p>
+                    </div>
+
+                    <div class="bg-orange-50 p-4 rounded-lg border border-orange-200">
+                        <label class="block text-sm font-medium text-gray-600 mb-1">Travaux réalisés</label>
+                        <p class="text-2xl font-bold text-orange-700">{{ contract.travaux_realises|floatformat:0 }} FCFA</p>
+                        <p class="text-xs text-gray-500 mt-1">Coût de rénovation/aménagement</p>
+                    </div>
+                </div>
+
+                <!-- Montant Global -->
+                <div class="mt-4">
+                    <div class="bg-gradient-to-r from-indigo-500 to-purple-600 p-6 rounded-lg text-white">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <label class="block text-sm font-medium text-indigo-100 mb-2">
+                                    <i class="fas fa-calculator mr-2"></i>Montant Global Investissement Initial
+                                </label>
+                                <p class="text-4xl font-bold">{{ contract.montant_global|floatformat:0 }} FCFA</p>
+                                <p class="text-xs text-indigo-100 mt-2">
+                                    = Loyer ({{ contract.loyer_mensuel|floatformat:0 }}) + Frais agence ({{ contract.montant_frais_agence|floatformat:0 }}) + Charges ({{ contract.charges_mensuelles|floatformat:0 }}) + Travaux ({{ contract.travaux_realises|floatformat:0 }})
+                                </p>
+                            </div>
+                            <div class="text-right">
+                                <i class="fas fa-coins text-6xl opacity-20"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Appartement -->
+            <div class="info-card">
+                <h2 class="section-header text-xl font-semibold text-gray-900">
+                    <i class="fas fa-building text-purple-600 mr-2"></i>
+                    Bien loué
+                </h2>
+                
+                <div class="flex items-start">
+                    {% if contract.appartement.photo_principale %}
+                        <img src="{{ contract.appartement.photo_principale.url }}" 
+                             alt="{{ contract.appartement.nom }}"
+                             class="w-32 h-32 object-cover rounded-lg mr-4">
+                    {% else %}
+                        <div class="w-32 h-32 bg-gray-200 rounded-lg mr-4 flex items-center justify-center">
+                            <i class="fas fa-home text-gray-400 text-3xl"></i>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="flex-1">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2">
+                            {{ contract.appartement.residence.nom }}
+                        </h3>
+                        <p class="text-gray-700 mb-1">{{ contract.appartement.nom }}</p>
+                        <p class="text-sm text-gray-600">
+                            <i class="fas fa-map-marker-alt mr-1"></i>
+                            {{ contract.appartement.residence.adresse }}, {{ contract.appartement.residence.ville }}
+                        </p>
+                        <div class="mt-2 flex flex-wrap gap-2">
+                            <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                                {{ contract.appartement.nb_pieces }} pièces
+                            </span>
+                            <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+                                {{ contract.appartement.superficie }} m²
+                            </span>
+                        </div>
+                        <div class="mt-3">
+                            <a href="{% url 'properties:appartement_detail' contract.appartement.pk %}" 
+                               class="text-blue-600 hover:text-blue-700 text-sm">
+                                <i class="fas fa-eye mr-1"></i>Voir la fiche du bien
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Locataire -->
+            <div class="info-card">
+                <h2 class="section-header text-xl font-semibold text-gray-900">
+                    <i class="fas fa-user text-blue-600 mr-2"></i>
+                    Locataire
+                </h2>
+
+                <div class="flex items-start">
+                    <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center text-2xl font-bold text-blue-600 mr-4">
+                        {{ contract.locataire.prenom.0 }}{{ contract.locataire.nom.0 }}
+                    </div>
+
+                    <div class="flex-1">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2">
+                            {{ contract.locataire.nom_complet }}
+                        </h3>
+
+                        <div class="space-y-2 text-sm">
+                            <p class="text-gray-700">
+                                <i class="fas fa-envelope mr-2 text-gray-500"></i>
+                                {{ contract.locataire.email }}
+                            </p>
+
+                            {% if contract.locataire.telephone %}
+                                <p class="text-gray-700">
+                                    <i class="fas fa-phone mr-2 text-gray-500"></i>
+                                    {{ contract.locataire.telephone }}
+                                </p>
+                            {% endif %}
+
+                            {% if contract.locataire.adresse %}
+                                <p class="text-gray-700">
+                                    <i class="fas fa-map-marker-alt mr-2 text-gray-500"></i>
+                                    {{ contract.locataire.adresse }}
+                                </p>
+                            {% endif %}
+                        </div>
+
+                        <div class="mt-3">
+                            <a href="{% url 'tiers:tiers_detail' contract.locataire.pk %}"
+                               class="text-blue-600 hover:text-blue-700 text-sm">
+                                <i class="fas fa-eye mr-1"></i>Voir la fiche complète
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Propriétaire -->
+            <div class="info-card">
+                <h2 class="section-header text-xl font-semibold text-gray-900">
+                    <i class="fas fa-user-tie text-green-600 mr-2"></i>
+                    Propriétaire (Bailleur)
+                </h2>
+
+                <div class="flex items-start">
+                    <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center text-2xl font-bold text-green-600 mr-4">
+                        {{ contract.appartement.residence.proprietaire.prenom.0|default:"P" }}{{ contract.appartement.residence.proprietaire.nom.0|default:"" }}
+                    </div>
+
+                    <div class="flex-1">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2">
+                            {{ contract.appartement.residence.proprietaire.nom_complet }}
+                        </h3>
+
+                        <div class="space-y-2 text-sm">
+                            <p class="text-gray-700">
+                                <i class="fas fa-envelope mr-2 text-gray-500"></i>
+                                {{ contract.appartement.residence.proprietaire.email }}
+                            </p>
+
+                            {% if contract.appartement.residence.proprietaire.telephone %}
+                                <p class="text-gray-700">
+                                    <i class="fas fa-phone mr-2 text-gray-500"></i>
+                                    {{ contract.appartement.residence.proprietaire.telephone }}
+                                </p>
+                            {% endif %}
+
+                            <p class="text-gray-700">
+                                <i class="fas fa-tag mr-2 text-gray-500"></i>
+                                {{ contract.appartement.residence.proprietaire.get_type_tiers_display }}
+                            </p>
+                        </div>
+
+                        <div class="mt-3">
+                            <a href="{% url 'tiers:tiers_detail' contract.appartement.residence.proprietaire.pk %}"
+                               class="text-green-600 hover:text-green-700 text-sm">
+                                <i class="fas fa-eye mr-1"></i>Voir la fiche complète
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Colonne droite - Informations supplémentaires -->
+        <div class="space-y-6">
+            <!-- Résumé rapide -->
+            <div class="info-card bg-gradient-to-br from-blue-50 to-blue-100">
+                <h3 class="font-semibold text-gray-900 mb-4">
+                    <i class="fas fa-chart-line mr-2"></i>Résumé
+                </h3>
+                
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-600">Durée totale</span>
+                        <span class="font-semibold text-gray-900">{{ contract.duree_totale }} jours</span>
+                    </div>
+                    
+                    {% if contract.statut == 'actif' %}
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-600">Jours restants</span>
+                            <span class="font-semibold text-blue-600">{{ jours_restants }} jours</span>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="flex justify-between items-center pt-3 border-t border-blue-200">
+                        <span class="text-sm text-gray-600">Revenus annuels</span>
+                        <span class="font-bold text-green-600">
+                            {% widthratio montant_total_mensuel 1 12 as revenus_annuels %}
+                            {{ revenus_annuels|floatformat:0 }} FCFA
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Historique et actions -->
+            <div class="info-card">
+                <h3 class="font-semibold text-gray-900 mb-4">
+                    <i class="fas fa-history mr-2"></i>Historique
+                </h3>
+                
+                <div class="space-y-3 text-sm">
+                    <div>
+                        <p class="text-gray-500 mb-1">Créé le</p>
+                        <p class="font-medium text-gray-900">{{ contract.created_at|date:"d/m/Y à H:i" }}</p>
+                    </div>
+                    
+                    {% if contract.cree_par %}
+                        <div>
+                            <p class="text-gray-500 mb-1">Créé par</p>
+                            <p class="font-medium text-gray-900">{{ contract.cree_par.get_full_name }}</p>
+                        </div>
+                    {% endif %}
+                    
+                    <div>
+                        <p class="text-gray-500 mb-1">Dernière modification</p>
+                        <p class="font-medium text-gray-900">{{ contract.updated_at|date:"d/m/Y à H:i" }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Clauses du contrat avec onglets -->
+            <div class="info-card">
+                <h2 class="section-header text-xl font-semibold text-gray-900">
+                    <i class="fas fa-file-signature text-indigo-600 mr-2"></i>
+                    Clauses du contrat
+                </h2>
+
+                <!-- Affichage du type de contrat actuel -->
+                <div class="mb-4 inline-flex items-center px-4 py-2 rounded-lg
+                    {% if contract.type_contrat_usage == 'habitation' %}bg-blue-100 text-blue-800
+                    {% else %}bg-purple-100 text-purple-800{% endif %}">
+                    <i class="fas fa-tag mr-2"></i>
+                    <span class="font-semibold">{{ contract.get_type_contrat_usage_display }}</span>
+                </div>
+
+                <!-- Système d'onglets -->
+                <div class="mb-6">
+                    <!-- En-tête des onglets -->
+                    <div class="flex border-b border-gray-200">
+                        <button class="contract-tab-button px-6 py-3 font-semibold text-sm transition-all duration-200
+                            {% if contract.type_contrat_usage == 'habitation' %}border-b-2 border-blue-600 text-blue-600
+                            {% else %}text-gray-500 hover:text-gray-700{% endif %}"
+                            data-tab="habitation" onclick="switchContractTab('habitation')">
+                            <i class="fas fa-home mr-2"></i>Contrat d'Habitation
+                        </button>
+                        <button class="contract-tab-button px-6 py-3 font-semibold text-sm transition-all duration-200
+                            {% if contract.type_contrat_usage == 'professionnel' %}border-b-2 border-purple-600 text-purple-600
+                            {% else %}text-gray-500 hover:text-gray-700{% endif %}"
+                            data-tab="professionnel" onclick="switchContractTab('professionnel')">
+                            <i class="fas fa-briefcase mr-2"></i>Contrat Professionnel
+                        </button>
+                    </div>
+
+                    <!-- Contenu des onglets -->
+                    <div class="mt-6">
+                        <!-- Onglet Habitation -->
+                        <div id="contract-tab-habitation" class="contract-tab-content {% if contract.type_contrat_usage != 'habitation' %}hidden{% endif %}">
+                            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-4">
+                                <h3 class="font-bold text-blue-900 mb-2">
+                                    <i class="fas fa-info-circle mr-2"></i>Contrat à Usage d'Habitation
+                                </h3>
+                                <p class="text-sm text-blue-800">
+                                    Ce contrat est régi par les dispositions de la loi sénégalaise relative aux rapports entre bailleurs et locataires.
+                                    Il concerne exclusivement un usage d'habitation principale.
+                                </p>
+                            </div>
+
+                            <div class="space-y-4">
+                                <div class="clause-item">
+                                    <h4 class="font-semibold text-gray-900 mb-2 flex items-start">
+                                        <span class="bg-blue-100 text-blue-800 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold mr-2 flex-shrink-0">1</span>
+                                        Objet du contrat
+                                    </h4>
+                                    <p class="text-sm text-gray-700 ml-8">
+                                        Le bailleur loue au locataire le bien décrit ci-dessus pour un usage exclusivement d'habitation principale.
+                                        Toute autre utilisation est strictement interdite sans accord préalable écrit du bailleur.
+                                    </p>
+                                </div>
+
+                                <div class="clause-item">
+                                    <h4 class="font-semibold text-gray-900 mb-2 flex items-start">
+                                        <span class="bg-blue-100 text-blue-800 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold mr-2 flex-shrink-0">2</span>
+                                        Durée du contrat
+                                    </h4>
+                                    <p class="text-sm text-gray-700 ml-8">
+                                        Le contrat est conclu pour une durée de <strong>{{ contract.duree_mois }} mois</strong>,
+                                        du <strong>{{ contract.date_debut|date:"d/m/Y" }}</strong> au <strong>{{ contract.date_fin|date:"d/m/Y" }}</strong>.
+                                    </p>
+                                </div>
+
+                                <div class="clause-item">
+                                    <h4 class="font-semibold text-gray-900 mb-2 flex items-start">
+                                        <span class="bg-blue-100 text-blue-800 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold mr-2 flex-shrink-0">3</span>
+                                        Loyer et charges
+                                    </h4>
+                                    <p class="text-sm text-gray-700 ml-8">
+                                        Le loyer mensuel est fixé à <strong>{{ contract.loyer_mensuel|floatformat:0 }} FCFA</strong>,
+                                        payable d'avance avant le 5 de chaque mois.
+                                        {% if contract.charges_mensuelles > 0 %}
+                                        Les charges mensuelles s'élèvent à <strong>{{ contract.charges_mensuelles|floatformat:0 }} FCFA</strong>.
+                                        {% endif %}
+                                    </p>
+                                </div>
+
+                                <div class="clause-item">
+                                    <h4 class="font-semibold text-gray-900 mb-2 flex items-start">
+                                        <span class="bg-blue-100 text-blue-800 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold mr-2 flex-shrink-0">4</span>
+                                        Dépôt de garantie
+                                    </h4>
+                                    <p class="text-sm text-gray-700 ml-8">
+                                        Un dépôt de garantie de <strong>{{ contract.depot_garantie|floatformat:0 }} FCFA</strong> a été versé à la signature du contrat.
+                                        Il sera restitué dans un délai de 30 jours après l'état des lieux de sortie.
+                                    </p>
+                                </div>
+
+                                <div class="clause-item">
+                                    <h4 class="font-semibold text-gray-900 mb-2 flex items-start">
+                                        <span class="bg-blue-100 text-blue-800 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold mr-2 flex-shrink-0">5</span>
+                                        Obligations du locataire
+                                    </h4>
+                                    <ul class="text-sm text-gray-700 ml-8 space-y-1 list-disc list-inside">
+                                        <li>Payer le loyer et les charges aux échéances convenues</li>
+                                        <li>User paisiblement du logement en bon père de famille</li>
+                                        <li>Entretenir le logement et effectuer les réparations locatives</li>
+                                        <li>Souscrire une assurance habitation et en justifier annuellement</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Onglet Professionnel -->
+                        <div id="contract-tab-professionnel" class="contract-tab-content {% if contract.type_contrat_usage != 'professionnel' %}hidden{% endif %}">
+                            <div class="bg-purple-50 border-l-4 border-purple-500 p-4 mb-4">
+                                <h3 class="font-bold text-purple-900 mb-2">
+                                    <i class="fas fa-info-circle mr-2"></i>
+                                    Contrat à Usage Professionnel
+                                </h3>
+                                <p class="text-sm text-purple-800">
+                                    Ce contrat est régi par les dispositions du Code civil et du droit commercial sénégalais.
+                                    Il concerne exclusivement un usage professionnel ou commercial.
+                                </p>
+                            </div>
+
+                            <div class="space-y-4">
+                                <div class="clause-item">
+                                    <h4 class="font-semibold text-gray-900 mb-2 flex items-start">
+                                        <span class="bg-purple-100 text-purple-800 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold mr-2 flex-shrink-0">1</span>
+                                        Objet du contrat
+                                    </h4>
+                                    <p class="text-sm text-gray-700 ml-8">
+                                        Le bailleur loue au locataire le bien décrit ci-dessus pour un usage exclusivement professionnel ou commercial.
+                                        Le locataire s'engage à n'exercer que les activités déclarées et autorisées par la législation en vigueur.
+                                    </p>
+                                </div>
+
+                                <div class="clause-item">
+                                    <h4 class="font-semibold text-gray-900 mb-2 flex items-start">
+                                        <span class="bg-purple-100 text-purple-800 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold mr-2 flex-shrink-0">2</span>
+                                        Durée du contrat
+                                    </h4>
+                                    <p class="text-sm text-gray-700 ml-8">
+                                        Le bail commercial est conclu pour une durée ferme de <strong>{{ contract.duree_mois }} mois</strong>,
+                                        du <strong>{{ contract.date_debut|date:"d/m/Y" }}</strong> au <strong>{{ contract.date_fin|date:"d/m/Y" }}</strong>.
+                                        Il ne peut être résilié avant l'échéance sauf accord mutuel des parties.
+                                    </p>
+                                </div>
+
+                                <div class="clause-item">
+                                    <h4 class="font-semibold text-gray-900 mb-2 flex items-start">
+                                        <span class="bg-purple-100 text-purple-800 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold mr-2 flex-shrink-0">3</span>
+                                        Loyer et charges
+                                    </h4>
+                                    <p class="text-sm text-gray-700 ml-8">
+                                        Le loyer mensuel est fixé à <strong>{{ contract.loyer_mensuel|floatformat:0 }} FCFA HT</strong>,
+                                        payable d'avance le premier jour de chaque mois.
+                                        {% if contract.charges_mensuelles > 0 %}
+                                        Les charges mensuelles s'élèvent à <strong>{{ contract.charges_mensuelles|floatformat:0 }} FCFA</strong>.
+                                        {% endif %}
+                                    </p>
+                                </div>
+
+                                <div class="clause-item">
+                                    <h4 class="font-semibold text-gray-900 mb-2 flex items-start">
+                                        <span class="bg-purple-100 text-purple-800 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold mr-2 flex-shrink-0">4</span>
+                                        Dépôt de garantie
+                                    </h4>
+                                    <p class="text-sm text-gray-700 ml-8">
+                                        Un dépôt de garantie de <strong>{{ contract.depot_garantie|floatformat:0 }} FCFA</strong> a été versé à la signature.
+                                        Il sera restitué dans un délai de 60 jours après restitution des locaux.
+                                    </p>
+                                </div>
+
+                                <div class="clause-item">
+                                    <h4 class="font-semibold text-gray-900 mb-2 flex items-start">
+                                        <span class="bg-purple-100 text-purple-800 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold mr-2 flex-shrink-0">5</span>
+                                        Obligations du locataire
+                                    </h4>
+                                    <ul class="text-sm text-gray-700 ml-8 space-y-1 list-disc list-inside">
+                                        <li>Payer le loyer, les charges et taxes aux échéances convenues</li>
+                                        <li>Exploiter effectivement le fonds de commerce</li>
+                                        <li>Souscrire toutes les assurances nécessaires (RC, incendie)</li>
+                                        <li>Respecter les normes de sécurité et d'hygiène</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Liens rapides -->
+            <div class="info-card bg-gray-50">
+                <h3 class="font-semibold text-gray-900 mb-4">
+                    <i class="fas fa-link mr-2"></i>Liens rapides
+                </h3>
+
+                <div class="space-y-2">
+                    <a href="{% url 'payments:invoices_list' %}?contrat={{ contract.pk }}"
+                       class="block p-3 bg-white rounded-lg hover:shadow-md transition duration-200">
+                        <i class="fas fa-file-invoice text-green-600 mr-2"></i>
+                        <span class="text-sm text-gray-700">Voir les factures</span>
+                    </a>
+
+                    <a href="{% url 'payments:payments_list' %}?contrat={{ contract.pk }}"
+                       class="block p-3 bg-white rounded-lg hover:shadow-md transition duration-200">
+                        <i class="fas fa-money-bill-wave text-blue-600 mr-2"></i>
+                        <span class="text-sm text-gray-700">Historique des paiements</span>
+                    </a>
+
+                    <a href="{% url 'maintenance:interventions_list' %}?appartement={{ contract.appartement.pk }}"
+                       class="block p-3 bg-white rounded-lg hover:shadow-md transition duration-200">
+                        <i class="fas fa-tools text-orange-600 mr-2"></i>
+                        <span class="text-sm text-gray-700">Interventions liées au bien</span>
+                    </a>
+
+                    <a href="{% url 'properties:residence_detail' contract.appartement.residence.pk %}"
+                       class="block p-3 bg-white rounded-lg hover:shadow-md transition duration-200">
+                        <i class="fas fa-building text-purple-600 mr-2"></i>
+                        <span class="text-sm text-gray-700">Fiche de la résidence</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Notes ou clauses spéciales -->
+            {% if contract.clauses_speciales %}
+                <div class="info-card border-l-4 border-yellow-500">
+                    <h3 class="font-semibold text-gray-900 mb-3">
+                        <i class="fas fa-exclamation-circle text-yellow-600 mr-2"></i>
+                        Clauses spéciales
+                    </h3>
+                    <p class="text-sm text-gray-700 whitespace-pre-line">{{ contract.clauses_speciales }}</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Fonction pour basculer entre les onglets de clauses
+function switchContractTab(tabName) {
+    // Masquer tous les contenus d'onglets
+    document.querySelectorAll('.contract-tab-content').forEach(content => {
+        content.classList.add('hidden');
+    });
+
+    // Retirer la classe active de tous les boutons
+    document.querySelectorAll('.contract-tab-button').forEach(button => {
+        button.classList.remove('border-b-2', 'border-blue-600', 'border-purple-600', 'text-blue-600', 'text-purple-600');
+        button.classList.add('text-gray-500');
+    });
+
+    // Afficher le contenu de l'onglet sélectionné
+    const selectedContent = document.getElementById('contract-tab-' + tabName);
+    if (selectedContent) {
+        selectedContent.classList.remove('hidden');
+    }
+
+    // Ajouter la classe active au bouton sélectionné
+    const selectedButton = document.querySelector('[data-tab="' + tabName + '"]');
+    if (selectedButton) {
+        selectedButton.classList.remove('text-gray-500');
+        if (tabName === 'habitation') {
+            selectedButton.classList.add('border-b-2', 'border-blue-600', 'text-blue-600');
+        } else {
+            selectedButton.classList.add('border-b-2', 'border-purple-600', 'text-purple-600');
+        }
+    }
+}
+</script>
+{% endblock %}

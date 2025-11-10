@@ -1,0 +1,20 @@
+{% extends 'base_dashboard.html' %}
+{% block title %}Remise des clés - PMO{% endblock %}
+{% block page_title %}Remise des clés{% endblock %}
+{% block page_subtitle %}{{ workflow.contrat.numero_contrat }}{% endblock %}
+{% block content %}
+<div class="imani-card p-6">
+    <form method="post">
+        {% csrf_token %}
+        <div class="space-y-4">
+            <div><label class="block text-sm font-medium mb-2">{{ form.date_remise_cles.label }}</label>{{ form.date_remise_cles }}</div>
+            <div><label class="block text-sm font-medium mb-2">{{ form.nombre_cles.label }}</label>{{ form.nombre_cles }}</div>
+            <div><label class="block text-sm font-medium mb-2">{{ form.notes_pmo.label }}</label>{{ form.notes_pmo }}</div>
+        </div>
+        <div class="flex gap-3 mt-6">
+            <a href="{% url 'contracts:pmo_workflow_detail' workflow.id %}" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">Annuler</a>
+            <button type="submit" class="px-4 py-2 imani-gradient text-white rounded-lg hover:opacity-90">Valider la remise</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

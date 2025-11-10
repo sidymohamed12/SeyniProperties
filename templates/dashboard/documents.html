@@ -1,0 +1,292 @@
+<!-- templates/dashboard/documents.html -->
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Centre de Documents - IMANY{% endblock %}
+
+{% block page_title %}Documents{% endblock %}
+{% block page_subtitle %}Centre de gestion documentaire{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Remplacer bleu/indigo/purple par Imani gradient */
+    .text-indigo-600, .text-blue-600, .text-blue-700, .text-blue-900,
+    .text-purple-600, .text-purple-700, .text-purple-900 {
+        color: #23456b !important;
+    }
+
+    .bg-blue-600, .bg-blue-700, .bg-purple-600, .bg-purple-700,
+    .from-blue-600, .to-blue-700, .from-purple-600, .to-purple-700,
+    .from-indigo-600, .to-purple-700 {
+        background: linear-gradient(135deg, #23456b 0%, #a25946 100%) !important;
+    }
+
+    .bg-gradient-to-r.from-blue-600.to-blue-700,
+    .bg-gradient-to-r.from-purple-600.to-purple-700,
+    .bg-gradient-to-r.from-indigo-600.to-purple-700 {
+        background: linear-gradient(135deg, #23456b 0%, #a25946 100%) !important;
+    }
+
+    .bg-gradient-to-br.from-blue-50.to-blue-100,
+    .bg-gradient-to-br.from-purple-50.to-purple-100 {
+        background: linear-gradient(135deg, rgba(35, 69, 107, 0.05) 0%, rgba(162, 89, 70, 0.05) 100%) !important;
+    }
+
+    .bg-gradient-to-r.from-indigo-50.to-purple-50 {
+        background: linear-gradient(135deg, rgba(35, 69, 107, 0.03) 0%, rgba(162, 89, 70, 0.03) 100%) !important;
+    }
+
+    .border-blue-600, .border-purple-600, .border-blue-200,
+    .border-blue-400, .border-purple-200, .border-purple-400 {
+        border-color: #a25946 !important;
+    }
+
+    .hover\:bg-blue-50:hover, .hover\:bg-purple-50:hover {
+        background: linear-gradient(135deg, rgba(35, 69, 107, 0.05) 0%, rgba(162, 89, 70, 0.05) 100%) !important;
+    }
+
+    /* Garder les couleurs sémantiques */
+    .bg-green-100, .text-green-800, .bg-green-600, .text-green-700, .text-green-900,
+    .from-green-50, .to-green-100, .border-green-600, .text-green-600,
+    .border-green-200, .border-green-400 {
+        /* Conserver les verts pour succès/quittances */
+    }
+
+    .bg-yellow-100, .text-yellow-800, .bg-yellow-600, .text-yellow-700, .text-yellow-900,
+    .from-yellow-50, .to-yellow-100, .border-yellow-600, .text-yellow-600,
+    .border-yellow-200, .border-yellow-400 {
+        /* Conserver les jaunes pour remises de clés */
+    }
+
+    .bg-orange-100, .text-orange-800 {
+        /* Conserver les oranges pour attention */
+    }
+
+    .bg-blue-100, .text-blue-800 {
+        background: linear-gradient(135deg, rgba(35, 69, 107, 0.1) 0%, rgba(162, 89, 70, 0.1) 100%) !important;
+        color: #23456b !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-6">
+    
+    <!-- En-tête -->
+    <div class="mb-8">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">
+                    <i class="fas fa-folder-open text-indigo-600 mr-3"></i>
+                    Centre de Documents
+                </h1>
+                <p class="text-gray-600">Accédez à tous vos documents de gestion locative</p>
+            </div>
+            <a href="{% url 'dashboard:index' %}" 
+               class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors">
+                <i class="fas fa-arrow-left mr-2"></i>Retour au Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Statistiques rapides -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        
+        <!-- États des lieux -->
+        <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg shadow-lg p-6 border-l-4 border-blue-600 transform hover:scale-105 transition-transform">
+            <div class="flex items-center justify-between mb-3">
+                <div class="w-14 h-14 bg-blue-600 rounded-full flex items-center justify-center shadow-lg">
+                    <i class="fas fa-clipboard-check text-white text-2xl"></i>
+                </div>
+                <span class="text-3xl font-bold text-blue-700">{{ total_etats_lieux }}</span>
+            </div>
+            <h3 class="text-sm font-semibold text-blue-900 mb-1">États des Lieux</h3>
+            <p class="text-xs text-blue-600 mb-3">Entrées et sorties</p>
+            <a href="{% url 'properties:etat_lieux_list' %}" 
+               class="inline-flex items-center text-sm font-medium text-blue-700 hover:text-blue-900">
+                Voir tout <i class="fas fa-arrow-right ml-2"></i>
+            </a>
+        </div>
+
+        <!-- Remises de clés -->
+        <div class="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-lg shadow-lg p-6 border-l-4 border-yellow-600 transform hover:scale-105 transition-transform">
+            <div class="flex items-center justify-between mb-3">
+                <div class="w-14 h-14 bg-yellow-600 rounded-full flex items-center justify-center shadow-lg">
+                    <i class="fas fa-key text-white text-2xl"></i>
+                </div>
+                <span class="text-3xl font-bold text-yellow-700">{{ total_remises_cles }}</span>
+            </div>
+            <h3 class="text-sm font-semibold text-yellow-900 mb-1">Remises de Clés</h3>
+            <p class="text-xs text-yellow-600 mb-3">Attestations officielles</p>
+            <a href="{% url 'properties:remise_cles_list' %}" 
+               class="inline-flex items-center text-sm font-medium text-yellow-700 hover:text-yellow-900">
+                Voir tout <i class="fas fa-arrow-right ml-2"></i>
+            </a>
+        </div>
+
+        <!-- Contrats -->
+        <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg shadow-lg p-6 border-l-4 border-purple-600 transform hover:scale-105 transition-transform">
+            <div class="flex items-center justify-between mb-3">
+                <div class="w-14 h-14 bg-purple-600 rounded-full flex items-center justify-center shadow-lg">
+                    <i class="fas fa-file-contract text-white text-2xl"></i>
+                </div>
+                <span class="text-3xl font-bold text-purple-700">{{ total_contrats }}</span>
+            </div>
+            <h3 class="text-sm font-semibold text-purple-900 mb-1">Contrats</h3>
+            <p class="text-xs text-purple-600 mb-3">Contrats de location</p>
+            <a href="{% url 'contracts:list' %}" 
+               class="inline-flex items-center text-sm font-medium text-purple-700 hover:text-purple-900">
+                Voir tout <i class="fas fa-arrow-right ml-2"></i>
+            </a>
+        </div>
+
+        <!-- Quittances -->
+        <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-lg shadow-lg p-6 border-l-4 border-green-600 transform hover:scale-105 transition-transform">
+            <div class="flex items-center justify-between mb-3">
+                <div class="w-14 h-14 bg-green-600 rounded-full flex items-center justify-center shadow-lg">
+                    <i class="fas fa-receipt text-white text-2xl"></i>
+                </div>
+                <span class="text-3xl font-bold text-green-700">{{ total_quittances }}</span>
+            </div>
+            <h3 class="text-sm font-semibold text-green-900 mb-1">Quittances</h3>
+            <p class="text-xs text-green-600 mb-3">Reçus de paiement</p>
+            <a href="{% url 'payments:list' %}" 
+               class="inline-flex items-center text-sm font-medium text-green-700 hover:green-purple-900">
+                Voir tout <i class="fas fa-arrow-right ml-2"></i>
+            </a>
+        </div>
+
+    </div>
+
+    <!-- Documents récents -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        
+        <!-- États des lieux récents -->
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+            <div class="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
+                <h2 class="text-xl font-bold text-white flex items-center">
+                    <i class="fas fa-clipboard-check mr-3"></i>
+                    États des Lieux Récents
+                </h2>
+            </div>
+            <div class="p-6">
+                {% if recent_etats_lieux %}
+                    <div class="space-y-3">
+                        {% for etat in recent_etats_lieux %}
+                        <a href="{% url 'properties:etat_lieux_detail' etat.pk %}" 
+                           class="block p-4 bg-gray-50 hover:bg-blue-50 rounded-lg transition-colors">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="font-semibold text-gray-900">{{ etat.numero_etat }}</p>
+                                    <p class="text-sm text-gray-600">{{ etat.appartement.nom }} - {{ etat.residence.nom }}</p>
+                                    <p class="text-xs text-gray-500 mt-1">
+                                        <span class="px-2 py-1 rounded-full text-xs font-medium
+                                            {% if etat.type_etat == 'entree' %}bg-green-100 text-green-800{% else %}bg-orange-100 text-orange-800{% endif %}">
+                                            {{ etat.get_type_etat_display }}
+                                        </span>
+                                        - {{ etat.date_etat|date:"d/m/Y" }}
+                                    </p>
+                                </div>
+                                <i class="fas fa-chevron-right text-gray-400"></i>
+                            </div>
+                        </a>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-gray-500 text-center py-8">Aucun état des lieux récent</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Remises de clés récentes -->
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+            <div class="bg-gradient-to-r from-yellow-600 to-yellow-700 px-6 py-4">
+                <h2 class="text-xl font-bold text-white flex items-center">
+                    <i class="fas fa-key mr-3"></i>
+                    Remises de Clés Récentes
+                </h2>
+            </div>
+            <div class="p-6">
+                {% if recent_remises %}
+                    <div class="space-y-3">
+                        {% for remise in recent_remises %}
+                        <a href="{% url 'properties:remise_cles_detail' remise.pk %}" 
+                           class="block p-4 bg-gray-50 hover:bg-yellow-50 rounded-lg transition-colors">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="font-semibold text-gray-900">{{ remise.numero_attestation }}</p>
+                                    <p class="text-sm text-gray-600">{{ remise.appartement.nom }} - {{ remise.residence.nom }}</p>
+                                    <p class="text-xs text-gray-500 mt-1">
+                                        <span class="px-2 py-1 rounded-full text-xs font-medium
+                                            {% if remise.type_remise == 'entree' %}bg-blue-100 text-blue-800{% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                                            {{ remise.get_type_remise_display }}
+                                        </span>
+                                        - {{ remise.date_remise|date:"d/m/Y" }}
+                                    </p>
+                                </div>
+                                <i class="fas fa-chevron-right text-gray-400"></i>
+                            </div>
+                        </a>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-gray-500 text-center py-8">Aucune remise de clés récente</p>
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Actions rapides -->
+    <div class="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg shadow p-6">
+        <h2 class="text-xl font-bold text-gray-900 mb-4">
+            <i class="fas fa-bolt text-indigo-600 mr-2"></i>
+            Actions Rapides
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            
+            <a href="{% url 'properties:etat_lieux_create' %}" 
+               class="flex items-center justify-center p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow border-2 border-blue-200 hover:border-blue-400">
+                <i class="fas fa-plus-circle text-blue-600 text-xl mr-3"></i>
+                <span class="font-semibold text-gray-900">Nouvel État des Lieux</span>
+            </a>
+
+            <a href="{% url 'properties:remise_cles_create' %}" 
+               class="flex items-center justify-center p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow border-2 border-yellow-200 hover:border-yellow-400">
+                <i class="fas fa-plus-circle text-yellow-600 text-xl mr-3"></i>
+                <span class="font-semibold text-gray-900">Nouvelle Remise de Clés</span>
+            </a>
+
+            <a href="{% url 'contracts:create' %}" 
+               class="flex items-center justify-center p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow border-2 border-purple-200 hover:border-purple-400">
+                <i class="fas fa-plus-circle text-purple-600 text-xl mr-3"></i>
+                <span class="font-semibold text-gray-900">Nouveau Contrat</span>
+            </a>
+
+            <a href="{% url 'payments:create' %}" 
+               class="flex items-center justify-center p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow border-2 border-green-200 hover:border-green-400">
+                <i class="fas fa-plus-circle text-green-600 text-xl mr-3"></i>
+                <span class="font-semibold text-gray-900">Nouveau Paiement</span>
+            </a>
+
+        </div>
+    </div>
+
+</div>
+
+<script>
+// Animation au chargement
+document.addEventListener('DOMContentLoaded', function() {
+    const cards = document.querySelectorAll('.transform');
+    cards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        setTimeout(() => {
+            card.style.transition = 'all 0.5s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, index * 100);
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,72 @@
+<!-- templates/dashboard/forms/nouvelle_residence.html -->
+<form id="modal-form" method="post">
+    {% csrf_token %}
+    
+    <div class="space-y-4">
+        <!-- Nom de la résidence -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+                Nom de la résidence <span class="text-red-500">*</span>
+            </label>
+            <input type="text" name="nom" required class="form-control" 
+                   placeholder="Ex: Résidence Les Acacias">
+        </div>
+        
+        <!-- proprietaire -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+                Propriétaire <span class="text-red-500">*</span>
+            </label>
+            <select name="proprietaire_id" required class="form-control">
+                <option value="">-- Sélectionner un proprietaire --</option>
+                {% for proprietaire in proprietaires %}
+                    <option value="{{ proprietaire.id }}">
+                        {{ proprietaire.nom_complet }}
+                        {% if proprietaire.entreprise %} - {{ proprietaire.entreprise }}{% endif %}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <!-- Adresse -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+                Adresse <span class="text-red-500">*</span>
+            </label>
+            <input type="text" name="adresse" required class="form-control" 
+                   placeholder="Ex: 15 Avenue Cheikh Anta Diop">
+        </div>
+        
+        <!-- Ville et Code postal -->
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Ville <span class="text-red-500">*</span>
+                </label>
+                <input type="text" name="ville" required class="form-control" 
+                       placeholder="Ex: Dakar">
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Code postal
+                </label>
+                <input type="text" name="code_postal" class="form-control" 
+                       placeholder="Ex: 12500">
+            </div>
+        </div>
+        
+        <!-- Quartier -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+                Quartier
+            </label>
+            <input type="text" name="quartier" class="form-control" 
+                   placeholder="Ex: Plateau, Almadies, Mermoz">
+        </div>
+    </div>
+</form>
+
+<script>
+// Pas de JavaScript spécifique nécessaire pour ce formulaire simple
+</script>

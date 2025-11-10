@@ -1,0 +1,120 @@
+{% extends 'base_dashboard.html' %}
+
+{% block page_title %}{% if action == 'create' %}Nouveau copropriétaire{% else %}Modifier copropriétaire{% endif %}{% endblock %}
+{% block page_subtitle %}{% if action == 'create' %}Ajouter un copropriétaire{% else %}Modifier les informations du copropriétaire{% endif %}{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <nav class="text-sm text-gray-600">
+        <a href="{% url 'syndic:dashboard' %}" class="hover:text-imani-primary">Syndic</a>
+        <span class="mx-2">/</span>
+        <a href="{% url 'syndic:coproprietaire_list' %}" class="hover:text-imani-primary">Copropriétaires</a>
+        <span class="mx-2">/</span>
+        <span class="text-gray-900 font-medium">{% if action == 'create' %}Nouveau{% else %}Modifier{% endif %}</span>
+    </nav>
+</div>
+
+<div class="max-w-4xl">
+    <div class="imani-card p-8">
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="md:col-span-2">
+                    <label for="{{ form.tiers.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Tiers (Personne) <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.tiers }}
+                    {% if form.tiers.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.tiers.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div class="md:col-span-2">
+                    <label for="{{ form.copropriete.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Copropriété <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.copropriete }}
+                    {% if form.copropriete.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.copropriete.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label for="{{ form.nombre_tantiemes.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Nombre de tantièmes <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.nombre_tantiemes }}
+                    {% if form.nombre_tantiemes.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.nombre_tantiemes.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label for="{{ form.date_entree.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Date d'entrée <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.date_entree }}
+                    {% if form.date_entree.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.date_entree.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label for="{{ form.date_sortie.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Date de sortie
+                    </label>
+                    {{ form.date_sortie }}
+                    {% if form.date_sortie.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.date_sortie.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div class="md:col-span-2">
+                    <label for="{{ form.lots.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Lots (appartements)
+                    </label>
+                    {{ form.lots }}
+                    {% if form.lots.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.lots.errors.0 }}</p>
+                    {% endif %}
+                    <p class="mt-1 text-xs text-gray-500">Maintenez Ctrl/Cmd pour sélectionner plusieurs lots</p>
+                </div>
+
+                <div class="md:col-span-2">
+                    <div class="flex items-center">
+                        {{ form.is_active }}
+                        <label for="{{ form.is_active.id_for_label }}" class="ml-3 text-sm font-medium text-gray-700">
+                            Copropriétaire actif
+                        </label>
+                    </div>
+                    {% if form.is_active.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.is_active.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div class="md:col-span-2">
+                    <label for="{{ form.notes.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Notes
+                    </label>
+                    {{ form.notes }}
+                    {% if form.notes.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.notes.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+                <a href="{% if action == 'update' %}{% url 'syndic:copropriete_detail' coproprietaire.copropriete.pk %}{% else %}{% url 'syndic:coproprietaire_list' %}{% endif %}"
+                   class="px-6 py-2.5 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                    Annuler
+                </a>
+                <button type="submit" class="imani-gradient text-white px-6 py-2.5 rounded-lg hover:opacity-90 transition-opacity flex items-center space-x-2">
+                    <i class="fas fa-save"></i>
+                    <span>{% if action == 'create' %}Créer{% else %}Enregistrer{% endif %}</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

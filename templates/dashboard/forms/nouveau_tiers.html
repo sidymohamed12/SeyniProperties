@@ -1,0 +1,483 @@
+<!-- templates/dashboard/forms/nouveau_tiers.html - Formulaire unifié pour tous les tiers -->
+<form id="modal-form" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <div class="space-y-6">
+        <!-- ============================================ -->
+        <!-- SECTION 1: TYPE DE TIERS -->
+        <!-- ============================================ -->
+        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4">
+            <label class="block text-sm font-semibold text-gray-800 mb-2">
+                <i class="fas fa-user-tag text-blue-600 mr-2"></i>
+                Type de tiers <span class="text-red-500">*</span>
+            </label>
+            <select name="type_tiers" id="type-tiers-select" required
+                    class="form-control text-base font-medium">
+                <option value="">-- Sélectionner un type --</option>
+                <option value="proprietaire">Propriétaire</option>
+                <option value="locataire">Locataire</option>
+                <option value="prestataire">Prestataire</option>
+                <option value="partenaire">Partenaire</option>
+                <option value="investisseur">Investisseur</option>
+                <option value="autre">Autre</option>
+            </select>
+            <p class="text-xs text-gray-600 mt-1">
+                <i class="fas fa-info-circle mr-1"></i>
+                Sélectionnez le type de relation avec ce tiers
+            </p>
+        </div>
+
+        <!-- ============================================ -->
+        <!-- SECTION 2: INFORMATIONS PERSONNELLES -->
+        <!-- ============================================ -->
+        <div class="border-l-4 border-green-500 pl-4">
+            <h3 class="text-base font-semibold text-gray-800 mb-3 flex items-center">
+                <i class="fas fa-id-card text-green-600 mr-2"></i>
+                Informations personnelles
+            </h3>
+
+            <div class="space-y-4">
+                <!-- Nom et Prénom -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Nom <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" name="nom" required
+                               class="form-control"
+                               placeholder="Nom de famille ou raison sociale">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Prénom
+                        </label>
+                        <input type="text" name="prenom"
+                               class="form-control"
+                               placeholder="Prénom (pour particuliers)">
+                        <p class="text-xs text-gray-500 mt-1">Optionnel pour entreprises</p>
+                    </div>
+                </div>
+
+                <!-- Email et Téléphone -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Email <span class="text-red-500">*</span>
+                        </label>
+                        <input type="email" name="email" required
+                               class="form-control"
+                               placeholder="email@exemple.com">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Téléphone principal <span class="text-red-500">*</span>
+                        </label>
+                        <input type="tel" name="telephone" required
+                               class="form-control"
+                               placeholder="+221 XX XXX XX XX"
+                               pattern="^\+?[0-9]{9,15}$">
+                    </div>
+                </div>
+
+                <!-- Téléphone secondaire -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Téléphone secondaire
+                    </label>
+                    <input type="tel" name="telephone_secondaire"
+                           class="form-control"
+                           placeholder="+221 XX XXX XX XX (optionnel)"
+                           pattern="^\+?[0-9]{9,15}$">
+                </div>
+
+                <!-- Adresse complète -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Adresse complète <span class="text-red-500">*</span>
+                    </label>
+                    <textarea name="adresse" required rows="2"
+                              class="form-control"
+                              placeholder="Numéro, rue, quartier..."></textarea>
+                </div>
+
+                <!-- Ville, Quartier, Code postal -->
+                <div class="grid grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Ville <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" name="ville" value="Dakar" required
+                               class="form-control">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Quartier
+                        </label>
+                        <input type="text" name="quartier"
+                               class="form-control"
+                               placeholder="Ex: Almadies">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Code postal
+                        </label>
+                        <input type="text" name="code_postal"
+                               class="form-control"
+                               placeholder="Optionnel">
+                    </div>
+                </div>
+
+                <!-- Pièce d'identité -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Numéro pièce d'identité
+                        </label>
+                        <input type="text" name="piece_identite_numero"
+                               class="form-control"
+                               placeholder="CNI, Passeport...">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Document d'identité (PDF/Image)
+                        </label>
+                        <input type="file" name="piece_identite"
+                               class="form-control text-sm"
+                               accept=".pdf,.jpg,.jpeg,.png">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <!-- SECTION 3: INFORMATIONS PROPRIÉTAIRE (conditionnel) -->
+        <!-- ============================================ -->
+        <div id="section-proprietaire" class="border-l-4 border-purple-500 pl-4 hidden">
+            <h3 class="text-base font-semibold text-gray-800 mb-3 flex items-center">
+                <i class="fas fa-building text-purple-600 mr-2"></i>
+                Informations propriétaire
+            </h3>
+
+            <div class="space-y-4">
+                <!-- Type de bailleur -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Type de propriétaire
+                    </label>
+                    <select name="type_bailleur" id="type-bailleur-select"
+                            class="form-control">
+                        <option value="particulier" selected>Particulier</option>
+                        <option value="entreprise">Entreprise</option>
+                        <option value="sci">SCI (Société Civile Immobilière)</option>
+                        <option value="autre">Autre</option>
+                    </select>
+                </div>
+
+                <!-- Nom entreprise et SIRET -->
+                <div id="champs-entreprise" class="grid grid-cols-2 gap-4 hidden">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Nom de l'entreprise
+                        </label>
+                        <input type="text" name="entreprise"
+                               class="form-control"
+                               placeholder="Raison sociale">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Numéro SIRET/NINEA
+                        </label>
+                        <input type="text" name="numero_siret"
+                               class="form-control"
+                               placeholder="Numéro d'identification">
+                    </div>
+                </div>
+
+                <!-- Adresse fiscale -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Adresse fiscale
+                    </label>
+                    <textarea name="adresse_fiscale" rows="2"
+                              class="form-control"
+                              placeholder="Si différente de l'adresse principale (optionnel)"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <!-- SECTION 4: INFORMATIONS LOCATAIRE (conditionnel) -->
+        <!-- ============================================ -->
+        <div id="section-locataire" class="border-l-4 border-orange-500 pl-4 hidden">
+            <h3 class="text-base font-semibold text-gray-800 mb-3 flex items-center">
+                <i class="fas fa-home text-orange-600 mr-2"></i>
+                Informations locataire
+            </h3>
+
+            <div class="space-y-4">
+                <!-- Situation professionnelle et Date d'entrée -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Situation professionnelle
+                        </label>
+                        <select name="situation_pro" class="form-control">
+                            <option value="">-- Sélectionner --</option>
+                            <option value="salarie">Salarié</option>
+                            <option value="independant">Indépendant</option>
+                            <option value="etudiant">Étudiant</option>
+                            <option value="retraite">Retraité</option>
+                            <option value="chomeur">Demandeur d'emploi</option>
+                            <option value="autre">Autre</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Date d'entrée prévue
+                        </label>
+                        <input type="date" name="date_entree"
+                               class="form-control">
+                    </div>
+                </div>
+
+                <!-- Informations garant -->
+                <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                    <h4 class="text-sm font-semibold text-gray-700 mb-2">
+                        <i class="fas fa-user-shield text-yellow-600 mr-1"></i>
+                        Informations du garant (optionnel)
+                    </h4>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">
+                                Nom complet du garant
+                            </label>
+                            <input type="text" name="garant_nom"
+                                   class="form-control text-sm"
+                                   placeholder="Nom et prénom">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">
+                                Téléphone du garant
+                            </label>
+                            <input type="tel" name="garant_tel"
+                                   class="form-control text-sm"
+                                   placeholder="+221 XX XXX XX XX">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <!-- SECTION 5: NOTES ET DOCUMENTS -->
+        <!-- ============================================ -->
+        <div class="border-l-4 border-gray-400 pl-4">
+            <h3 class="text-base font-semibold text-gray-800 mb-3 flex items-center">
+                <i class="fas fa-sticky-note text-gray-600 mr-2"></i>
+                Notes et documents complémentaires
+            </h3>
+
+            <div class="space-y-4">
+                <!-- Notes internes -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Notes internes
+                    </label>
+                    <textarea name="notes" rows="3"
+                              class="form-control"
+                              placeholder="Notes et observations sur ce tiers (usage interne uniquement)"></textarea>
+                </div>
+
+                <!-- Autre document -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Document complémentaire
+                    </label>
+                    <input type="file" name="autre_document"
+                           class="form-control text-sm"
+                           accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+                    <p class="text-xs text-gray-500 mt-1">
+                        Justificatif de domicile, bulletin de salaire, etc.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <!-- SECTION 6: CRÉATION DE COMPTE UTILISATEUR (optionnel) -->
+        <!-- ============================================ -->
+        <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-lg">
+            <div class="flex items-start">
+                <input type="checkbox" id="creer-compte-checkbox" name="creer_compte"
+                       class="mt-1 mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                <div class="flex-1">
+                    <label for="creer-compte-checkbox" class="text-sm font-semibold text-gray-800 cursor-pointer">
+                        <i class="fas fa-user-plus text-blue-600 mr-1"></i>
+                        Créer un compte utilisateur pour ce tiers
+                    </label>
+                    <p class="text-xs text-gray-600 mt-1">
+                        Un compte utilisateur lui permettra de se connecter au portail
+                        (recommandé pour les propriétaires et locataires).
+                        Des identifiants temporaires lui seront envoyés par email.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <!-- RÉCAPITULATIF -->
+        <!-- ============================================ -->
+        <div id="recap-info" class="bg-gradient-to-r from-green-50 to-teal-50 border border-green-200 rounded-lg p-4 hidden">
+            <div class="flex items-start">
+                <i class="fas fa-check-circle text-green-600 text-xl mt-1 mr-3"></i>
+                <div class="flex-1">
+                    <h4 class="text-sm font-semibold text-gray-800 mb-1">Informations importantes</h4>
+                    <ul class="text-xs text-gray-700 space-y-1">
+                        <li id="recap-type"></li>
+                        <li>• Une référence unique sera générée automatiquement</li>
+                        <li>• Le statut sera défini sur "Actif" par défaut</li>
+                        <li id="recap-compte"></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const typeTiersSelect = document.getElementById('type-tiers-select');
+    const typeBailleurSelect = document.getElementById('type-bailleur-select');
+    const creerCompteCheckbox = document.getElementById('creer-compte-checkbox');
+
+    const sectionProprietaire = document.getElementById('section-proprietaire');
+    const sectionLocataire = document.getElementById('section-locataire');
+    const champsEntreprise = document.getElementById('champs-entreprise');
+    const recapInfo = document.getElementById('recap-info');
+    const recapType = document.getElementById('recap-type');
+    const recapCompte = document.getElementById('recap-compte');
+
+    // Gestion du type de tiers
+    typeTiersSelect.addEventListener('change', function() {
+        const type = this.value;
+
+        // Cacher toutes les sections conditionnelles
+        sectionProprietaire.classList.add('hidden');
+        sectionLocataire.classList.add('hidden');
+        recapInfo.classList.add('hidden');
+
+        // Afficher les sections pertinentes
+        if (type === 'proprietaire') {
+            sectionProprietaire.classList.remove('hidden');
+            creerCompteCheckbox.checked = true;
+            recapType.textContent = '• Type: Propriétaire - Accès au portail propriétaire recommandé';
+        } else if (type === 'locataire') {
+            sectionLocataire.classList.remove('hidden');
+            creerCompteCheckbox.checked = true;
+            recapType.textContent = '• Type: Locataire - Accès au portail locataire recommandé';
+        } else if (type) {
+            recapType.textContent = `• Type: ${this.options[this.selectedIndex].text}`;
+        }
+
+        // Afficher le récapitulatif si un type est sélectionné
+        if (type) {
+            recapInfo.classList.remove('hidden');
+            updateRecapCompte();
+        }
+
+        // Date minimale pour date d'entrée (aujourd'hui)
+        const dateEntreeInput = document.querySelector('input[name="date_entree"]');
+        if (dateEntreeInput && type === 'locataire') {
+            const today = new Date().toISOString().split('T')[0];
+            dateEntreeInput.setAttribute('min', today);
+        }
+    });
+
+    // Gestion du type de bailleur (entreprise ou particulier)
+    typeBailleurSelect.addEventListener('change', function() {
+        if (this.value === 'entreprise' || this.value === 'sci') {
+            champsEntreprise.classList.remove('hidden');
+        } else {
+            champsEntreprise.classList.add('hidden');
+        }
+    });
+
+    // Gestion de la checkbox création de compte
+    creerCompteCheckbox.addEventListener('change', updateRecapCompte);
+
+    function updateRecapCompte() {
+        if (creerCompteCheckbox.checked) {
+            recapCompte.textContent = '• Un compte utilisateur sera créé avec des identifiants temporaires';
+            recapCompte.classList.remove('hidden');
+        } else {
+            recapCompte.textContent = '• Aucun compte utilisateur ne sera créé (simple fiche contact)';
+            recapCompte.classList.remove('hidden');
+        }
+    }
+
+    // Validation du formulaire
+    document.getElementById('modal-form').addEventListener('submit', function(e) {
+        const type = typeTiersSelect.value;
+
+        if (!type) {
+            e.preventDefault();
+            alert('Veuillez sélectionner un type de tiers');
+            typeTiersSelect.focus();
+            return false;
+        }
+
+        // Validation téléphone
+        const telInputs = document.querySelectorAll('input[type="tel"]');
+        telInputs.forEach(input => {
+            if (input.value && !input.checkValidity()) {
+                e.preventDefault();
+                alert('Le format du numéro de téléphone est invalide. Format attendu: +221 XX XXX XX XX');
+                input.focus();
+                return false;
+            }
+        });
+    });
+
+    console.log('Formulaire Tiers initialisé');
+});
+</script>
+
+<style>
+.form-control {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    transition: all 0.2s;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #3b82f6;
+    ring: 2px;
+    ring-color: rgba(59, 130, 246, 0.2);
+}
+
+.form-control:disabled {
+    background-color: #f3f4f6;
+    cursor: not-allowed;
+}
+
+select.form-control {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.5rem center;
+    background-repeat: no-repeat;
+    background-size: 1.5em 1.5em;
+    padding-right: 2.5rem;
+}
+</style>

@@ -1,0 +1,173 @@
+{% extends 'base_dashboard.html' %}
+
+{% block page_title %}{{ copropriete.residence.nom }}{% endblock %}
+{% block page_subtitle %}Détails de la copropriété{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <nav class="text-sm text-gray-600">
+        <a href="{% url 'syndic:dashboard' %}" class="hover:text-imani-primary">Syndic</a>
+        <span class="mx-2">/</span>
+        <a href="{% url 'syndic:copropriete_list' %}" class="hover:text-imani-primary">Copropriétés</a>
+        <span class="mx-2">/</span>
+        <span class="text-gray-900 font-medium">{{ copropriete.residence.nom }}</span>
+    </nav>
+</div>
+
+<div class="flex justify-between items-start mb-6">
+    <div>
+        <h3 class="text-xl font-semibold text-gray-800">{{ copropriete.residence.nom }}</h3>
+        <p class="text-sm text-gray-600 mt-1"><i class="fas fa-map-marker-alt mr-1"></i>{{ copropriete.residence.adresse }}</p>
+    </div>
+    <div class="flex space-x-3">
+        <a href="{% url 'syndic:copropriete_update' copropriete.pk %}" class="imani-gradient text-white px-6 py-2.5 rounded-lg flex items-center space-x-2 hover:opacity-90 transition-opacity">
+            <i class="fas fa-edit"></i>
+            <span>Modifier</span>
+        </a>
+        <form method="post" action="{% url 'syndic:copropriete_delete' copropriete.pk %}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette copropriété ?');" class="inline">
+            {% csrf_token %}
+            <button type="submit" class="bg-red-600 text-white px-6 py-2.5 rounded-lg flex items-center space-x-2 hover:bg-red-700 transition-colors">
+                <i class="fas fa-trash"></i>
+                <span>Supprimer</span>
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Informations générales -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+    <div class="imani-card p-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm text-gray-600 mb-1">Tantièmes totaux</p>
+                <p class="text-2xl font-bold text-gray-800">{{ copropriete.nombre_tantiemes_total }}</p>
+            </div>
+            <div class="w-12 h-12 imani-gradient rounded-lg flex items-center justify-center">
+                <i class="fas fa-calculator text-white text-lg"></i>
+            </div>
+        </div>
+    </div>
+    <div class="imani-card p-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm text-gray-600 mb-1">Copropriétaires</p>
+                <p class="text-2xl font-bold text-gray-800">{{ coproprietaires|length }}</p>
+            </div>
+            <div class="w-12 h-12 imani-gradient rounded-lg flex items-center justify-center">
+                <i class="fas fa-users text-white text-lg"></i>
+            </div>
+        </div>
+    </div>
+    <div class="imani-card p-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm text-gray-600 mb-1">Budget annuel</p>
+                <p class="text-2xl font-bold text-gray-800">{{ copropriete.budget_annuel|floatformat:0 }}</p>
+                <p class="text-xs text-gray-500">FCFA</p>
+            </div>
+            <div class="w-12 h-12 imani-gradient rounded-lg flex items-center justify-center">
+                <i class="fas fa-money-bill-wave text-white text-lg"></i>
+            </div>
+        </div>
+    </div>
+    <div class="imani-card p-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm text-gray-600 mb-1">Période</p>
+                <p class="text-xl font-bold text-gray-800">{{ copropriete.get_periode_cotisation_display }}</p>
+            </div>
+            <div class="w-12 h-12 imani-gradient rounded-lg flex items-center justify-center">
+                <i class="fas fa-calendar-alt text-white text-lg"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Liste des copropriétaires -->
+<div class="imani-card mb-8">
+    <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+        <h2 class="text-lg font-semibold text-gray-800"><i class="fas fa-users mr-2"></i>Copropriétaires</h2>
+        <a href="{% url 'syndic:coproprietaire_create' %}?copropriete={{ copropriete.pk }}" class="text-imani-primary hover:text-imani-secondary flex items-center space-x-2">
+            <i class="fas fa-plus"></i>
+            <span>Ajouter</span>
+        </a>
+    </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Copropriétaire</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tantièmes</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Quote-part</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cotisation/période</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date entrée</th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for copro in coproprietaires %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm font-medium text-gray-900">{{ copro.tiers.nom_complet }}</div>
+                            <div class="text-sm text-gray-500">{{ copro.tiers.telephone }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ copro.nombre_tantiemes }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            {{ copro.quote_part|floatformat:2 }}%
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {{ copro.cotisation_par_periode|floatformat:0 }} FCFA
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ copro.date_entree }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm space-x-3">
+                            <a href="{% url 'syndic:coproprietaire_update' copro.pk %}" class="text-blue-600 hover:text-blue-900">
+                                <i class="fas fa-edit"></i> Modifier
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="px-6 py-4 text-center text-gray-500">
+                            Aucun copropriétaire
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+</div>
+
+<!-- Budget -->
+{% if budget_actuel %}
+<div class="imani-card">
+    <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+        <h2 class="text-lg font-semibold text-gray-800"><i class="fas fa-calculator mr-2"></i>Budget {{ budget_actuel.annee }}</h2>
+        <a href="{% url 'syndic:budget_detail' budget_actuel.pk %}" class="text-imani-primary hover:text-imani-secondary flex items-center space-x-2">
+            <span>Voir détails</span>
+            <i class="fas fa-arrow-right"></i>
+        </a>
+    </div>
+    <div class="p-6">
+        <div class="grid grid-cols-3 gap-4">
+            <div>
+                <p class="text-sm text-gray-600 mb-1">Montant total</p>
+                <p class="text-xl font-bold text-gray-800">{{ budget_actuel.montant_total|floatformat:0 }} FCFA</p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-600 mb-1">Statut</p>
+                <p class="text-xl font-bold text-gray-800">{{ budget_actuel.get_statut_display }}</p>
+            </div>
+            <div class="text-right">
+                <a href="{% url 'syndic:budget_update' budget_actuel.pk %}" class="text-blue-600 hover:text-blue-900">
+                    <i class="fas fa-edit"></i> Modifier
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

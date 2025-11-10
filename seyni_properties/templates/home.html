@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion - Seyni Properties</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        seyni: {
+                            50: '#f5f3f2',
+                            100: '#e8e3e0',
+                            200: '#d4c7c0',
+                            300: '#baa298',
+                            400: '#a25946',
+                            500: '#8d4e3d',
+                            600: '#794234',
+                            700: '#63362c',
+                            800: '#4e2b23',
+                            900: '#3a1f1a',
+                            primary: '#a25946',
+                        },
+                        navy: {
+                            50: '#f1f3f6',
+                            100: '#e1e6ed',
+                            200: '#c4cddb',
+                            300: '#9eacc2',
+                            400: '#758ba6',
+                            500: '#586e8b',
+                            600: '#475972',
+                            700: '#23456b',
+                            800: '#1d3a57',
+                            900: '#162e43',
+                            primary: '#23456b',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gradient-to-br from-gray-50 to-navy-50 min-h-screen">
+    <!-- Background Pattern -->
+    <div class="absolute inset-0 bg-white/60"></div>
+    <div class="absolute inset-0" style="background-image: url('data:image/svg+xml,%3Csvg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="%23f1f3f6" fill-opacity="0.4"%3E%3Cpath d="m0 40l40-40v40z"/%3E%3Cpath d="m40 40v-40l-40 40z"/%3E%3C/g%3E%3C/svg%3E');"></div>
+    
+    <div class="relative min-h-screen flex">
+        <!-- Section gauche - Informations -->
+        <div class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-navy-700 to-navy-800 relative overflow-hidden">
+            <div class="absolute inset-0 bg-black/20"></div>
+            <div class="relative z-10 flex flex-col justify-center px-12 text-white">
+                <div class="mb-8">
+                    <img src="https://www.seyniproperties.sn/wp-content/uploads/2023/07/Header-logo-seyni-properties-2.png" 
+                         alt="Seyni Properties" 
+                         class="h-16 w-auto mb-8 filter brightness-0 invert">
+                </div>
+                
+                <h1 class="text-4xl font-bold mb-6">
+                    Bienvenue sur le
+                    <span class="text-seyni-400">Système de Gestion</span>
+                </h1>
+                
+                <p class="text-xl mb-8 text-navy-100">
+                    Gérez votre portefeuille immobilier avec simplicité et efficacité
+                </p>
+                
+                <div class="space-y-4">
+                    <div class="flex items-center space-x-3">
+                        <div class="bg-white/20 p-2 rounded-lg">
+                            <i class="fas fa-building text-seyni-400"></i>
+                        </div>
+                        <span>Gestion des biens immobiliers</span>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <div class="bg-white/20 p-2 rounded-lg">
+                            <i class="fas fa-users text-seyni-400"></i>
+                        </div>
+                        <span>Suivi des locataires et bailleurs</span>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <div class="bg-white/20 p-2 rounded-lg">
+                            <i class="fas fa-chart-line text-seyni-400"></i>
+                        </div>
+                        <span>Tableaux de bord et rapports</span>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <div class="bg-white/20 p-2 rounded-lg">
+                            <i class="fas fa-mobile-alt text-seyni-400"></i>
+                        </div>
+                        <span>Interface mobile optimisée</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Decorative elements -->
+            <div class="absolute top-10 right-10 w-32 h-32 bg-white/10 rounded-full"></div>
+            <div class="absolute bottom-10 right-20 w-20 h-20 bg-seyni-400/20 rounded-full"></div>
+            <div class="absolute top-1/2 right-5 w-16 h-16 bg-white/5 rounded-full"></div>
+        </div>
+        
+        <!-- Section droite - Connexion -->
+        <div class="flex-1 flex flex-col justify-center px-6 sm:px-12 lg:px-16">
+            <div class="w-full max-w-md mx-auto">
+                <!-- Logo mobile -->
+                <div class="lg:hidden text-center mb-8">
+                    <img src="https://www.seyniproperties.sn/wp-content/uploads/2023/07/Header-logo-seyni-properties-2.png" 
+                         alt="Seyni Properties" 
+                         class="h-12 w-auto mx-auto mb-4">
+                    <h2 class="text-2xl font-bold text-gray-900">Connexion</h2>
+                </div>
+                
+                <!-- Titre desktop -->
+                <div class="hidden lg:block mb-8">
+                    <h2 class="text-3xl font-bold text-gray-900 mb-2">Connexion</h2>
+                    <p class="text-gray-600">Accédez à votre espace de gestion</p>
+                </div>
+                
+                <!-- Formulaire de connexion -->
+                <form class="space-y-6" action="/accounts/login/" method="post">
+                    {% csrf_token %}
+                    
+                    <div>
+                        <label for="username" class="block text-sm font-medium text-gray-700 mb-2">
+                            Nom d'utilisateur ou Email
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-user text-gray-400"></i>
+                            </div>
+                            <input id="username" name="username" type="text" required 
+                                   class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg 
+                                          focus:outline-none focus:ring-2 focus:ring-navy-700 focus:border-navy-700
+                                          transition-colors duration-200"
+                                   placeholder="Votre nom d'utilisateur">
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label for="password" class="block text-sm font-medium text-gray-700 mb-2">
+                            Mot de passe
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-lock text-gray-400"></i>
+                            </div>
+                            <input id="password" name="password" type="password" required 
+                                   class="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg 
+                                          focus:outline-none focus:ring-2 focus:ring-navy-700 focus:border-navy-700
+                                          transition-colors duration-200"
+                                   placeholder="Votre mot de passe">
+                            <button type="button" class="absolute inset-y-0 right-0 pr-3 flex items-center"
+                                    onclick="togglePassword()">
+                                <i id="passwordToggle" class="fas fa-eye text-gray-400 hover:text-gray-600"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <input id="remember" name="remember" type="checkbox" 
+                                   class="h-4 w-4 text-navy-700 focus:ring-navy-700 border-gray-300 rounded">
+                            <label for="remember" class="ml-2 block text-sm text-gray-700">
+                                Se souvenir de moi
+                            </label>
+                        </div>
+                        
+                        <a href="/accounts/password/reset/" class="text-sm text-navy-700 hover:text-navy-600">
+                            Mot de passe oublié ?
+                        </a>
+                    </div>
+                    
+                    <button type="submit" 
+                            class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg
+                                   text-white bg-gradient-to-r from-navy-700 to-navy-800 
+                                   hover:from-navy-800 hover:to-navy-900 
+                                   focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-navy-700
+                                   transition-all duration-200 font-medium shadow-lg hover:shadow-xl">
+                        <i class="fas fa-sign-in-alt mr-2"></i>
+                        Se connecter
+                    </button>
+                </form>
+                
+                <!-- Accès rapide pour démo -->
+                <div class="mt-8 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <h3 class="text-sm font-medium text-gray-700 mb-3">
+                        <i class="fas fa-rocket text-navy-700 mr-1"></i>
+                        Accès rapide (Démo)
+                    </h3>
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <a href="/dashboard/" 
+                           class="bg-white border border-gray-200 rounded px-3 py-2 text-center hover:bg-navy-50 hover:border-navy-200 transition-colors">
+                            <i class="fas fa-chart-line text-navy-700 block mb-1"></i>
+                            Dashboard
+                        </a>
+                        <a href="/employees/" 
+                           class="bg-white border border-gray-200 rounded px-3 py-2 text-center hover:bg-navy-50 hover:border-navy-200 transition-colors">
+                            <i class="fas fa-user-tie text-navy-700 block mb-1"></i>
+                            Employés
+                        </a>
+                        <a href="/properties/" 
+                           class="bg-white border border-gray-200 rounded px-3 py-2 text-center hover:bg-navy-50 hover:border-navy-200 transition-colors">
+                            <i class="fas fa-building text-navy-700 block mb-1"></i>
+                            Biens
+                        </a>
+                        <a href="/admin/" 
+                           class="bg-white border border-gray-200 rounded px-3 py-2 text-center hover:bg-navy-50 hover:border-navy-200 transition-colors">
+                            <i class="fas fa-cog text-navy-700 block mb-1"></i>
+                            Admin
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Footer -->
+                <div class="mt-8 text-center text-sm text-gray-500">
+                    <p>© 2025 Seyni Properties. Tous droits réservés.</p>
+                    <p class="mt-1">
+                        <a href="https://www.seyniproperties.sn" class="text-navy-700 hover:text-navy-600">
+                            www.seyniproperties.sn
+                        </a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function togglePassword() {
+            const passwordInput = document.getElementById('password');
+            const passwordToggle = document.getElementById('passwordToggle');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                passwordToggle.classList.remove('fa-eye');
+                passwordToggle.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                passwordToggle.classList.remove('fa-eye-slash');
+                passwordToggle.classList.add('fa-eye');
+            }
+        }
+        
+        // Animation d'entrée
+        document.addEventListener('DOMContentLoaded', function() {
+            const elements = document.querySelectorAll('.space-y-6 > *');
+            elements.forEach((el, index) => {
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(20px)';
+                setTimeout(() => {
+                    el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+                    el.style.opacity = '1';
+                    el.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+        });
+    </script>
+</body>
+</html>

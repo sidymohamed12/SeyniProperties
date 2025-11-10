@@ -1,0 +1,95 @@
+<!-- apps/payments/templates/payments/invoices/create_menu.html -->
+
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Créer une Facture - Imani{% endblock %}
+
+{% block page_title %}Créer une Facture{% endblock %}
+{% block page_subtitle %}Choisir le type de facture à créer{% endblock %}
+
+{% block content %}
+    <!-- Breadcrumb -->
+    <nav class="mb-6 text-sm">
+        <ol class="flex items-center space-x-2 text-gray-600">
+            <li><a href="{% url 'dashboard:index' %}" class="hover:text-imani-primary"><i class="fas fa-home"></i></a></li>
+            <li><i class="fas fa-chevron-right text-xs"></i></li>
+            <li><a href="{% url 'payments:invoices_list' %}" class="hover:text-blue-600">Factures</a></li>
+            <li><i class="fas fa-chevron-right text-xs"></i></li>
+            <li class="text-gray-900 font-medium">Créer</li>
+        </ol>
+    </nav>
+    
+    <!-- En-tête -->
+    <div class="bg-white rounded-lg shadow p-6 mb-8">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">
+                    <i class="fas fa-file-invoice-dollar text-blue-600 mr-3"></i>
+                    Créer une Nouvelle Facture
+                </h1>
+                <p class="text-gray-600">
+                    Sélectionnez le type de facture que vous souhaitez créer
+                </p>
+            </div>
+            
+            <a href="{% url 'payments:invoices_list' %}" 
+               class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors">
+                <i class="fas fa-arrow-left mr-2"></i>Retour
+            </a>
+        </div>
+    </div>
+    
+    <!-- Grille de sélection des types de factures -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        
+        {% for type in types_factures %}
+        <a href="{% url type.url %}" 
+           class="group block bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden">
+            
+            <!-- En-tête coloré -->
+            <div class="bg-{{ type.color }}-600 p-6 text-center">
+                <i class="fas {{ type.icon }} text-5xl text-white mb-3"></i>
+                <h3 class="text-xl font-bold text-white">{{ type.titre }}</h3>
+            </div>
+            
+            <!-- Corps -->
+            <div class="p-6">
+                <p class="text-gray-600 text-center mb-4">
+                    {{ type.description }}
+                </p>
+                
+                <div class="text-center">
+                    <span class="inline-flex items-center text-{{ type.color }}-600 font-semibold group-hover:translate-x-2 transition-transform">
+                        Créer cette facture
+                        <i class="fas fa-arrow-right ml-2"></i>
+                    </span>
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+        
+    </div>
+    
+    <!-- Informations supplémentaires -->
+    <div class="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
+        <div class="flex items-start">
+            <div class="flex-shrink-0">
+                <i class="fas fa-info-circle text-blue-600 text-2xl"></i>
+            </div>
+            <div class="ml-4">
+                <h4 class="text-lg font-semibold text-blue-900 mb-2">
+                    À propos des factures manuelles
+                </h4>
+                <ul class="text-blue-800 space-y-1">
+                    <li><i class="fas fa-check mr-2"></i>Les factures sont générées automatiquement avec un numéro unique</li>
+                    <li><i class="fas fa-check mr-2"></i>Vous pouvez télécharger le PDF à tout moment</li>
+                    <li><i class="fas fa-check mr-2"></i>Les paiements peuvent être enregistrés pour chaque facture</li>
+                    <li><i class="fas fa-check mr-2"></i>Les noms de fichiers PDF peuvent être personnalisés</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+</div>
+{% endblock %}

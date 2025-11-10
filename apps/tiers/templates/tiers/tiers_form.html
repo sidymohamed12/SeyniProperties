@@ -1,0 +1,224 @@
+{% extends "base_dashboard.html" %}
+{% load static %}
+
+{% block title %}{{ page_title }} - Imani{% endblock %}
+
+{% block page_title %}{{ page_title }}{% endblock %}
+{% block page_subtitle %}{{ action }} les informations du tiers{% endblock %}
+
+{% block content %}
+
+    <!-- Formulaire -->
+    <form method="post" enctype="multipart/form-data" class="bg-white rounded-lg shadow p-6">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+        <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6" role="alert">
+            <p class="font-bold">Erreur</p>
+            {{ form.non_field_errors }}
+        </div>
+        {% endif %}
+
+        <!-- Informations générales -->
+        <div class="mb-6">
+            <h2 class="text-xl font-bold text-gray-900 mb-4 border-b pb-2">
+                <i class="fas fa-user mr-2"></i>Informations Générales
+            </h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Nom <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.nom }}
+                    {% if form.nom.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ form.nom.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Prénom
+                    </label>
+                    {{ form.prenom }}
+                    {% if form.prenom.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ form.prenom.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Type de tiers <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.type_tiers }}
+                    {% if form.type_tiers.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ form.type_tiers.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Statut <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.statut }}
+                    {% if form.statut.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ form.statut.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Coordonnées -->
+        <div class="mb-6">
+            <h2 class="text-xl font-bold text-gray-900 mb-4 border-b pb-2">
+                <i class="fas fa-address-card mr-2"></i>Coordonnées
+            </h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Téléphone principal <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.telephone }}
+                    {% if form.telephone.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ form.telephone.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Téléphone secondaire
+                    </label>
+                    {{ form.telephone_secondaire }}
+                    {% if form.telephone_secondaire.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ form.telephone_secondaire.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Email <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.email }}
+                    {% if form.email.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ form.email.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Adresse <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.adresse }}
+                    {% if form.adresse.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ form.adresse.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Ville <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.ville }}
+                    {% if form.ville.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ form.ville.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Quartier
+                    </label>
+                    {{ form.quartier }}
+                    {% if form.quartier.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ form.quartier.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Code postal
+                    </label>
+                    {{ form.code_postal }}
+                    {% if form.code_postal.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ form.code_postal.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Documents -->
+        <div class="mb-6">
+            <h2 class="text-xl font-bold text-gray-900 mb-4 border-b pb-2">
+                <i class="fas fa-file-alt mr-2"></i>Documents
+            </h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Pièce d'identité
+                    </label>
+                    {{ form.piece_identite }}
+                    {% if form.piece_identite.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ form.piece_identite.errors.0 }}</p>
+                    {% endif %}
+                    <p class="text-gray-500 text-xs mt-1">Format accepté: PDF, JPG, PNG</p>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Autre document
+                    </label>
+                    {{ form.autre_document }}
+                    {% if form.autre_document.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ form.autre_document.errors.0 }}</p>
+                    {% endif %}
+                    <p class="text-gray-500 text-xs mt-1">Format accepté: PDF, JPG, PNG</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notes -->
+        <div class="mb-6">
+            <h2 class="text-xl font-bold text-gray-900 mb-4 border-b pb-2">
+                <i class="fas fa-sticky-note mr-2"></i>Notes et Observations
+            </h2>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Notes
+                </label>
+                {{ form.notes }}
+                {% if form.notes.errors %}
+                <p class="text-red-500 text-xs mt-1">{{ form.notes.errors.0 }}</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Boutons d'action -->
+        <div class="flex justify-end space-x-4 pt-6 border-t">
+            <a href="{% if tiers %}{% url 'tiers:tiers_detail' tiers.pk %}{% else %}{% url 'tiers:tiers_liste' %}{% endif %}"
+               class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold px-6 py-3 rounded-lg transition">
+                <i class="fas fa-times mr-2"></i>Annuler
+            </a>
+
+            {% if not tiers %}
+            <button type="submit" name="save_and_add"
+                    class="bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-3 rounded-lg transition">
+                <i class="fas fa-plus mr-2"></i>Enregistrer et ajouter un autre
+            </button>
+
+            <button type="submit" name="save_and_link"
+                    class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-3 rounded-lg transition">
+                <i class="fas fa-link mr-2"></i>Enregistrer et lier à un bien
+            </button>
+            {% endif %}
+
+            <button type="submit"
+                    class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition">
+                <i class="fas fa-save mr-2"></i>{{ action }}
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

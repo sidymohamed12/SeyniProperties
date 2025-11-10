@@ -1,0 +1,229 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - Imani{% endblock %}
+
+{% block page_title %}{{ title }}{% endblock %}
+{% block page_subtitle %}Créer un nouveau compte employé{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+    <!-- Carte formulaire -->
+    <div class="imani-card p-8">
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+
+            <!-- Messages d'erreur globaux -->
+            {% if form.non_field_errors %}
+            <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
+                <div class="flex items-center">
+                    <i class="fas fa-exclamation-circle text-red-500 mr-3"></i>
+                    <div>
+                        {% for error in form.non_field_errors %}
+                        <p class="text-red-700 font-medium">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Section Informations personnelles -->
+            <div class="space-y-4">
+                <h3 class="text-lg font-semibold text-gray-900 border-b pb-2">
+                    <i class="fas fa-user text-blue-600 mr-2"></i>
+                    Informations personnelles
+                </h3>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Prénom -->
+                    <div>
+                        <label for="id_first_name" class="block text-sm font-medium text-gray-700 mb-1">
+                            Prénom <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text"
+                               name="first_name"
+                               id="id_first_name"
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                               value="{{ form.first_name.value|default:'' }}"
+                               required>
+                        {% if form.first_name.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.first_name.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Nom -->
+                    <div>
+                        <label for="id_last_name" class="block text-sm font-medium text-gray-700 mb-1">
+                            Nom <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text"
+                               name="last_name"
+                               id="id_last_name"
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                               value="{{ form.last_name.value|default:'' }}"
+                               required>
+                        {% if form.last_name.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.last_name.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Email -->
+                    <div>
+                        <label for="id_email" class="block text-sm font-medium text-gray-700 mb-1">
+                            Email <span class="text-red-500">*</span>
+                        </label>
+                        <input type="email"
+                               name="email"
+                               id="id_email"
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                               value="{{ form.email.value|default:'' }}"
+                               required>
+                        {% if form.email.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.email.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Téléphone -->
+                    <div>
+                        <label for="id_phone" class="block text-sm font-medium text-gray-700 mb-1">
+                            Téléphone <span class="text-red-500">*</span>
+                        </label>
+                        <input type="tel"
+                               name="phone"
+                               id="id_phone"
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                               value="{{ form.phone.value|default:'' }}"
+                               placeholder="+221 XX XXX XX XX"
+                               required>
+                        {% if form.phone.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.phone.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section Profil employé -->
+            <div class="space-y-4">
+                <h3 class="text-lg font-semibold text-gray-900 border-b pb-2">
+                    <i class="fas fa-briefcase text-teal-600 mr-2"></i>
+                    Profil employé
+                </h3>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Type d'employé -->
+                    <div>
+                        <label for="id_user_type" class="block text-sm font-medium text-gray-700 mb-1">
+                            Type d'employé <span class="text-red-500">*</span>
+                        </label>
+                        <select name="user_type"
+                                id="id_user_type"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                required>
+                            <option value="">-- Sélectionner --</option>
+                            <option value="agent_terrain" {% if form.user_type.value == 'agent_terrain' %}selected{% endif %}>Agent de terrain</option>
+                            <option value="technicien" {% if form.user_type.value == 'technicien' %}selected{% endif %}>Technicien</option>
+                        </select>
+                        {% if form.user_type.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.user_type.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Spécialité -->
+                    <div>
+                        <label for="id_specialite" class="block text-sm font-medium text-gray-700 mb-1">
+                            Spécialité
+                        </label>
+                        {{ form.specialite }}
+                        {% if form.specialite.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.specialite.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Date d'embauche -->
+                    <div>
+                        <label for="id_date_embauche" class="block text-sm font-medium text-gray-700 mb-1">
+                            Date d'embauche
+                        </label>
+                        {{ form.date_embauche }}
+                        {% if form.date_embauche.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.date_embauche.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Salaire -->
+                    <div>
+                        <label for="id_salaire" class="block text-sm font-medium text-gray-700 mb-1">
+                            Salaire (FCFA)
+                        </label>
+                        {{ form.salaire }}
+                        {% if form.salaire.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.salaire.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Informations importantes -->
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-lg">
+                <div class="flex">
+                    <i class="fas fa-info-circle text-blue-500 mr-3 mt-1"></i>
+                    <div class="text-sm text-blue-700">
+                        <p class="font-semibold mb-1">Informations importantes :</p>
+                        <ul class="list-disc list-inside space-y-1">
+                            <li>Un compte utilisateur sera automatiquement créé pour cet employé</li>
+                            <li>Un nom d'utilisateur et un mot de passe temporaires seront générés</li>
+                            <li>Les identifiants seront affichés après la création (notez-les bien)</li>
+                            <li>L'employé pourra se connecter avec ces identifiants et modifier son mot de passe</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Boutons d'action -->
+            <div class="flex items-center justify-between pt-6 border-t">
+                <a href="{% url 'employees:index' %}"
+                   class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                    <i class="fas fa-times mr-2"></i>Annuler
+                </a>
+
+                <button type="submit"
+                        class="px-6 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:opacity-90 transition-all shadow-md">
+                    <i class="fas fa-user-plus mr-2"></i>Créer l'employé
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+/* Styles pour les champs de formulaire Django */
+#id_specialite,
+#id_date_embauche,
+#id_salaire {
+    width: 100%;
+    padding: 0.5rem 1rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    transition: all 0.15s;
+}
+
+#id_specialite:focus,
+#id_date_embauche:focus,
+#id_salaire:focus {
+    outline: none;
+    ring: 2px;
+    ring-color: #3b82f6;
+    border-color: #3b82f6;
+}
+
+.errorlist {
+    color: #ef4444;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+</style>
+{% endblock %}

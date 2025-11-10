@@ -1,0 +1,60 @@
+<!-- templates/dashboard/forms/nouveau_paiement.html -->
+<form id="modal-form" method="post">
+    {% csrf_token %}
+    
+    <div class="grid grid-cols-2 gap-4">
+        <!-- Contrat -->
+        <div class="col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+                Contrat <span class="text-red-500">*</span>
+            </label>
+            <select name="contrat_id" required class="form-control">
+                <option value="">-- Sélectionner un contrat --</option>
+                {% for contrat in contrats %}
+                    <option value="{{ contrat.id }}">
+                        {{ contrat.appartement.residence.nom }} - {{ contrat.appartement.nom }} 
+                        | {{ contrat.locataire.nom_complet }}
+                        ({{ contrat.loyer_mensuel|floatformat:0 }} FCFA/mois)
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <!-- Montant et Moyen de paiement -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+                Montant (FCFA) <span class="text-red-500">*</span>
+            </label>
+            <input type="number" name="montant" required class="form-control" min="0" placeholder="250000" step="0.01">
+        </div>
+        
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+                Moyen de paiement
+            </label>
+            <select name="moyen_paiement" class="form-control">
+                <option value="cash">Espèces</option>
+                <option value="bank_transfer">Virement bancaire</option>
+                <option value="mobile_money">Mobile Money</option>
+                <option value="check">Chèque</option>
+                <option value="card">Carte bancaire</option>
+            </select>
+        </div>
+        
+        <!-- Référence -->
+        <div class="col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+                Référence de transaction
+            </label>
+            <input type="text" name="reference" class="form-control" placeholder="Numéro de transaction, chèque, etc.">
+        </div>
+        
+        <!-- Notes -->
+        <div class="col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+                Notes
+            </label>
+            <textarea name="notes" class="form-control" rows="3" placeholder="Notes additionnelles..."></textarea>
+        </div>
+    </div>
+</form>

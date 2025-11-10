@@ -1,0 +1,870 @@
+<!-- templates/employees/mobile/intervention_detail.html -->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#23456b">
+    
+    <title>{{ intervention.titre }} - Intervention</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'seyni-primary': '#a25946',
+                        'seyni-secondary': '#23456b',
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        .safe-area {
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #23456b 0%, #a25946 100%);
+        }
+        
+        .priority-urgente { border-left: 4px solid #EF4444; }
+        .priority-haute { border-left: 4px solid #F59E0B; }
+        .priority-normale { border-left: 4px solid #a25946; }
+        .priority-basse { border-left: 4px solid #10B981; }
+        
+        .status-signale { background: #FEF3C7; color: #92400E; }
+        .status-assigne { background: #DBEAFE; color: #1E40AF; }
+        .status-en_cours { background: #FED7AA; color: #9A3412; }
+        .status-complete { background: #D1FAE5; color: #065F46; }
+        .status-annule { background: #F3F4F6; color: #6B7280; }
+        
+        .media-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 12px;
+        }
+        
+        .media-item {
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+            aspect-ratio: 1;
+        }
+        
+        .media-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .media-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0,0,0,0.7));
+            color: white;
+            padding: 8px;
+            font-size: 12px;
+        }
+        
+        .timeline-item {
+            position: relative;
+            padding-left: 40px;
+            margin-bottom: 20px;
+        }
+        
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: 15px;
+            top: 0;
+            bottom: -20px;
+            width: 2px;
+            background: #e5e7eb;
+        }
+        
+        .timeline-item:last-child::before {
+            display: none;
+        }
+        
+        .timeline-icon {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: white;
+            z-index: 1;
+        }
+        
+        .checklist-item {
+            transition: all 0.3s ease;
+        }
+        
+        .checklist-item.completed {
+            opacity: 0.6;
+            text-decoration: line-through;
+        }
+        
+        .fab {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: #a25946;
+            color: white;
+            border: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            z-index: 40;
+            transition: all 0.3s ease;
+        }
+        
+        .fab:hover {
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 safe-area">
+    <!-- Header -->
+    <header class="gradient-bg text-white sticky top-0 z-50 shadow-lg">
+        <div class="px-4 py-4">
+            <div class="flex items-center space-x-3">
+                <button onclick="goBack()" class="p-2 hover:bg-black hover:bg-opacity-20 rounded-lg transition-colors">
+                    <i class="fas fa-arrow-left text-xl"></i>
+                </button>
+                <div class="flex-1">
+                    <h1 class="font-bold text-lg line-clamp-1">{{ intervention.titre }}</h1>
+                    <p class="text-blue-200 text-sm">{{ intervention.numero_intervention }}</p>
+                </div>
+                <div class="text-right">
+                    <span class="status-{{ intervention.statut }} px-3 py-1 rounded-full text-xs font-medium">
+                        {{ intervention.get_statut_display }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenu principal -->
+    <main class="p-4 pb-24">
+        <!-- Informations principales -->
+        <div class="bg-white rounded-xl p-4 mb-4 shadow-sm priority-{{ intervention.priorite }}">
+            <div class="flex items-start space-x-3 mb-4">
+                <div class="flex-shrink-0">
+                    <div class="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
+                        <i class="fas fa-tools text-orange-600"></i>
+                    </div>
+                </div>
+                <div class="flex-1">
+                    <h2 class="font-semibold text-gray-900 mb-2">{{ intervention.titre }}</h2>
+                    {% if intervention.description %}
+                    <p class="text-gray-600 text-sm mb-3">{{ intervention.description }}</p>
+                    {% endif %}
+                    
+                    <div class="grid grid-cols-2 gap-3 text-xs text-gray-500">
+                        <div class="flex items-center space-x-1">
+                            <i class="fas fa-tag"></i>
+                            <span>{{ intervention.get_type_intervention_display }}</span>
+                        </div>
+                        <div class="flex items-center space-x-1">
+                            <i class="fas fa-flag"></i>
+                            <span>{{ intervention.get_priorite_display }}</span>
+                        </div>
+                        <div class="flex items-center space-x-1">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span>{{ intervention.date_signalement|date:"d/m H:i" }}</span>
+                        </div>
+                        {% if intervention.cout_estime %}
+                        <div class="flex items-center space-x-1">
+                            <i class="fas fa-euro-sign"></i>
+                            <span>{{ intervention.cout_estime|floatformat:0 }} FCFA</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Bien concerné -->
+            <div class="bg-gray-50 rounded-lg p-3">
+                <h3 class="font-medium text-gray-900 mb-2 flex items-center">
+                    <i class="fas fa-home mr-2 text-gray-500"></i>
+                    Bien concerné
+                </h3>
+                <p class="text-gray-700 font-medium">{{ intervention.bien.name }}</p>
+                <p class="text-gray-500 text-sm">{{ intervention.bien.address }}</p>
+                
+                {% if intervention.locataire %}
+                <div class="mt-2 pt-2 border-t border-gray-200">
+                    <p class="text-sm text-gray-600">
+                        <i class="fas fa-user mr-1"></i>
+                        Locataire: {{ intervention.locataire.nom_complet }}
+                    </p>
+                    {% if intervention.locataire.telephone %}
+                    <a href="tel:{{ intervention.locataire.telephone }}" 
+                       class="inline-flex items-center space-x-1 text-blue-600 text-sm mt-1">
+                        <i class="fas fa-phone"></i>
+                        <span>{{ intervention.locataire.telephone }}</span>
+                    </a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Timeline de l'intervention -->
+        <div class="bg-white rounded-xl p-4 mb-4 shadow-sm">
+            <h3 class="font-semibold text-gray-900 mb-4 flex items-center">
+                <i class="fas fa-history mr-2 text-gray-500"></i>
+                Historique de l'intervention
+            </h3>
+            
+            <div class="timeline">
+                <!-- Signalement -->
+                <div class="timeline-item">
+                    <div class="timeline-icon bg-red-500">
+                        <i class="fas fa-exclamation"></i>
+                    </div>
+                    <div>
+                        <p class="font-medium text-gray-900">Intervention signalée</p>
+                        <p class="text-sm text-gray-500">{{ intervention.date_signalement|date:"d/m/Y H:i" }}</p>
+                        {% if intervention.locataire %}
+                        <p class="text-sm text-gray-600">par {{ intervention.locataire.nom_complet }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Assignation -->
+                {% if intervention.date_assignation %}
+                <div class="timeline-item">
+                    <div class="timeline-icon bg-blue-500">
+                        <i class="fas fa-user-plus"></i>
+                    </div>
+                    <div>
+                        <p class="font-medium text-gray-900">Assignée au technicien</p>
+                        <p class="text-sm text-gray-500">{{ intervention.date_assignation|date:"d/m/Y H:i" }}</p>
+                        {% if intervention.technicien %}
+                        <p class="text-sm text-gray-600">{{ intervention.technicien.get_full_name }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Début -->
+                {% if intervention.date_debut %}
+                <div class="timeline-item">
+                    <div class="timeline-icon bg-orange-500">
+                        <i class="fas fa-play"></i>
+                    </div>
+                    <div>
+                        <p class="font-medium text-gray-900">Intervention démarrée</p>
+                        <p class="text-sm text-gray-500">{{ intervention.date_debut|date:"d/m/Y H:i" }}</p>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Fin -->
+                {% if intervention.date_fin %}
+                <div class="timeline-item">
+                    <div class="timeline-icon bg-green-500">
+                        <i class="fas fa-check"></i>
+                    </div>
+                    <div>
+                        <p class="font-medium text-gray-900">Intervention terminée</p>
+                        <p class="text-sm text-gray-500">{{ intervention.date_fin|date:"d/m/Y H:i" }}</p>
+                        {% if intervention.duree_intervention %}
+                        <p class="text-sm text-gray-600">Durée: {{ intervention.duree_intervention }}min</p>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Checklist d'intervention -->
+        {% if checklist_items %}
+        <div class="bg-white rounded-xl p-4 mb-4 shadow-sm">
+            <h3 class="font-semibold text-gray-900 mb-4 flex items-center">
+                <i class="fas fa-clipboard-check mr-2 text-gray-500"></i>
+                Checklist d'intervention
+            </h3>
+            
+            <div class="space-y-3">
+                {% for item in checklist_items %}
+                <div class="checklist-item flex items-center space-x-3 {% if item.is_completed %}completed{% endif %}">
+                    <button onclick="toggleChecklistItem({{ item.id }})" 
+                            class="flex-shrink-0 w-5 h-5 border-2 border-gray-300 rounded {% if item.is_completed %}bg-green-500 border-green-500{% endif %} flex items-center justify-center">
+                        {% if item.is_completed %}
+                        <i class="fas fa-check text-white text-xs"></i>
+                        {% endif %}
+                    </button>
+                    <div class="flex-1">
+                        <p class="text-gray-900">{{ item.description }}</p>
+                        {% if item.notes %}
+                        <p class="text-sm text-gray-600">{{ item.notes }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Rapport technique -->
+        {% if intervention.commentaire_technicien or intervention.statut == 'en_cours' %}
+        <div class="bg-white rounded-xl p-4 mb-4 shadow-sm">
+            <h3 class="font-semibold text-gray-900 mb-4 flex items-center">
+                <i class="fas fa-file-alt mr-2 text-gray-500"></i>
+                Rapport technique
+            </h3>
+            
+            {% if intervention.commentaire_technicien %}
+            <div class="bg-blue-50 rounded-lg p-3 mb-3">
+                <p class="text-blue-900 text-sm">{{ intervention.commentaire_technicien }}</p>
+                {% if intervention.cout_reel %}
+                <p class="text-blue-700 text-sm font-medium mt-2">
+                    Coût réel: {{ intervention.cout_reel|floatformat:0 }} FCFA
+                </p>
+                {% endif %}
+            </div>
+            {% endif %}
+            
+            {% if intervention.statut == 'en_cours' and can_complete %}
+            <button onclick="openReportModal()" 
+                    class="w-full bg-green-600 text-white py-3 rounded-lg font-medium">
+                <i class="fas fa-edit mr-2"></i>
+                Ajouter/Modifier le rapport
+            </button>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- Médias -->
+        {% if medias or can_upload %}
+        <div class="bg-white rounded-xl p-4 mb-4 shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="font-semibold text-gray-900 flex items-center">
+                    <i class="fas fa-camera mr-2 text-gray-500"></i>
+                    Photos et documents
+                </h3>
+                {% if can_upload %}
+                <button onclick="openCameraModal()" 
+                        class="bg-blue-600 text-white px-3 py-2 rounded-lg text-sm">
+                    <i class="fas fa-camera mr-1"></i>
+                    Ajouter
+                </button>
+                {% endif %}
+            </div>
+            
+            {% if medias %}
+            <div class="media-grid">
+                {% for media in medias %}
+                <div class="media-item" onclick="viewMedia('{{ media.fichier.url }}', '{{ media.description }}')">
+                    {% if media.type_media == 'photo_avant' or media.type_media == 'photo_apres' %}
+                    <img src="{{ media.fichier.url }}" alt="{{ media.description }}" loading="lazy">
+                    {% else %}
+                    <div class="w-full h-full bg-gray-100 flex items-center justify-center">
+                        <i class="fas fa-file text-gray-400 text-2xl"></i>
+                    </div>
+                    {% endif %}
+                    <div class="media-overlay">
+                        <p class="font-medium">{{ media.get_type_media_display }}</p>
+                        {% if media.description %}
+                        <p class="text-xs opacity-90">{{ media.description|truncatechars:30 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-8 text-gray-500">
+                <i class="fas fa-images text-3xl mb-2"></i>
+                <p>Aucune photo ajoutée</p>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- Satisfaction client -->
+        {% if intervention.satisfaction_locataire or intervention.statut == 'complete' %}
+        <div class="bg-white rounded-xl p-4 mb-4 shadow-sm">
+            <h3 class="font-semibold text-gray-900 mb-4 flex items-center">
+                <i class="fas fa-star mr-2 text-gray-500"></i>
+                Satisfaction client
+            </h3>
+            
+            {% if intervention.satisfaction_locataire %}
+            <div class="text-center">
+                <div class="flex justify-center space-x-1 mb-2">
+                    {% for i in "12345" %}
+                    <i class="fas fa-star {% if forloop.counter <= intervention.satisfaction_locataire %}text-yellow-400{% else %}text-gray-300{% endif %}"></i>
+                    {% endfor %}
+                </div>
+                <p class="text-lg font-semibold text-gray-900">{{ intervention.satisfaction_locataire }}/5</p>
+                {% if intervention.commentaire_locataire %}
+                <div class="bg-yellow-50 rounded-lg p-3 mt-3">
+                    <p class="text-yellow-900 text-sm italic">"{{ intervention.commentaire_locataire }}"</p>
+                </div>
+                {% endif %}
+            </div>
+            {% else %}
+            <div class="text-center py-4 text-gray-500">
+                <i class="fas fa-hourglass-half text-2xl mb-2"></i>
+                <p class="text-sm">En attente de l'évaluation du locataire</p>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- Actions selon le statut -->
+        <div class="space-y-3">
+            {% if can_start %}
+            <button onclick="startIntervention()" 
+                    class="w-full text-white py-4 rounded-xl font-semibold text-lg" style="background-color: #a25946;">
+                <i class="fas fa-play mr-2"></i>
+                Démarrer l'intervention
+            </button>
+            {% elif can_complete %}
+            <button onclick="completeIntervention()" 
+                    class="w-full bg-green-600 text-white py-4 rounded-xl font-semibold text-lg">
+                <i class="fas fa-check mr-2"></i>
+                Terminer l'intervention
+            </button>
+            {% elif intervention.statut == 'complete' %}
+            <div class="text-center py-4">
+                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <i class="fas fa-check text-green-600 text-2xl"></i>
+                </div>
+                <p class="text-green-600 font-semibold">Intervention terminée</p>
+                <p class="text-gray-500 text-sm">{{ intervention.date_fin|date:"d/m/Y à H:i" }}</p>
+            </div>
+            {% endif %}
+        </div>
+    </main>
+
+    <!-- Navigation bottom -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 safe-area">
+        <div class="grid grid-cols-4 py-2">
+            <a href="{% url 'employees_mobile:dashboard' %}" 
+               class="flex flex-col items-center justify-center py-2 text-gray-500">
+                <i class="fas fa-home text-xl mb-1"></i>
+                <span class="text-xs">Accueil</span>
+            </a>
+        
+            <a href="{% url 'employees_mobile:tasks' %}" 
+               class="flex flex-col items-center justify-center py-2 text-gray-500">
+                <i class="fas fa-tasks text-xl mb-1"></i>
+                <span class="text-xs">Tâches</span>
+            </a>
+        
+            <a href="{% url 'employees_mobile:interventions' %}" 
+               class="flex flex-col items-center justify-center py-2" style="color: #a25946;">
+                <i class="fas fa-tools text-xl mb-1"></i>
+                <span class="text-xs">Maintenance</span>
+            </a>
+        
+            <a href="{% url 'employees_mobile:schedule' %}" 
+               class="flex flex-col items-center justify-center py-2 text-gray-500">
+                <i class="fas fa-calendar-alt text-xl mb-1"></i>
+                <span class="text-xs">Planning</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- FAB pour actions rapides -->
+    <button id="fab-menu" onclick="toggleFabMenu()" class="fab">
+        <i class="fas fa-plus"></i>
+    </button>
+
+    <!-- Toast container -->
+    <div id="toast-container" class="fixed top-20 left-4 right-4 z-50"></div>
+
+    <!-- Modals -->
+    {% include 'employees/mobile/modals/camera_modal.html' %}
+    {% include 'employees/mobile/modals/report_modal.html' %}
+    {% include 'employees/mobile/modals/media_viewer.html' %}
+
+    <script>
+        // ===== Variables globales =====
+        let intervention = {
+            id: {{ intervention.id }},
+            statut: '{{ intervention.statut }}',
+            canStart: {{ can_start|yesno:"true,false" }},
+            canComplete: {{ can_complete|yesno:"true,false" }}
+        };
+
+        // ===== Navigation =====
+        function goBack() {
+            window.history.back();
+        }
+
+        // ===== Actions sur l'intervention =====
+        async function startIntervention() {
+            if (!intervention.canStart) {
+                showToast('Cette intervention ne peut pas être démarrée', 'error');
+                return;
+            }
+
+            try {
+                showLoading(true);
+                const response = await fetch(`/employees/mobile/interventions/${intervention.id}/start/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken'),
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    }
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showToast(data.message, 'success');
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    showToast(data.error, 'error');
+                }
+            } catch (error) {
+                showToast('Erreur de connexion', 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // ===== FONCTION CORRIGÉE - VERSION 2 =====
+        async function completeIntervention() {
+            // Confirmation simple - pas de vérification de rapport obligatoire
+            if (!confirm('Êtes-vous sûr de vouloir terminer cette intervention ?')) {
+                return;
+            }
+
+            try {
+                showLoading(true);
+                const response = await fetch(`/employees/mobile/interventions/${intervention.id}/complete/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken'),
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    }
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showToast(data.message, 'success');
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    showToast(data.error, 'error');
+                }
+            } catch (error) {
+                showToast('Erreur de connexion', 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // ===== Checklist =====
+        async function toggleChecklistItem(itemId) {
+            try {
+                const response = await fetch(`/maintenance/checklist/${itemId}/toggle/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken'),
+                    }
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Mettre à jour l'interface
+                    const item = document.querySelector(`[onclick="toggleChecklistItem(${itemId})"]`);
+                    const container = item.closest('.checklist-item');
+                    
+                    if (data.completed) {
+                        item.innerHTML = '<i class="fas fa-check text-white text-xs"></i>';
+                        item.classList.add('bg-green-500', 'border-green-500');
+                        container.classList.add('completed');
+                    } else {
+                        item.innerHTML = '';
+                        item.classList.remove('bg-green-500', 'border-green-500');
+                        container.classList.remove('completed');
+                    }
+                } else {
+                    showToast(data.error, 'error');
+                }
+            } catch (error) {
+                showToast('Erreur lors de la mise à jour', 'error');
+            }
+        }
+
+        // ===== Modal rapport =====
+        function openReportModal() {
+            const modal = document.getElementById('report-modal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                setTimeout(() => {
+                    const content = modal.querySelector('.bg-white') || modal.querySelector('[class*="translate-y"]');
+                    if (content) {
+                        content.classList.remove('translate-y-full');
+                    }
+                }, 10);
+            }
+        }
+
+        function closeReportModal() {
+            const modal = document.getElementById('report-modal');
+            if (modal) {
+                const content = modal.querySelector('.bg-white') || modal.querySelector('[class*="translate-y"]');
+                if (content) {
+                    content.classList.add('translate-y-full');
+                }
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                }, 300);
+            }
+        }
+
+        // Configuration du formulaire de rapport pour intervention
+        function setupInterventionReportForm() {
+            // Chercher tous les formulaires possibles
+            const forms = [
+                document.getElementById('intervention-report-form'),
+                document.getElementById('report-form'),
+                document.querySelector('form[id*="report"]'),
+                document.querySelector('#report-modal form')
+            ];
+            
+            const form = forms.find(f => f !== null);
+            if (!form) {
+                console.warn('Aucun formulaire de rapport trouvé');
+                return;
+            }
+            
+            console.log('Formulaire trouvé:', form.id);
+            
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                // Chercher les champs de texte possibles
+                const textFields = [
+                    document.getElementById('intervention-report-text'),
+                    document.getElementById('report-text'),
+                    form.querySelector('textarea[name*="commentaire"]'),
+                    form.querySelector('textarea[placeholder*="rapport"]'),
+                    form.querySelector('textarea')
+                ];
+                
+                const textField = textFields.find(f => f !== null);
+                const reportText = textField ? textField.value.trim() : '';
+                
+                // Chercher le champ coût
+                const coutField = document.getElementById('cout-reel') || form.querySelector('input[name="cout_reel"]');
+                const cout = coutField ? coutField.value : '';
+                
+                console.log('Données du formulaire:', { reportText, cout });
+                
+                if (!reportText) {
+                    showToast('Veuillez saisir un rapport technique', 'error');
+                    return;
+                }
+                
+                try {
+                    showLoading(true);
+                    const formData = new FormData();
+                    formData.append('commentaire_technicien', reportText);
+                    if (cout) {
+                        formData.append('cout_reel', cout);
+                    }
+                    
+                    // URL CORRIGÉE
+                    const url = `/employees/mobile/report/intervention/${intervention.id}/`;
+                    console.log('URL de soumission:', url);
+                    
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': getCookie('csrftoken'),
+                        },
+                        body: formData
+                    });
+                    
+                    console.log('Réponse status:', response.status);
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    console.log('Données de réponse:', data);
+                    
+                    if (data.success) {
+                        showToast('Rapport sauvegardé avec succès !', 'success');
+                        setTimeout(() => location.reload(), 1000);
+                        closeReportModal();
+                    } else {
+                        showToast(data.error || 'Erreur lors de la sauvegarde', 'error');
+                    }
+                } catch (error) {
+                    console.error('Erreur détaillée:', error);
+                    showToast(`Erreur de connexion: ${error.message}`, 'error');
+                } finally {
+                    showLoading(false);
+                }
+            });
+        }
+
+        // ===== Modals =====
+        function openCameraModal() {
+            const modal = document.getElementById('camera-modal');
+            if (modal) {
+                modal.classList.remove('hidden');
+            }
+        }
+
+        function viewMedia(url, description) {
+            const modal = document.getElementById('media-viewer');
+            if (modal) {
+                const img = modal.querySelector('#media-image');
+                const desc = modal.querySelector('#media-description');
+                
+                if (img) img.src = url;
+                if (desc) desc.textContent = description || 'Aucune description';
+                modal.classList.remove('hidden');
+            }
+        }
+
+        // ===== FAB Menu =====
+        function toggleFabMenu() {
+            // Implémenter le menu FAB si nécessaire
+            showToast('Menu d\'actions rapides', 'info');
+        }
+
+        // ===== Utilitaires =====
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+            
+            const toast = document.createElement('div');
+            toast.className = `mb-2 p-3 rounded-lg text-white shadow-lg transform transition-all duration-300 translate-x-full`;
+            
+            const colors = {
+                'success': 'bg-green-500',
+                'error': 'bg-red-500',
+                'warning': 'bg-yellow-500',
+                'info': 'bg-blue-500'
+            };
+            
+            toast.classList.add(colors[type] || colors.info);
+            toast.innerHTML = `
+                <div class="flex items-center justify-between">
+                    <span class="text-sm font-medium">${message}</span>
+                    <button onclick="this.parentElement.parentElement.remove()" class="ml-4 text-white">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+            
+            container.appendChild(toast);
+            setTimeout(() => toast.classList.remove('translate-x-full'), 100);
+            setTimeout(() => {
+                if (toast.parentElement) {
+                    toast.classList.add('translate-x-full');
+                    setTimeout(() => toast.remove(), 300);
+                }
+            }, 4000);
+        }
+
+        function showLoading(show) {
+            const overlay = document.getElementById('loading-overlay');
+            if (overlay) {
+                if (show) {
+                    overlay.classList.remove('hidden');
+                } else {
+                    overlay.classList.add('hidden');
+                }
+            }
+        }
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        // ===== Initialisation =====
+        document.addEventListener('DOMContentLoaded', function() {
+            // Configurer le formulaire de rapport
+            setupInterventionReportForm();
+            
+            // Feedback haptique pour les actions
+            if ('vibrate' in navigator) {
+                document.addEventListener('click', function(e) {
+                    if (e.target.closest('button')) {
+                        navigator.vibrate(10);
+                    }
+                });
+            }
+            
+            // Gestion des clics sur les overlays pour fermer les modales
+            document.addEventListener('click', function(e) {
+                if (e.target.classList.contains('bg-black') && e.target.classList.contains('bg-opacity-50')) {
+                    // Fermer la modale correspondante
+                    if (e.target.closest('#report-modal')) {
+                        closeReportModal();
+                    } else if (e.target.closest('#camera-modal')) {
+                        e.target.classList.add('hidden');
+                    } else if (e.target.closest('#media-viewer')) {
+                        e.target.classList.add('hidden');
+                    }
+                }
+            });
+            
+            console.log('Intervention detail JavaScript initialisé');
+            console.log('Intervention ID:', intervention.id);
+        });
+    </script>
+
+    <!-- Loading overlay -->
+    <div id="loading-overlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl p-6 flex flex-col items-center">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-3"></div>
+            <p class="text-gray-700">Traitement en cours...</p>
+        </div>
+    </div>
+</body>
+</html>

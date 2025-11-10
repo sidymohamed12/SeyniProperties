@@ -1,0 +1,189 @@
+<!-- templates/notifications/emails/base_email.html -->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Notification IMANY{% endblock %}</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f3f4f6;
+            color: #1f2937;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+        }
+        .email-header {
+            background: linear-gradient(135deg, #23456b 0%, #1e3a5f 100%);
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .email-header img {
+            max-width: 150px;
+            height: auto;
+        }
+        .email-header h1 {
+            color: #ffffff;
+            margin: 15px 0 0 0;
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .email-body {
+            padding: 40px 30px;
+        }
+        .greeting {
+            font-size: 18px;
+            color: #1f2937;
+            margin-bottom: 20px;
+        }
+        .content {
+            font-size: 15px;
+            line-height: 1.6;
+            color: #4b5563;
+            margin-bottom: 25px;
+        }
+        .info-box {
+            background-color: #f9fafb;
+            border-left: 4px solid #3b82f6;
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 4px;
+        }
+        .info-box h3 {
+            margin: 0 0 15px 0;
+            color: #1f2937;
+            font-size: 16px;
+        }
+        .info-row {
+            display: table;
+            width: 100%;
+            margin: 8px 0;
+        }
+        .info-label {
+            font-weight: 600;
+            color: #6b7280;
+            width: 40%;
+            display: table-cell;
+        }
+        .info-value {
+            color: #1f2937;
+            display: table-cell;
+        }
+        .priority-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .priority-urgente {
+            background-color: #fee2e2;
+            color: #dc2626;
+        }
+        .priority-haute {
+            background-color: #fef3c7;
+            color: #d97706;
+        }
+        .priority-normale {
+            background-color: #dbeafe;
+            color: #2563eb;
+        }
+        .priority-basse {
+            background-color: #f3f4f6;
+            color: #6b7280;
+        }
+        .button {
+            display: inline-block;
+            padding: 14px 28px;
+            background: linear-gradient(135deg, #23456b 0%, #1e3a5f 100%);
+            color: #ffffff !important;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 15px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .button:hover {
+            background: linear-gradient(135deg, #1e3a5f 0%, #23456b 100%);
+        }
+        .urgent-banner {
+            background-color: #fee2e2;
+            border-left: 4px solid #dc2626;
+            padding: 15px;
+            margin-bottom: 25px;
+            border-radius: 4px;
+        }
+        .urgent-banner strong {
+            color: #dc2626;
+            font-size: 16px;
+        }
+        .email-footer {
+            background-color: #f9fafb;
+            padding: 30px;
+            text-align: center;
+            border-top: 1px solid #e5e7eb;
+        }
+        .email-footer p {
+            margin: 8px 0;
+            font-size: 13px;
+            color: #6b7280;
+        }
+        .social-links {
+            margin: 20px 0;
+        }
+        .social-links a {
+            display: inline-block;
+            margin: 0 8px;
+            color: #6b7280;
+            text-decoration: none;
+        }
+        @media only screen and (max-width: 600px) {
+            .email-body {
+                padding: 25px 20px;
+            }
+            .email-header h1 {
+                font-size: 20px;
+            }
+            .button {
+                display: block;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header -->
+        <div class="email-header">
+            <h1>IMANY</h1>
+            <p style="color: #e5e7eb; margin: 5px 0 0 0; font-size: 14px;">Gestion Immobilière</p>
+        </div>
+
+        <!-- Body -->
+        <div class="email-body">
+            {% block content %}{% endblock %}
+        </div>
+
+        <!-- Footer -->
+        <div class="email-footer">
+            <p><strong>IMANY SN SUARL</strong></p>
+            <p>NINEA /011195816/ RCCM/SN DKR 2023 B 18099</p>
+            <p>Allées Khalifa Ababacar Sy, Liberté 4, Dakar, Sénégal</p>
+            <p>Téléphone : +221 33 858 17 59</p>
+            <p style="margin-top: 20px; font-size: 12px;">
+                Cet email a été envoyé automatiquement, merci de ne pas y répondre.
+            </p>
+            <p style="font-size: 12px; color: #9ca3af;">
+                © {{ current_year }} IMANY - Tous droits réservés
+            </p>
+        </div>
+    </div>
+</body>
+</html>

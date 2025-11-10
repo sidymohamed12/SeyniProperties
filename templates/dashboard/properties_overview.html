@@ -1,0 +1,391 @@
+<!-- templates/dashboard/properties_overview.html -->
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Biens Immobiliers - Imani{% endblock %}
+
+{% block page_title %}Biens Immobiliers{% endblock %}
+{% block page_subtitle %}Gestion des résidences et appartements{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Tabs */
+    .tab-button {
+        padding: 1rem 2rem;
+        font-weight: 600;
+        border-bottom: 3px solid transparent;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        color: #6b7280;
+        position: relative;
+    }
+
+    .tab-button:hover {
+        color: #23456b;
+        background: linear-gradient(135deg, rgba(35, 69, 107, 0.05) 0%, rgba(162, 89, 70, 0.05) 100%);
+    }
+
+    .tab-button.active {
+        color: white;
+        background: linear-gradient(135deg, #23456b 0%, #a25946 100%);
+        border-bottom-color: #a25946;
+    }
+
+    .tab-content {
+        display: none;
+    }
+
+    .tab-content.active {
+        display: block;
+        animation: fadeIn 0.3s ease-in;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Residence Cards */
+    .residence-card {
+        transition: all 0.3s ease;
+        cursor: pointer;
+        border-left: 4px solid transparent;
+        background: linear-gradient(white, white) padding-box,
+                    linear-gradient(135deg, #23456b 0%, #a25946 100%) border-box;
+        border: 2px solid transparent;
+        border-left-width: 4px;
+    }
+
+    .residence-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px rgba(35, 69, 107, 0.15);
+        background: linear-gradient(135deg, rgba(35, 69, 107, 0.02) 0%, rgba(162, 89, 70, 0.02) 100%);
+    }
+
+    /* Apartment Cards */
+    .apartment-card {
+        transition: all 0.3s ease;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .apartment-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+        background: currentColor;
+        transform: scaleY(0);
+        transition: transform 0.3s ease;
+    }
+
+    .apartment-card:hover::before {
+        transform: scaleY(1);
+    }
+
+    .apartment-card:hover {
+        transform: translateX(4px);
+        box-shadow: 0 8px 16px rgba(35, 69, 107, 0.12);
+    }
+
+    .apartment-card.libre { color: #10b981; }
+    .apartment-card.occupe { color: #3b82f6; }
+    .apartment-card.available { color: #10b981; }
+    .apartment-card.occupied { color: #3b82f6; }
+    .apartment-card.maintenance { color: #f59e0b; }
+
+    .section-divider {
+        height: 1px;
+        background: linear-gradient(to right, transparent, #ddd, transparent);
+        margin: 2rem 0;
+    }
+
+    .stat-badge {
+        background: linear-gradient(135deg, rgba(35, 69, 107, 0.05) 0%, rgba(162, 89, 70, 0.05) 100%);
+        border: 1px solid rgba(35, 69, 107, 0.1);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <!-- Statistiques globales -->
+    <div class="mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <!-- Total Résidences -->
+            <div class="imani-card p-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-xs text-gray-600 font-medium mb-1">Résidences</p>
+                        <p class="text-2xl font-bold text-imani-primary">{{ total_residences|default:0 }}</p>
+                    </div>
+                    <div class="w-12 h-12 rounded-lg imani-gradient flex items-center justify-center">
+                        <i class="fas fa-building text-white text-xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Total Appartements -->
+            <div class="imani-card p-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-xs text-gray-600 font-medium mb-1">Appartements</p>
+                        <p class="text-2xl font-bold text-imani-primary">{{ total_appartements|default:0 }}</p>
+                    </div>
+                    <div class="w-12 h-12 rounded-lg bg-purple-500 flex items-center justify-center">
+                        <i class="fas fa-home text-white text-xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Occupés -->
+            <div class="imani-card p-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-xs text-gray-600 font-medium mb-1">Occupés</p>
+                        <p class="text-2xl font-bold text-blue-600">{{ appartements_occupes|default:0 }}</p>
+                        <p class="text-xs text-gray-500 mt-1">{{ taux_occupation|default:0 }}% taux</p>
+                    </div>
+                    <div class="w-12 h-12 rounded-lg bg-blue-500 flex items-center justify-center">
+                        <i class="fas fa-user-check text-white text-xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Disponibles -->
+            <div class="imani-card p-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-xs text-gray-600 font-medium mb-1">Disponibles</p>
+                        <p class="text-2xl font-bold text-green-600">{{ appartements_libres|default:0 }}</p>
+                    </div>
+                    <div class="w-12 h-12 rounded-lg bg-green-500 flex items-center justify-center">
+                        <i class="fas fa-door-open text-white text-xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Barre de recherche et actions -->
+    <div class="imani-card p-4 mb-6">
+        <div class="flex flex-col md:flex-row gap-4 items-center">
+            <div class="flex-1 w-full">
+                <div class="relative">
+                    <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    <input type="text" id="search-input" placeholder="Rechercher..."
+                           class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-imani-primary focus:border-transparent transition-all">
+                </div>
+            </div>
+            <select id="filter-status" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-imani-primary">
+                <option value="all">Tous les statuts</option>
+                <option value="libre">Disponibles</option>
+                <option value="occupe">Occupés</option>
+                <option value="maintenance">En maintenance</option>
+            </select>
+            <a href="{% url 'dashboard:enregistrements' %}" class="px-4 py-2 imani-gradient text-white rounded-lg font-medium hover:opacity-90 transition-all whitespace-nowrap">
+                <i class="fas fa-plus mr-2"></i>Nouveau Bien
+            </a>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="imani-card mb-6">
+        <div class="border-b border-gray-200">
+            <div class="flex">
+                <button class="tab-button active" data-tab="residences">
+                    <i class="fas fa-building mr-2"></i>Résidences ({{ total_residences|default:0 }})
+                </button>
+                <button class="tab-button" data-tab="appartements">
+                    <i class="fas fa-home mr-2"></i>Appartements ({{ total_appartements|default:0 }})
+                </button>
+            </div>
+        </div>
+
+        <!-- Tab Content: Résidences -->
+        <div id="tab-residences" class="tab-content active p-6">
+            {% if residences_data %}
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {% for residence in residences_data %}
+                    <a href="{% url 'properties:residence_detail' residence.id %}" class="residence-card imani-card p-5 block">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="flex items-center">
+                                <div class="w-12 h-12 rounded-lg imani-gradient flex items-center justify-center mr-3">
+                                    <i class="fas fa-building text-white text-xl"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-gray-900 text-lg">{{ residence.nom }}</h3>
+                                    <p class="text-xs text-gray-500 mt-1">
+                                        <i class="fas fa-map-marker-alt mr-1"></i>{{ residence.ville }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-2 mb-4">
+                            <div class="flex items-center text-sm text-gray-600">
+                                <i class="fas fa-home w-5 text-gray-400"></i>
+                                <span class="ml-2">{{ residence.total_appartements }} appartement{{ residence.total_appartements|pluralize }}</span>
+                            </div>
+                            <div class="flex items-center text-sm text-gray-600">
+                                <i class="fas fa-chart-pie w-5 text-gray-400"></i>
+                                <span class="ml-2">{{ residence.taux_occupation }}% occupé</span>
+                            </div>
+                            <div class="flex items-center text-sm text-gray-600">
+                                <i class="fas fa-map-marked-alt w-5 text-gray-400"></i>
+                                <span class="ml-2 truncate">{{ residence.adresse }}</span>
+                            </div>
+                        </div>
+
+                        <div class="pt-4 border-t border-gray-200 flex items-center justify-between">
+                            <div class="flex space-x-2">
+                                <span class="stat-badge px-3 py-1 rounded-full text-xs font-semibold text-green-700">
+                                    {{ residence.appartements_libres }} libre{{ residence.appartements_libres|pluralize }}
+                                </span>
+                                <span class="stat-badge px-3 py-1 rounded-full text-xs font-semibold text-blue-700">
+                                    {{ residence.appartements_occupes }} occupé{{ residence.appartements_occupes|pluralize }}
+                                </span>
+                            </div>
+                            <i class="fas fa-arrow-right text-imani-primary"></i>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-12">
+                    <div class="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-building text-4xl text-gray-400"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-900 mb-2">Aucune résidence</h3>
+                    <p class="text-gray-600 mb-4">Commencez par créer votre première résidence.</p>
+                    <a href="{% url 'dashboard:enregistrements' %}" class="px-6 py-2 imani-gradient text-white rounded-lg font-medium hover:opacity-90 transition-all inline-block">
+                        <i class="fas fa-plus mr-2"></i>Créer une Résidence
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Tab Content: Appartements -->
+        <div id="tab-appartements" class="tab-content p-6">
+            {% if all_appartements %}
+                <div class="space-y-2">
+                    {% for appartement in all_appartements %}
+                    <a href="{% url 'properties:appartement_detail' appartement.id %}"
+                       class="apartment-card {{ appartement.statut_occupation|lower }} imani-card p-4 flex items-center justify-between hover:bg-gray-50"
+                       data-statut="{{ appartement.statut_occupation }}">
+                        <div class="flex items-center flex-1">
+                            <div class="w-10 h-10 rounded-lg flex items-center justify-center mr-3
+                                       {% if appartement.statut_occupation == 'libre' or appartement.statut_occupation == 'available' %}bg-green-100 text-green-600
+                                       {% elif appartement.statut_occupation == 'occupe' or appartement.statut_occupation == 'occupied' %}bg-blue-100 text-blue-600
+                                       {% else %}bg-orange-100 text-orange-600{% endif %}">
+                                <i class="fas fa-home"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex items-center">
+                                    <h4 class="font-bold text-gray-900 mr-3">{{ appartement.nom }}</h4>
+                                    <span class="px-2 py-1 rounded-full text-xs font-semibold
+                                               {% if appartement.statut_occupation == 'libre' or appartement.statut_occupation == 'available' %}bg-green-100 text-green-700
+                                               {% elif appartement.statut_occupation == 'occupe' or appartement.statut_occupation == 'occupied' %}bg-blue-100 text-blue-700
+                                               {% else %}bg-orange-100 text-orange-700{% endif %}">
+                                        {{ appartement.get_statut_occupation_display }}
+                                    </span>
+                                </div>
+                                <div class="flex items-center mt-1 text-xs text-gray-500 space-x-4">
+                                    <span><i class="fas fa-building mr-1"></i>{{ appartement.residence.nom }}</span>
+                                    {% if appartement.superficie %}
+                                    <span><i class="fas fa-ruler-combined mr-1"></i>{{ appartement.superficie|floatformat:0 }} m²</span>
+                                    {% endif %}
+                                    <span><i class="fas fa-bed mr-1"></i>{{ appartement.nb_chambres|default:0 }} ch.</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-lg font-bold text-imani-primary">{{ appartement.loyer_base|floatformat:0 }}</div>
+                            <div class="text-xs text-gray-500">FCFA/mois</div>
+                        </div>
+                        <i class="fas fa-chevron-right ml-4 text-gray-400"></i>
+                    </a>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-12">
+                    <div class="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-home text-4xl text-gray-400"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-900 mb-2">Aucun appartement</h3>
+                    <p class="text-gray-600 mb-4">Commencez par créer votre premier appartement.</p>
+                    <a href="{% url 'dashboard:enregistrements' %}" class="px-6 py-2 imani-gradient text-white rounded-lg font-medium hover:opacity-90 transition-all inline-block">
+                        <i class="fas fa-plus mr-2"></i>Créer un Appartement
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Tabs functionality
+document.querySelectorAll('.tab-button').forEach(button => {
+    button.addEventListener('click', function() {
+        const targetTab = this.dataset.tab;
+
+        // Update buttons
+        document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+        this.classList.add('active');
+
+        // Update content
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+        document.getElementById('tab-' + targetTab).classList.add('active');
+    });
+});
+
+// Search functionality
+document.getElementById('search-input').addEventListener('input', function(e) {
+    const searchTerm = e.target.value.toLowerCase();
+
+    // Search in residences
+    document.querySelectorAll('#tab-residences .residence-card').forEach(card => {
+        const text = card.textContent.toLowerCase();
+        card.style.display = text.includes(searchTerm) ? '' : 'none';
+    });
+
+    // Search in apartments
+    document.querySelectorAll('#tab-appartements .apartment-card').forEach(card => {
+        const text = card.textContent.toLowerCase();
+        card.style.display = text.includes(searchTerm) ? '' : 'none';
+    });
+});
+
+// Filter by status
+document.getElementById('filter-status').addEventListener('change', function(e) {
+    const status = e.target.value;
+
+    document.querySelectorAll('.apartment-card').forEach(card => {
+        if (status === 'all') {
+            card.style.display = '';
+        } else {
+            card.style.display = card.dataset.statut === status ? '' : 'none';
+        }
+    });
+});
+
+// Animation on load
+document.addEventListener('DOMContentLoaded', function() {
+    const cards = document.querySelectorAll('.residence-card, .apartment-card');
+    cards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(10px)';
+        setTimeout(() => {
+            card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, index * 30);
+    });
+});
+</script>
+{% endblock %}

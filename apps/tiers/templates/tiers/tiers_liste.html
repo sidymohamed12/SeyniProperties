@@ -1,0 +1,245 @@
+{% extends "base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Gestion des Tiers - Imani{% endblock %}
+
+{% block page_title %}Gestion des Tiers{% endblock %}
+{% block page_subtitle %}Gérez vos tiers (clients, propriétaires, partenaires){% endblock %}
+
+{% block content %}
+<!-- Statistiques -->
+<div class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
+    <div class="imani-card p-6">
+        <div class="flex items-center justify-between">
+            <div class="flex-1">
+                <p class="text-sm text-gray-600 font-medium mb-1">Total</p>
+                <p class="text-3xl font-bold text-imani-primary">{{ stats.total }}</p>
+            </div>
+            <div class="w-14 h-14 rounded-xl imani-gradient flex items-center justify-center">
+                <i class="fas fa-users text-white text-2xl"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="imani-card p-6">
+        <div class="flex items-center justify-between">
+            <div class="flex-1">
+                <p class="text-sm text-gray-600 font-medium mb-1">Actifs</p>
+                <p class="text-3xl font-bold text-green-600">{{ stats.actifs }}</p>
+            </div>
+            <div class="w-14 h-14 rounded-xl bg-green-500 flex items-center justify-center">
+                <i class="fas fa-check-circle text-white text-2xl"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="imani-card p-6">
+        <div class="flex items-center justify-between">
+            <div class="flex-1">
+                <p class="text-sm text-gray-600 font-medium mb-1">Propriétaires</p>
+                <p class="text-3xl font-bold text-imani-secondary">{{ stats.proprietaires }}</p>
+            </div>
+            <div class="w-14 h-14 rounded-xl bg-imani-secondary flex items-center justify-center">
+                <i class="fas fa-home text-white text-2xl"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="imani-card p-6">
+        <div class="flex items-center justify-between">
+            <div class="flex-1">
+                <p class="text-sm text-gray-600 font-medium mb-1">Locataires</p>
+                <p class="text-3xl font-bold text-yellow-600">{{ stats.locataires }}</p>
+            </div>
+            <div class="w-14 h-14 rounded-xl bg-yellow-500 flex items-center justify-center">
+                <i class="fas fa-user text-white text-2xl"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="imani-card p-6">
+        <div class="flex items-center justify-between">
+            <div class="flex-1">
+                <p class="text-sm text-gray-600 font-medium mb-1">Prestataires</p>
+                <p class="text-3xl font-bold text-purple-600">{{ stats.prestataires }}</p>
+            </div>
+            <div class="w-14 h-14 rounded-xl bg-purple-500 flex items-center justify-center">
+                <i class="fas fa-toolbox text-white text-2xl"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Actions rapides -->
+<div class="flex justify-end mb-6">
+    <a href="{% url 'tiers:tiers_ajouter' %}"
+       class="px-6 py-3 imani-gradient text-white rounded-lg font-medium hover:opacity-90 transition-all shadow-lg">
+        <i class="fas fa-plus mr-2"></i>
+        Ajouter un Tiers
+    </a>
+</div>
+
+<!-- Formulaire de recherche -->
+<div class="imani-card p-6 mb-8">
+    <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Rechercher</label>
+            {{ search_form.search }}
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Type</label>
+            {{ search_form.type_tiers }}
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Statut</label>
+            {{ search_form.statut }}
+        </div>
+        <div class="md:col-span-4 flex justify-end space-x-3">
+            <button type="submit"
+                    class="px-6 py-2 imani-gradient text-white rounded-lg font-medium hover:opacity-90 transition-all">
+                <i class="fas fa-search mr-2"></i>Rechercher
+            </button>
+            <a href="{% url 'tiers:tiers_liste' %}"
+               class="px-6 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg font-medium transition-all">
+                <i class="fas fa-redo mr-2"></i>Réinitialiser
+            </a>
+        </div>
+    </form>
+</div>
+
+<!-- Liste des tiers -->
+<div class="imani-card overflow-hidden">
+    <table class="min-w-full divide-y divide-gray-200">
+        <thead style="background: linear-gradient(135deg, rgba(35, 69, 107, 0.05) 0%, rgba(162, 89, 70, 0.05) 100%);">
+            <tr>
+                <th class="px-6 py-4 text-left text-xs font-bold text-imani-primary uppercase tracking-wider">
+                    Référence
+                </th>
+                <th class="px-6 py-4 text-left text-xs font-bold text-imani-primary uppercase tracking-wider">
+                    Nom
+                </th>
+                <th class="px-6 py-4 text-left text-xs font-bold text-imani-primary uppercase tracking-wider">
+                    Type
+                </th>
+                <th class="px-6 py-4 text-left text-xs font-bold text-imani-primary uppercase tracking-wider">
+                    Contact
+                </th>
+                <th class="px-6 py-4 text-left text-xs font-bold text-imani-primary uppercase tracking-wider">
+                    Ville
+                </th>
+                <th class="px-6 py-4 text-left text-xs font-bold text-imani-primary uppercase tracking-wider">
+                    Statut
+                </th>
+                <th class="px-6 py-4 text-left text-xs font-bold text-imani-primary uppercase tracking-wider">
+                    Biens
+                </th>
+                <th class="px-6 py-4 text-right text-xs font-bold text-imani-primary uppercase tracking-wider">
+                    Actions
+                </th>
+            </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+            {% for tier in tiers %}
+            <tr class="hover:bg-gray-50 transition-colors">
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    {{ tier.reference }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <a href="{% url 'tiers:tiers_detail' tier.pk %}"
+                       class="text-imani-primary hover:text-imani-secondary font-semibold transition-colors">
+                        {{ tier.nom_complet }}
+                    </a>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="px-3 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800">
+                        {{ tier.get_type_tiers_display }}
+                    </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <div>{{ tier.telephone }}</div>
+                    <div class="text-xs text-gray-400">{{ tier.email }}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {{ tier.ville }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    {% if tier.statut == 'actif' %}
+                        <span class="px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                            Actif
+                        </span>
+                    {% elif tier.statut == 'inactif' %}
+                        <span class="px-3 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                            Inactif
+                        </span>
+                    {% elif tier.statut == 'en_attente' %}
+                        <span class="px-3 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                            En attente
+                        </span>
+                    {% else %}
+                        <span class="px-3 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
+                            {{ tier.get_statut_display }}
+                        </span>
+                    {% endif %}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
+                    {% if tier.nb_biens > 0 %}
+                        <span class="px-3 py-1 bg-imani-accent text-white rounded-full text-xs font-semibold">
+                            {{ tier.nb_biens }}
+                        </span>
+                    {% else %}
+                        <span class="text-gray-400">-</span>
+                    {% endif %}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <a href="{% url 'tiers:tiers_detail' tier.pk %}"
+                       class="text-imani-primary hover:text-imani-secondary mr-3 transition-colors">
+                        <i class="fas fa-eye"></i>
+                    </a>
+                    <a href="{% url 'tiers:tiers_modifier' tier.pk %}"
+                       class="text-yellow-600 hover:text-yellow-800 mr-3 transition-colors">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="8" class="px-6 py-12 text-center text-gray-500">
+                    <div class="imani-gradient-soft rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-inbox text-4xl text-imani-primary"></i>
+                    </div>
+                    <p class="text-lg font-medium">Aucun tiers trouvé</p>
+                    <a href="{% url 'tiers:tiers_ajouter' %}" class="text-imani-primary hover:text-imani-secondary mt-2 inline-block">
+                        Ajouter votre premier tiers →
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Pagination -->
+{% if tiers.has_other_pages %}
+<div class="flex justify-center mt-8">
+    <nav class="relative z-0 inline-flex rounded-lg shadow-sm -space-x-px">
+        {% if tiers.has_previous %}
+        <a href="?page={{ tiers.previous_page_number }}"
+           class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-imani-gradient-soft hover:text-imani-primary transition-all rounded-l-lg">
+            <i class="fas fa-chevron-left mr-2"></i>Précédent
+        </a>
+        {% endif %}
+
+        <span class="relative inline-flex items-center px-6 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+            Page {{ tiers.number }} sur {{ tiers.paginator.num_pages }}
+        </span>
+
+        {% if tiers.has_next %}
+        <a href="?page={{ tiers.next_page_number }}"
+           class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-imani-gradient-soft hover:text-imani-primary transition-all rounded-r-lg">
+            Suivant<i class="fas fa-chevron-right ml-2"></i>
+        </a>
+        {% endif %}
+    </nav>
+</div>
+{% endif %}
+{% endblock %}

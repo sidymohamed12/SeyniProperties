@@ -1,0 +1,197 @@
+{% extends 'base_dashboard.html' %}
+
+{% block page_title %}Budget {{ budget.annee }} - {{ budget.copropriete.residence.nom }}{% endblock %}
+{% block page_subtitle %}Détails du budget prévisionnel{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <nav class="text-sm text-gray-600">
+        <a href="{% url 'syndic:dashboard' %}" class="hover:text-imani-primary">Syndic</a>
+        <span class="mx-2">/</span>
+        <a href="{% url 'syndic:budget_list' %}" class="hover:text-imani-primary">Budgets</a>
+        <span class="mx-2">/</span>
+        <span class="text-gray-900 font-medium">Budget {{ budget.annee }}</span>
+    </nav>
+</div>
+
+<div class="flex justify-between items-start mb-6">
+    <div>
+        <h3 class="text-xl font-semibold text-gray-800">Budget {{ budget.annee }}</h3>
+        <p class="text-sm text-gray-600 mt-1">{{ budget.copropriete.residence.nom }}</p>
+    </div>
+    <div class="flex space-x-3">
+        <a href="{% url 'syndic:budget_update' budget.pk %}" class="imani-gradient text-white px-6 py-2.5 rounded-lg flex items-center space-x-2 hover:opacity-90 transition-opacity">
+            <i class="fas fa-edit"></i>
+            <span>Modifier</span>
+        </a>
+        <form method="post" action="{% url 'syndic:budget_delete' budget.pk %}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce budget ?');" class="inline">
+            {% csrf_token %}
+            <button type="submit" class="bg-red-600 text-white px-6 py-2.5 rounded-lg flex items-center space-x-2 hover:bg-red-700 transition-colors">
+                <i class="fas fa-trash"></i>
+                <span>Supprimer</span>
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Statistiques -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+    <div class="imani-card p-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm text-gray-600 mb-1">Montant total</p>
+                <p class="text-2xl font-bold text-gray-800">{{ budget.montant_total|floatformat:0 }}</p>
+                <p class="text-xs text-gray-500">FCFA</p>
+            </div>
+            <div class="w-12 h-12 imani-gradient rounded-lg flex items-center justify-center">
+                <i class="fas fa-money-bill-wave text-white text-lg"></i>
+            </div>
+        </div>
+    </div>
+    <div class="imani-card p-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm text-gray-600 mb-1">Total prévu</p>
+                <p class="text-2xl font-bold text-blue-600">{{ total_prevu|floatformat:0 }}</p>
+                <p class="text-xs text-gray-500">FCFA</p>
+            </div>
+            <div class="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
+                <i class="fas fa-calculator text-white text-lg"></i>
+            </div>
+        </div>
+    </div>
+    <div class="imani-card p-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm text-gray-600 mb-1">Total réalisé</p>
+                <p class="text-2xl font-bold text-green-600">{{ total_realise|floatformat:0 }}</p>
+                <p class="text-xs text-gray-500">FCFA</p>
+            </div>
+            <div class="w-12 h-12 bg-green-600 rounded-lg flex items-center justify-center">
+                <i class="fas fa-check-circle text-white text-lg"></i>
+            </div>
+        </div>
+    </div>
+    <div class="imani-card p-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm text-gray-600 mb-1">Écart</p>
+                <p class="text-2xl font-bold {% if ecart >= 0 %}text-orange-600{% else %}text-red-600{% endif %}">{{ ecart|floatformat:0 }}</p>
+                <p class="text-xs text-gray-500">FCFA</p>
+            </div>
+            <div class="w-12 h-12 {% if ecart >= 0 %}bg-orange-600{% else %}bg-red-600{% endif %} rounded-lg flex items-center justify-center">
+                <i class="fas fa-exclamation-triangle text-white text-lg"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Informations -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+    <div class="imani-card p-6">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4"><i class="fas fa-info-circle mr-2"></i>Informations</h3>
+        <dl class="space-y-3">
+            <div class="flex justify-between">
+                <dt class="text-sm text-gray-600">Copropriété:</dt>
+                <dd class="text-sm font-medium text-gray-900">{{ budget.copropriete.residence.nom }}</dd>
+            </div>
+            <div class="flex justify-between">
+                <dt class="text-sm text-gray-600">Année:</dt>
+                <dd class="text-sm font-medium text-gray-900">{{ budget.annee }}</dd>
+            </div>
+            <div class="flex justify-between">
+                <dt class="text-sm text-gray-600">Date AG:</dt>
+                <dd class="text-sm font-medium text-gray-900">{% if budget.date_ag %}{{ budget.date_ag|date:"d/m/Y" }}{% else %}-{% endif %}</dd>
+            </div>
+            <div class="flex justify-between">
+                <dt class="text-sm text-gray-600">Date vote:</dt>
+                <dd class="text-sm font-medium text-gray-900">{% if budget.date_vote %}{{ budget.date_vote|date:"d/m/Y" }}{% else %}-{% endif %}</dd>
+            </div>
+            <div class="flex justify-between">
+                <dt class="text-sm text-gray-600">Statut:</dt>
+                <dd class="text-sm font-medium">
+                    {% if budget.statut == 'approuve' %}
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                        Approuvé
+                    </span>
+                    {% elif budget.statut == 'vote' %}
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                        Voté
+                    </span>
+                    {% else %}
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                        {{ budget.get_statut_display }}
+                    </span>
+                    {% endif %}
+                </dd>
+            </div>
+        </dl>
+    </div>
+
+    <div class="imani-card p-6">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4"><i class="fas fa-sticky-note mr-2"></i>Notes</h3>
+        {% if budget.notes %}
+        <p class="text-sm text-gray-700">{{ budget.notes|linebreaks }}</p>
+        {% else %}
+        <p class="text-sm text-gray-500 italic">Aucune note</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Lignes de budget -->
+<div class="imani-card">
+    <div class="px-6 py-4 border-b border-gray-200">
+        <h3 class="text-lg font-semibold text-gray-800"><i class="fas fa-list mr-2"></i>Détail du budget</h3>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Catégorie</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Description</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Montant prévu</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Montant réalisé</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Écart</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for ligne in lignes %}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {{ ligne.get_categorie_display }}
+                    </td>
+                    <td class="px-6 py-4 text-sm text-gray-500">
+                        {{ ligne.description }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">
+                        {{ ligne.montant_prevu|floatformat:0 }} FCFA
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">
+                        {{ ligne.montant_realise|floatformat:0 }} FCFA
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium {% if ligne.montant_prevu >= ligne.montant_realise %}text-orange-600{% else %}text-red-600{% endif %}">
+                        {{ ligne.montant_prevu|floatformat:0|add:ligne.montant_realise|floatformat:0 }} FCFA
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="px-6 py-4 text-center text-gray-500">
+                        Aucune ligne de budget
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            {% if lignes %}
+            <tfoot class="bg-gray-50 font-semibold">
+                <tr>
+                    <td colspan="2" class="px-6 py-4 text-sm text-gray-900">Total</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-blue-600">{{ total_prevu|floatformat:0 }} FCFA</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-green-600">{{ total_realise|floatformat:0 }} FCFA</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm {% if ecart >= 0 %}text-orange-600{% else %}text-red-600{% endif %}">{{ ecart|floatformat:0 }} FCFA</td>
+                </tr>
+            </tfoot>
+            {% endif %}
+        </table>
+    </div>
+</div>
+{% endblock %}

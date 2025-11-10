@@ -1,0 +1,532 @@
+<!-- templates/payments/invoice_detail.html -->
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Facture {{ invoice.numero_facture }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .info-card {
+        background: white;
+        border-radius: 0.5rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        padding: 1.5rem;
+    }
+    .section-header {
+        border-bottom: 2px solid #e5e7eb;
+        padding-bottom: 0.75rem;
+        margin-bottom: 1.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <!-- En-tête -->
+    <div class="mb-6">
+        <div class="flex items-center mb-4">
+            <a href="{% url 'payments:invoices_list' %}" class="text-blue-600 hover:text-blue-700 mr-3">
+                <i class="fas fa-arrow-left mr-2"></i>Retour à la liste
+            </a>
+        </div>
+        
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">
+                    <i class="fas fa-file-invoice text-blue-600 mr-3"></i>
+                    Facture {{ invoice.numero_facture }}
+                </h1>
+                <p class="text-gray-600">Détails complets de la facture</p>
+            </div>
+            
+            <div class="mt-4 md:mt-0">
+                <span class="text-sm px-4 py-2 rounded-full font-medium
+                    {% if invoice.statut == 'payee' %}bg-green-100 text-green-800
+                    {% elif invoice.statut == 'emise' %}bg-blue-100 text-blue-800
+                    {% elif invoice.statut == 'en_retard' %}bg-red-100 text-red-800
+                    {% else %}bg-gray-100 text-gray-800{% endif %}">
+                    <i class="fas fa-circle text-xs mr-2"></i>
+                    {{ invoice.get_statut_display }}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alerte retard -->
+    {% if invoice.is_overdue and invoice.statut != 'payee' %}
+        <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-exclamation-triangle text-red-500 text-xl"></i>
+                </div>
+                <div class="ml-3">
+                    <h3 class="text-sm font-medium text-red-800">Facture en retard</h3>
+                    <div class="mt-2 text-sm text-red-700">
+                        <p>Cette facture est en retard de {{ invoice.days_overdue }} jours. 
+                           Date d'échéance dépassée : {{ invoice.date_echeance|date:"d/m/Y" }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Colonne gauche - Informations principales -->
+        <div class="lg:col-span-2 space-y-6">
+            <!-- Informations de la facture -->
+            <div class="info-card">
+                <h2 class="section-header text-xl font-semibold text-gray-900">
+                    <i class="fas fa-info-circle text-blue-600 mr-2"></i>
+                    Informations de la facture
+                </h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-500 mb-1">Numéro de facture</label>
+                        <p class="text-lg font-semibold text-gray-900">{{ invoice.numero_facture }}</p>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-500 mb-1">Type de facture</label>
+                        <p class="text-lg text-gray-900">{{ invoice.get_type_facture_display }}</p>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-500 mb-1">Date d'émission</label>
+                        <p class="text-lg text-gray-900">{{ invoice.date_emission|date:"d/m/Y" }}</p>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-500 mb-1">Date d'échéance</label>
+                        <p class="text-lg {% if invoice.is_overdue %}text-red-600 font-bold{% else %}text-gray-900{% endif %}">
+                            {{ invoice.date_echeance|date:"d/m/Y" }}
+                        </p>
+                    </div>
+                    
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-500 mb-1">Période de facturation</label>
+                        <p class="text-lg text-gray-900">
+                            Du {{ invoice.periode_debut|date:"d/m/Y" }} au {{ invoice.periode_fin|date:"d/m/Y" }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Informations financières -->
+            <div class="info-card">
+                <h2 class="section-header text-xl font-semibold text-gray-900">
+                    <i class="fas fa-money-bill-wave text-green-600 mr-2"></i>
+                    Montants
+                </h2>
+                
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-600">Montant HT</span>
+                        <span class="text-xl font-semibold text-gray-900">{{ invoice.montant_ht|floatformat:0 }} FCFA</span>
+                    </div>
+                    
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-600">TVA ({{ invoice.taux_tva }}%)</span>
+                        <span class="text-xl font-semibold text-gray-900">
+                            {% widthratio invoice.montant_ht invoice.taux_tva 100 as montant_tva %}
+                            {{ montant_tva|floatformat:0 }} FCFA
+                        </span>
+                    </div>
+                    
+                    <div class="border-t border-gray-200 pt-4">
+                        <div class="flex justify-between items-center">
+                            <span class="text-lg font-medium text-gray-700">Montant TTC</span>
+                            <span class="text-3xl font-bold text-blue-600">{{ invoice.montant_ttc|floatformat:0 }} FCFA</span>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-green-50 p-4 rounded-lg mt-4">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-sm font-medium text-green-800">Montant payé</span>
+                            <span class="text-xl font-bold text-green-700">{{ invoice.montant_paye|floatformat:0 }} FCFA</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm font-medium text-orange-800">Reste à payer</span>
+                            <span class="text-xl font-bold text-orange-700">{{ invoice.solde_restant|floatformat:0 }} FCFA</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contrat associé (seulement pour factures de loyer) -->
+            {% if invoice.contrat %}
+            <div class="info-card">
+                <h2 class="section-header text-xl font-semibold text-gray-900">
+                    <i class="fas fa-file-contract text-purple-600 mr-2"></i>
+                    Contrat associé
+                </h2>
+
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-500 mb-1">Numéro de contrat</label>
+                        <p class="text-lg text-gray-900">
+                            <a href="{% url 'contracts:detail' invoice.contrat.pk %}"
+                               class="text-blue-600 hover:text-blue-800">
+                                {{ invoice.contrat.numero_contrat }}
+                            </a>
+                        </p>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-500 mb-1">Locataire</label>
+                        <p class="text-lg text-gray-900">{{ invoice.contrat.locataire.nom_complet }}</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-500 mb-1">Bien</label>
+                        <p class="text-lg text-gray-900">
+                            {{ invoice.contrat.appartement.residence.nom }} - {{ invoice.contrat.appartement.nom }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Articles de la demande d'achat -->
+            {% if lignes_achat %}
+            <div class="info-card">
+                <h2 class="section-header text-xl font-semibold text-gray-900">
+                    <i class="fas fa-shopping-cart text-orange-600 mr-2"></i>
+                    Articles demandés ({{ lignes_achat.count }})
+                </h2>
+
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Désignation
+                                </th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Quantité
+                                </th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    P.U.
+                                </th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Total
+                                </th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Fournisseur
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for ligne in lignes_achat %}
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-4 py-3">
+                                    <div class="text-sm font-medium text-gray-900">{{ ligne.designation }}</div>
+                                    {% if ligne.motif %}
+                                    <div class="text-xs text-gray-500 mt-1">{{ ligne.motif|truncatewords:15 }}</div>
+                                    {% endif %}
+                                </td>
+                                <td class="px-4 py-3 text-sm text-gray-900">
+                                    {{ ligne.quantite|floatformat:0 }} {{ ligne.unite }}
+                                </td>
+                                <td class="px-4 py-3 text-sm text-gray-900">
+                                    {{ ligne.prix_unitaire|floatformat:0 }} FCFA
+                                </td>
+                                <td class="px-4 py-3 text-sm font-semibold text-gray-900">
+                                    {{ ligne.prix_total|floatformat:0 }} FCFA
+                                </td>
+                                <td class="px-4 py-3 text-sm text-gray-600">
+                                    {{ ligne.fournisseur|default:"Non spécifié" }}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot class="bg-gray-50">
+                            <tr>
+                                <td colspan="3" class="px-4 py-3 text-right text-sm font-semibold text-gray-900">
+                                    Total estimé:
+                                </td>
+                                <td colspan="2" class="px-4 py-3 text-sm font-bold text-blue-600">
+                                    {{ invoice.montant_ttc|floatformat:0 }} FCFA
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+                <!-- Motif principal de la demande -->
+                {% if invoice.motif_principal %}
+                <div class="mt-4 p-4 bg-blue-50 rounded-lg">
+                    <p class="text-sm font-medium text-blue-900 mb-1">
+                        <i class="fas fa-info-circle mr-2"></i>Motif principal de la demande
+                    </p>
+                    <p class="text-sm text-blue-700">{{ invoice.motif_principal }}</p>
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <!-- Liste des paiements -->
+            <div class="info-card">
+                <h2 class="section-header text-xl font-semibold text-gray-900">
+                    <i class="fas fa-list text-green-600 mr-2"></i>
+                    Paiements associés ({{ payments.count }})
+                </h2>
+                
+                {% if payments %}
+                    <div class="space-y-3">
+                        {% for payment in payments %}
+                            <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                                <div class="flex justify-between items-start">
+                                    <div class="flex-1">
+                                        <p class="font-semibold text-gray-900 mb-1">
+                                            <a href="{% url 'payments:detail' payment.pk %}" 
+                                               class="text-blue-600 hover:text-blue-800">
+                                                {{ payment.numero_paiement }}
+                                            </a>
+                                        </p>
+                                        <p class="text-sm text-gray-600">
+                                            {{ payment.date_paiement|date:"d/m/Y" }} - 
+                                            {{ payment.get_moyen_paiement_display }}
+                                        </p>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="text-xl font-bold text-green-600 mb-1">
+                                            {{ payment.montant|floatformat:0 }} FCFA
+                                        </p>
+                                        <span class="text-xs px-2 py-1 rounded-full font-medium
+                                            {% if payment.statut == 'valide' %}bg-green-100 text-green-800
+                                            {% elif payment.statut == 'en_attente' %}bg-yellow-100 text-yellow-800
+                                            {% else %}bg-red-100 text-red-800{% endif %}">
+                                            {{ payment.get_statut_display }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-8">
+                        <i class="fas fa-inbox text-gray-400 text-3xl mb-3"></i>
+                        <p class="text-gray-500">Aucun paiement enregistré pour cette facture</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Colonne droite - Informations supplémentaires -->
+        <div class="space-y-6">
+            <!-- Résumé rapide -->
+            <div class="info-card bg-gradient-to-br from-blue-50 to-blue-100">
+                <h3 class="font-semibold text-gray-900 mb-4">
+                    <i class="fas fa-chart-pie mr-2"></i>Résumé
+                </h3>
+                
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-600">Progression</span>
+                        <span class="font-semibold text-gray-900">
+                            {% widthratio invoice.amount_paid invoice.montant_ttc 100 as progress %}
+                            {{ progress }}%
+                        </span>
+                    </div>
+                    
+                    <div class="w-full bg-gray-200 rounded-full h-3">
+                        <div class="bg-blue-600 h-3 rounded-full transition-all duration-500" 
+                             style="width: {{ progress }}%"></div>
+                    </div>
+                    
+                    {% if invoice.statut != 'payee' %}
+                        <div class="pt-3 border-t border-blue-200">
+                            <p class="text-sm text-gray-600 mb-1">Jours restants</p>
+                            <p class="text-2xl font-bold {% if invoice.is_overdue %}text-red-600{% else %}text-blue-600{% endif %}">
+                                {% if invoice.is_overdue %}
+                                    -{{ invoice.days_overdue }}
+                                {% else %}
+                                    {{ invoice.days_until_due }}
+                                {% endif %}
+                            </p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="info-card">
+                <h3 class="font-semibold text-gray-900 mb-4">
+                    <i class="fas fa-cog mr-2"></i>Actions
+                </h3>
+
+                <div class="space-y-2">
+                    {% if invoice.statut != 'payee' %}
+                    <a href="{% url 'payments:create' %}?facture={{ invoice.pk }}"
+                       class="block w-full p-3 bg-green-600 hover:bg-green-700 text-white rounded-lg text-center transition duration-200">
+                        <i class="fas fa-plus mr-2"></i>
+                        Enregistrer un paiement
+                    </a>
+                    {% endif %}
+
+                    <a href="{% url 'payments:rename_invoice_pdf' invoice.pk %}"
+                        class="block w-full p-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg text-center transition duration-200">
+                         <i class="fas fa-edit mr-2"></i>
+                         Renommer le PDF
+                    </a>
+
+                    <!-- Aperçu et téléchargement de la facture -->
+                    <div class="grid grid-cols-2 gap-2">
+                        <a href="{% url 'payments:invoice_preview_pdf' invoice.pk %}" target="_blank"
+                           class="p-3 bg-white border-2 border-purple-600 text-purple-600 hover:bg-purple-600 hover:text-white rounded-lg text-center transition duration-200">
+                            <i class="fas fa-eye mr-1"></i>
+                            Aperçu
+                        </a>
+                        <a href="{% url 'payments:invoice_pdf_custom' invoice.pk %}"
+                           class="p-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-center transition duration-200">
+                            <i class="fas fa-download mr-1"></i>
+                            Télécharger
+                        </a>
+                    </div>
+
+                    <button onclick="sendInvoiceEmail({{ invoice.pk }})"
+                            class="block w-full p-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition duration-200">
+                        <i class="fas fa-envelope mr-2"></i>
+                        Envoyer par email
+                    </button>
+
+                    {% if invoice.statut == 'payee' and invoice.type_facture == 'loyer' and invoice.contrat %}
+                    <!-- Actions pour facture payée -->
+                    <div class="border-t border-gray-200 my-3 pt-3">
+                        <p class="text-xs text-gray-500 uppercase font-semibold mb-2">Documents (Payée)</p>
+
+                        <!-- État de loyer -->
+                        <p class="text-xs text-gray-600 font-medium mt-3 mb-1">État de loyer (Bailleur)</p>
+                        <div class="flex gap-2 mb-3">
+                            <a href="{% url 'payments:etat_loyer_preview' invoice.pk %}" target="_blank"
+                               class="flex-1 p-2 bg-white border-2 border-teal-600 text-teal-600 hover:bg-teal-600 hover:text-white rounded-lg text-center transition duration-200 text-sm">
+                                <i class="fas fa-eye mr-1"></i>
+                                Aperçu
+                            </a>
+                            <a href="{% url 'payments:etat_loyer_download' invoice.pk %}"
+                               class="flex-1 p-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg text-center transition duration-200 text-sm">
+                                <i class="fas fa-download mr-1"></i>
+                                Télécharger
+                            </a>
+                        </div>
+
+                        <!-- Quittance -->
+                        <p class="text-xs text-gray-600 font-medium mt-3 mb-1">Quittance (Locataire)</p>
+                        <div class="flex gap-2">
+                            <a href="{% url 'payments:quittance_preview' invoice.pk %}" target="_blank"
+                               class="flex-1 p-2 bg-white border-2 border-indigo-600 text-indigo-600 hover:bg-indigo-600 hover:text-white rounded-lg text-center transition duration-200 text-sm">
+                                <i class="fas fa-eye mr-1"></i>
+                                Aperçu
+                            </a>
+                            <a href="{% url 'payments:quittance_download' invoice.pk %}"
+                               class="flex-1 p-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-center transition duration-200 text-sm">
+                                <i class="fas fa-download mr-1"></i>
+                                Télécharger
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if invoice.statut == 'en_retard' %}
+                    <!-- Action pour facture en retard -->
+                    <div class="border-t border-gray-200 my-3 pt-3">
+                        <p class="text-xs text-gray-500 uppercase font-semibold mb-2">Relance</p>
+
+                        <button onclick="sendPaymentReminder({{ invoice.pk }})"
+                                class="block w-full p-3 bg-red-600 hover:bg-red-700 text-white rounded-lg text-center transition duration-200">
+                            <i class="fas fa-bell mr-2"></i>
+                            Envoyer rappel de paiement
+                            {% if invoice.nombre_relances > 0 %}
+                            <span class="text-xs ml-2">({{ invoice.nombre_relances }} envoyé{{ invoice.nombre_relances|pluralize }})</span>
+                            {% endif %}
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Historique -->
+            <div class="info-card">
+                <h3 class="font-semibold text-gray-900 mb-4">
+                    <i class="fas fa-history mr-2"></i>Historique
+                </h3>
+                
+                <div class="space-y-3 text-sm">
+                    <div>
+                        <p class="text-gray-500 mb-1">Créée le</p>
+                        <p class="font-medium text-gray-900">{{ invoice.created_at|date:"d/m/Y à H:i" }}</p>
+                    </div>
+                    
+                    <div>
+                        <p class="text-gray-500 mb-1">Dernière modification</p>
+                        <p class="font-medium text-gray-900">{{ invoice.updated_at|date:"d/m/Y à H:i" }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ✅ SCRIPTS -->
+<script>
+function sendInvoiceEmail(invoiceId) {
+    if (!confirm('Voulez-vous envoyer cette facture par email au locataire ?')) {
+        return;
+    }
+
+    fetch(`/payments/factures/${invoiceId}/send-email/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('✅ ' + data.message);
+        } else {
+            alert('❌ Erreur: ' + data.error);
+        }
+    })
+    .catch(error => {
+        alert('❌ Erreur lors de l\'envoi: ' + error);
+    });
+}
+
+function sendPaymentReminder(invoiceId) {
+    if (!confirm('Voulez-vous envoyer un rappel de paiement pour cette facture en retard ?')) {
+        return;
+    }
+
+    const button = event.target;
+    button.disabled = true;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Envoi en cours...';
+
+    fetch(`/payments/factures/${invoiceId}/envoyer-rappel/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('✅ ' + data.message);
+            location.reload();  // Recharger pour voir le compteur mis à jour
+        } else {
+            alert('❌ Erreur: ' + data.error);
+            button.disabled = false;
+            button.innerHTML = '<i class="fas fa-bell mr-2"></i>Envoyer rappel de paiement';
+        }
+    })
+    .catch(error => {
+        alert('❌ Erreur lors de l\'envoi: ' + error);
+        button.disabled = false;
+        button.innerHTML = '<i class="fas fa-bell mr-2"></i>Envoyer rappel de paiement';
+    });
+}
+</script>
+{% endblock %}

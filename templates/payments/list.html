@@ -1,0 +1,346 @@
+<!-- templates/payments/list.html -->
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Gestion des Paiements - Imani{% endblock %}
+
+{% block page_title %}Gestion des Paiements{% endblock %}
+{% block page_subtitle %}Suivez tous les paiements de loyers et charges{% endblock %}
+
+{% block extra_css %}
+<style>
+    .payment-card {
+        transition: all 0.3s ease;
+        border-left: 4px solid #e5e7eb;
+    }
+    .payment-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(35, 69, 107, 0.15);
+    }
+    .payment-card.valide {
+        border-left-color: #10b981;
+    }
+    .payment-card.en_attente {
+        border-left-color: #f59e0b;
+    }
+    .payment-card.refuse {
+        border-left-color: #ef4444;
+    }
+
+    .status-badge {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.375rem;
+        font-weight: 600;
+    }
+    .status-valide { background-color: #d1fae5; color: #065f46; }
+    .status-en_attente { background-color: #fef3c7; color: #92400e; }
+    .status-refuse { background-color: #fee2e2; color: #991b1b; }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Actions rapides -->
+<div class="flex justify-end gap-3 mb-6">
+    <a href="{% url 'payments:create' %}"
+       class="px-6 py-3 imani-gradient text-white rounded-lg font-medium hover:opacity-90 transition-all shadow-lg flex items-center">
+        <i class="fas fa-plus-circle mr-2"></i>
+        Nouveau Paiement
+    </a>
+    <a href="{% url 'payments:invoices_list' %}"
+       class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-all shadow-lg flex items-center">
+        <i class="fas fa-file-invoice mr-2"></i>
+        Factures
+    </a>
+</div>
+
+<!-- Statistiques -->
+<div class="grid grid-cols-2 md:grid-cols-5 gap-6 mb-8">
+    <div class="imani-card p-6">
+        <div class="flex items-center justify-between">
+            <div class="flex-1">
+                <p class="text-sm text-gray-600 font-medium mb-1">Total</p>
+                <p class="text-3xl font-bold text-imani-primary">{{ stats.total }}</p>
+            </div>
+            <div class="w-14 h-14 rounded-xl bg-gray-500 flex items-center justify-center">
+                <i class="fas fa-receipt text-white text-2xl"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="imani-card p-6 border-l-4 border-green-500">
+        <div class="flex items-center justify-between">
+            <div class="flex-1">
+                <p class="text-sm text-gray-600 font-medium mb-1">Validés</p>
+                <p class="text-3xl font-bold text-green-600">{{ stats.valide }}</p>
+            </div>
+            <div class="w-14 h-14 rounded-xl bg-green-500 flex items-center justify-center">
+                <i class="fas fa-check-circle text-white text-2xl"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="imani-card p-6 border-l-4 border-yellow-500">
+        <div class="flex items-center justify-between">
+            <div class="flex-1">
+                <p class="text-sm text-gray-600 font-medium mb-1">En attente</p>
+                <p class="text-3xl font-bold text-yellow-600">{{ stats.en_attente }}</p>
+            </div>
+            <div class="w-14 h-14 rounded-xl bg-yellow-500 flex items-center justify-center">
+                <i class="fas fa-clock text-white text-2xl"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="imani-card p-6 border-l-4 border-red-500">
+        <div class="flex items-center justify-between">
+            <div class="flex-1">
+                <p class="text-sm text-gray-600 font-medium mb-1">Refusés</p>
+                <p class="text-3xl font-bold text-red-600">{{ stats.refuse }}</p>
+            </div>
+            <div class="w-14 h-14 rounded-xl bg-red-500 flex items-center justify-center">
+                <i class="fas fa-times-circle text-white text-2xl"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="imani-card p-6 border-l-4 border-purple-500">
+        <div class="flex items-center justify-between">
+            <div class="flex-1">
+                <p class="text-sm text-gray-600 font-medium mb-1">Total encaissé</p>
+                <p class="text-xl font-bold text-purple-600">{{ stats.total_amount|floatformat:0 }} F</p>
+            </div>
+            <div class="w-14 h-14 rounded-xl bg-purple-500 flex items-center justify-center">
+                <i class="fas fa-wallet text-white text-2xl"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filtres -->
+<div class="imani-card p-6 mb-6">
+    <form method="get" class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <!-- Recherche -->
+            <div class="md:col-span-2">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Recherche</label>
+                <input type="text"
+                       name="search"
+                       value="{{ search }}"
+                       placeholder="Numéro, locataire, facture..."
+                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-imani-primary">
+            </div>
+
+            <!-- Statut -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Statut</label>
+                <select name="statut" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-imani-primary">
+                    <option value="">Tous les statuts</option>
+                    {% for value, label in statut_choices %}
+                        <option value="{{ value }}" {% if statut == value %}selected{% endif %}>
+                            {{ label }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Moyen de paiement -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Moyen de paiement</label>
+                <select name="moyen_paiement" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-imani-primary">
+                    <option value="">Tous</option>
+                    {% for value, label in moyen_paiement_choices %}
+                        <option value="{{ value }}" {% if moyen_paiement == value %}selected{% endif %}>
+                            {{ label }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div class="flex gap-2 justify-end">
+            <a href="{% url 'payments:list' %}" class="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all">
+                <i class="fas fa-times mr-2"></i>Réinitialiser
+            </a>
+            <button type="submit" class="px-6 py-2 imani-gradient text-white rounded-lg hover:opacity-90 transition-all">
+                <i class="fas fa-search mr-2"></i>Rechercher
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Liste des paiements -->
+<div class="space-y-4">
+    {% for payment in payments %}
+        <div class="payment-card {{ payment.statut }} imani-card p-6 cursor-pointer"
+             onclick="window.location.href='{% url 'payments:detail' payment.pk %}'">
+
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+                <!-- Informations principales -->
+                <div class="flex-1">
+                    <div class="flex items-start justify-between mb-2">
+                        <div>
+                            <h3 class="text-lg font-semibold text-imani-primary mb-1">
+                                {{ payment.numero_paiement }}
+                            </h3>
+                            <p class="text-sm text-gray-600 mb-1">
+                                <i class="fas fa-file-invoice mr-1"></i>
+                                Facture : {{ payment.facture.numero_facture }}
+                            </p>
+                            <p class="text-sm text-gray-600">
+                                <i class="fas fa-user mr-1"></i>
+                                {{ payment.facture.contrat.locataire.nom_complet }}
+                            </p>
+                        </div>
+
+                        <span class="status-badge status-{{ payment.statut }}">
+                            {{ payment.get_statut_display }}
+                        </span>
+                    </div>
+
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4 text-sm">
+                        <div>
+                            <p class="text-gray-500 mb-1">Date de paiement</p>
+                            <p class="font-medium text-gray-900">
+                                {{ payment.date_paiement|date:"d/m/Y" }}
+                            </p>
+                        </div>
+
+                        <div>
+                            <p class="text-gray-500 mb-1">Montant</p>
+                            <p class="font-bold text-green-600">{{ payment.montant|floatformat:0 }} FCFA</p>
+                        </div>
+
+                        <div>
+                            <p class="text-gray-500 mb-1">Moyen de paiement</p>
+                            <p class="font-medium text-gray-900">{{ payment.get_moyen_paiement_display }}</p>
+                        </div>
+
+                        {% if payment.reference_transaction %}
+                        <div>
+                            <p class="text-gray-500 mb-1">Référence</p>
+                            <p class="font-medium text-gray-900 font-mono text-xs">{{ payment.reference_transaction|truncatechars:15 }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Actions rapides -->
+                    <div class="flex gap-2 mt-4" onclick="event.stopPropagation();">
+                        <a href="{% url 'payments:detail' payment.pk %}"
+                           class="bg-imani-primary hover:opacity-90 text-white px-3 py-1 rounded text-xs transition duration-200">
+                            <i class="fas fa-eye mr-1"></i>Voir
+                        </a>
+
+                        {% if payment.statut == 'valide' %}
+                            <a href="{% url 'payments:receipt_download' payment.pk %}"
+                               class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs transition duration-200">
+                                <i class="fas fa-download mr-1"></i>Quittance
+                            </a>
+                        {% endif %}
+
+                        {% if payment.statut == 'en_attente' and request.user.is_staff %}
+                            <button onclick="validatePayment({{ payment.pk }})"
+                                    class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs transition duration-200">
+                                <i class="fas fa-check mr-1"></i>Valider
+                            </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <div class="imani-card p-12 text-center">
+            <div class="imani-gradient-soft rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-money-bill-wave text-4xl text-imani-primary"></i>
+            </div>
+            <h3 class="text-xl font-bold text-gray-900 mb-2">Aucun paiement trouvé</h3>
+            <p class="text-gray-500 mb-4">
+                {% if search or statut or moyen_paiement %}
+                    Aucun paiement ne correspond à vos critères de recherche.
+                {% else %}
+                    Commencez par enregistrer votre premier paiement.
+                {% endif %}
+            </p>
+            <a href="{% url 'payments:create' %}" class="inline-block px-6 py-3 imani-gradient text-white rounded-lg hover:opacity-90 transition-all">
+                <i class="fas fa-plus mr-2"></i>Enregistrer un paiement
+            </a>
+        </div>
+    {% endfor %}
+</div>
+
+<!-- Pagination -->
+{% if payments.has_other_pages %}
+    <div class="mt-6 flex justify-between items-center">
+        <span class="px-6 py-2 imani-gradient text-white rounded-lg font-medium">
+            Page {{ payments.number }} sur {{ payments.paginator.num_pages }}
+        </span>
+
+        <nav class="flex items-center gap-2">
+            {% if payments.has_previous %}
+                <a href="?page={{ payments.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if statut %}&statut={{ statut }}{% endif %}"
+                   class="px-3 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all">
+                    <i class="fas fa-chevron-left"></i>
+                </a>
+            {% endif %}
+
+            <span class="px-4 py-2 imani-gradient text-white rounded-lg font-medium">
+                {{ payments.number }}
+            </span>
+
+            {% if payments.has_next %}
+                <a href="?page={{ payments.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if statut %}&statut={{ statut }}{% endif %}"
+                   class="px-3 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all">
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+            {% endif %}
+        </nav>
+    </div>
+{% endif %}
+
+<script>
+// Validation d'un paiement via API
+function validatePayment(paymentId) {
+    if (!confirm('Êtes-vous sûr de vouloir valider ce paiement ?')) {
+        return;
+    }
+
+    fetch(`/payments/api/paiements/${paymentId}/valider/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast(data.message, 'success');
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            showToast(data.error || 'Erreur lors de la validation', 'error');
+        }
+    })
+    .catch(error => {
+        showToast('Erreur de connexion', 'error');
+        console.error('Error:', error);
+    });
+}
+
+function showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg transition-all duration-300 ${
+        type === 'success' ? 'bg-green-500 text-white' :
+        type === 'error' ? 'bg-red-500 text-white' :
+        'bg-blue-500 text-white'
+    }`;
+    toast.textContent = message;
+
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+</script>
+{% endblock %}

@@ -1,0 +1,237 @@
+<!-- templates/properties/remise_cles_form.html -->
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - IMANY{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 max-w-6xl">
+    
+    <!-- Breadcrumb -->
+    <nav class="mb-6 text-sm">
+        <ol class="flex items-center space-x-2 text-gray-600">
+            <li><a href="{% url 'dashboard:index' %}" class="hover:text-blue-600"><i class="fas fa-home"></i></a></li>
+            <li><i class="fas fa-chevron-right text-xs"></i></li>
+            <li><a href="{% url 'properties:remise_cles_list' %}" class="hover:text-blue-600">Remises de clés</a></li>
+            <li><i class="fas fa-chevron-right text-xs"></i></li>
+            <li class="text-gray-900 font-medium">{{ title }}</li>
+        </ol>
+    </nav>
+    
+    <!-- En-tête -->
+    <div class="bg-white rounded-lg shadow p-6 mb-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">
+                    <i class="fas fa-key text-yellow-600 mr-3"></i>
+                    {{ title }}
+                </h1>
+                <p class="text-gray-600">
+                    Remplissez les informations de la remise de clés
+                </p>
+            </div>
+            <a href="{% url 'properties:remise_cles_list' %}" 
+               class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">
+                <i class="fas fa-arrow-left mr-2"></i>Retour
+            </a>
+        </div>
+    </div>
+    
+    <!-- Formulaire -->
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <div class="space-y-6">
+            
+            <!-- Section 1: Informations générales -->
+            <div class="bg-white rounded-lg shadow overflow-hidden">
+                <div class="bg-gradient-to-r from-yellow-600 to-orange-600 px-6 py-4">
+                    <h2 class="text-xl font-semibold text-white">
+                        <i class="fas fa-info-circle mr-2"></i>Informations Générales
+                    </h2>
+                </div>
+                <div class="p-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Type de remise *</label>
+                            {{ form.type_remise }}
+                            {% if form.type_remise.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.type_remise.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Date *</label>
+                            {{ form.date_remise }}
+                            {% if form.date_remise.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.date_remise.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Heure</label>
+                            {{ form.heure_remise }}
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Contrat *</label>
+                            {{ form.contrat }}
+                            {% if form.contrat.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.contrat.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Appartement *</label>
+                            {{ form.appartement }}
+                            {% if form.appartement.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.appartement.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Locataire *</label>
+                            {{ form.locataire }}
+                            {% if form.locataire.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.locataire.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">État des lieux associé (optionnel)</label>
+                            {{ form.etat_lieux }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Section 2: Clés et équipements -->
+            <div class="bg-white rounded-lg shadow overflow-hidden">
+                <div class="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4">
+                    <h2 class="text-xl font-semibold text-white">
+                        <i class="fas fa-list mr-2"></i>Clés et Équipements Remis
+                    </h2>
+                </div>
+                <div class="p-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <i class="fas fa-door-open text-blue-600 mr-1"></i>
+                                Clés d'appartement
+                            </label>
+                            {{ form.nombre_cles_appartement }}
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <i class="fas fa-envelope text-green-600 mr-1"></i>
+                                Clés de boîte aux lettres
+                            </label>
+                            {{ form.nombre_cles_boite_lettres }}
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <i class="fas fa-car text-purple-600 mr-1"></i>
+                                Clés de garage/parking
+                            </label>
+                            {{ form.nombre_cles_garage }}
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <i class="fas fa-id-card text-yellow-600 mr-1"></i>
+                                Badges d'accès
+                            </label>
+                            {{ form.nombre_badges }}
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <i class="fas fa-satellite-dish text-red-600 mr-1"></i>
+                                Télécommandes
+                            </label>
+                            {{ form.nombre_telecommandes }}
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Autres équipements</label>
+                        {{ form.autres_equipements }}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Section 3: Parties concernées -->
+            <div class="bg-white rounded-lg shadow overflow-hidden">
+                <div class="bg-gradient-to-r from-green-600 to-teal-600 px-6 py-4">
+                    <h2 class="text-xl font-semibold text-white">
+                        <i class="fas fa-users mr-2"></i>Parties Concernées
+                    </h2>
+                </div>
+                <div class="p-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Remis par *</label>
+                            {{ form.remis_par }}
+                            {% if form.remis_par.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.remis_par.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Reçu par *</label>
+                            {{ form.recu_par }}
+                            {% if form.recu_par.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.recu_par.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Section 4: Observations -->
+            <div class="bg-white rounded-lg shadow overflow-hidden">
+                <div class="bg-gradient-to-r from-purple-600 to-pink-600 px-6 py-4">
+                    <h2 class="text-xl font-semibold text-white">
+                        <i class="fas fa-comment-alt mr-2"></i>Observations
+                    </h2>
+                </div>
+                <div class="p-6">
+                    {{ form.observations }}
+                </div>
+            </div>
+            
+            <!-- Section 5: Signatures -->
+            <div class="bg-white rounded-lg shadow overflow-hidden">
+                <div class="bg-gradient-to-r from-red-600 to-orange-600 px-6 py-4">
+                    <h2 class="text-xl font-semibold text-white">
+                        <i class="fas fa-signature mr-2"></i>Signatures
+                    </h2>
+                </div>
+                <div class="p-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div>
+                            <label class="flex items-center space-x-3">
+                                {{ form.signe_bailleur }}
+                                <span class="text-gray-700">Signé par le proprietaire</span>
+                            </label>
+                        </div>
+                        <div>
+                            <label class="flex items-center space-x-3">
+                                {{ form.signe_locataire }}
+                                <span class="text-gray-700">Signé par le locataire</span>
+                            </label>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Date de signature</label>
+                            {{ form.date_signature }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Boutons d'action -->
+            <div class="flex justify-end gap-4">
+                <a href="{% url 'properties:remise_cles_list' %}" 
+                   class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">
+                    Annuler
+                </a>
+                <button type="submit" 
+                        class="px-6 py-3 bg-gradient-to-r from-yellow-600 to-orange-600 text-white rounded-lg hover:opacity-90 transition">
+                    <i class="fas fa-save mr-2"></i>Enregistrer
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,30 @@
+{
+  "$schema": "https://railway.app/railway.schema.json",
+  "build": {
+    "builder": "NIXPACKS"
+  },
+  "deploy": {
+    "startCommand": "gunicorn seyni_properties.wsgi:application --bind 0.0.0.0:$PORT",
+    "healthcheckPath": "/health/",
+    "healthcheckTimeout": 300,
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 10
+  },
+  "crons": [
+    {
+      "name": "generate-monthly-invoices",
+      "schedule": "0 2 25 * *",
+      "command": "python manage.py generate_monthly_invoices"
+    },
+    {
+      "name": "check-overdue-invoices",
+      "schedule": "0 9 * * *",
+      "command": "python manage.py check_overdue_invoices"
+    },
+    {
+      "name": "send-payment-reminders",
+      "schedule": "0 8 * * 1",
+      "command": "python manage.py send_payment_reminders"
+    }
+  ]
+}

@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#23456b">
+
+    <title>{{ travail.titre }} - Détail</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'imani-primary': '#23456b',
+                        'imani-secondary': '#a25946',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        body {
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+            -webkit-tap-highlight-color: transparent;
+            overscroll-behavior: none;
+        }
+
+        .safe-area {
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #23456b 0%, #a25946 100%);
+        }
+
+        .card-shadow {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .status-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .status-signale { background: #FEE2E2; color: #991B1B; }
+        .status-assigne { background: #DBEAFE; color: #1E40AF; }
+        .status-en_cours { background: #FED7AA; color: #C2410C; }
+        .status-termine { background: #D1FAE5; color: #065F46; }
+        .status-annule { background: #F3F4F6; color: #6B7280; }
+
+        .priority-urgente { border-left: 4px solid #EF4444; }
+        .priority-haute { border-left: 4px solid #F59E0B; }
+        .priority-normale { border-left: 4px solid #3B82F6; }
+        .priority-basse { border-left: 4px solid #10B981; }
+
+        .checklist-item {
+            transition: all 0.3s ease;
+        }
+
+        .checklist-item.completed {
+            opacity: 0.6;
+            background: #f0fdf4;
+        }
+
+        .checklist-item.completed .checklist-text {
+            text-decoration: line-through;
+        }
+
+        .media-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 0.5rem;
+        }
+
+        .media-item {
+            aspect-ratio: 1;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .media-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 9999px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #23456b 0%, #a25946 100%);
+            transition: width 0.3s ease;
+        }
+
+        .action-btn {
+            padding: 1rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            text-align: center;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .action-btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-start {
+            background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%);
+            color: white;
+        }
+
+        .btn-complete {
+            background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+            color: white;
+        }
+
+        .btn-pause {
+            background: #f59e0b;
+            color: white;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 safe-area">
+    <!-- Header -->
+    <header class="gradient-bg text-white sticky top-0 z-50 shadow-lg">
+        <div class="px-4 py-4">
+            <div class="flex items-center justify-between mb-3">
+                <a href="{% url 'employees_mobile:dashboard' %}" class="text-white">
+                    <i class="fas fa-arrow-left text-xl"></i>
+                </a>
+                <span class="text-sm opacity-90">{{ travail.numero_travail }}</span>
+            </div>
+
+            <h1 class="text-xl font-bold mb-2">{{ travail.titre }}</h1>
+
+            <div class="flex items-center justify-between">
+                <span class="status-badge status-{{ travail.statut }}">
+                    {{ travail.get_statut_display }}
+                </span>
+
+                <div class="flex items-center space-x-2">
+                    {% if travail.priorite == 'urgente' %}
+                        <span class="text-red-300">🔴 Urgent</span>
+                    {% elif travail.priorite == 'haute' %}
+                        <span class="text-orange-300">🟠 Priorité haute</span>
+                    {% elif travail.priorite == 'normale' %}
+                        <span class="text-blue-300">🟡 Normal</span>
+                    {% else %}
+                        <span class="text-green-300">🟢 Basse</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenu principal -->
+    <main class="p-4 pb-20">
+        <!-- Informations du bien -->
+        <div class="bg-white rounded-xl p-4 card-shadow mb-4 priority-{{ travail.priorite }}">
+            <h2 class="font-bold text-gray-900 mb-3 flex items-center">
+                <i class="fas fa-building text-imani-primary mr-2"></i>
+                Localisation
+            </h2>
+
+            <div class="space-y-2 text-sm">
+                <div class="flex items-start">
+                    <i class="fas fa-map-marker-alt text-gray-400 mr-2 mt-1"></i>
+                    <div>
+                        <p class="font-medium text-gray-900">{{ bien_nom }}</p>
+                        {% if bien_adresse %}
+                        <p class="text-gray-600 text-xs">{{ bien_adresse }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="flex items-center">
+                    <i class="fas fa-wrench text-gray-400 mr-2"></i>
+                    <span class="text-gray-700">{{ travail.get_type_travail_display }}</span>
+                </div>
+
+                {% if travail.date_prevue %}
+                <div class="flex items-center">
+                    <i class="fas fa-calendar text-gray-400 mr-2"></i>
+                    <span class="text-gray-700">{{ travail.date_prevue|date:"d/m/Y à H:i" }}</span>
+                </div>
+                {% endif %}
+
+                {% if travail.cout_estime %}
+                <div class="flex items-center">
+                    <i class="fas fa-coins text-gray-400 mr-2"></i>
+                    <span class="text-gray-700">Budget: {{ travail.cout_estime|floatformat:0 }} FCFA</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Description -->
+        <div class="bg-white rounded-xl p-4 card-shadow mb-4">
+            <h2 class="font-bold text-gray-900 mb-3 flex items-center">
+                <i class="fas fa-align-left text-imani-primary mr-2"></i>
+                Description
+            </h2>
+            <p class="text-gray-700 text-sm whitespace-pre-line">{{ travail.description }}</p>
+        </div>
+
+        <!-- Checklist avec progression -->
+        {% if checklist_items %}
+        <div class="bg-white rounded-xl p-4 card-shadow mb-4">
+            <div class="flex items-center justify-between mb-3">
+                <h2 class="font-bold text-gray-900 flex items-center">
+                    <i class="fas fa-tasks text-imani-primary mr-2"></i>
+                    Checklist
+                </h2>
+                <span class="text-sm font-medium text-gray-600">
+                    {{ completed_checklist }}/{{ total_checklist }}
+                </span>
+            </div>
+
+            <!-- Barre de progression -->
+            <div class="progress-bar mb-4">
+                <div class="progress-fill" style="width: {{ checklist_progress }}%"></div>
+            </div>
+
+            <!-- Items de la checklist -->
+            <div class="space-y-2">
+                {% for item in checklist_items %}
+                <div class="checklist-item p-3 rounded-lg border {% if item.is_completed %}completed{% endif %}"
+                     data-item-id="{{ item.id }}">
+                    <label class="flex items-start cursor-pointer">
+                        <input type="checkbox"
+                               class="w-5 h-5 rounded border-gray-300 text-imani-primary focus:ring-imani-primary mt-0.5 mr-3"
+                               {% if item.is_completed %}checked{% endif %}
+                               onchange="toggleChecklist({{ item.id }})">
+                        <span class="flex-1 checklist-text text-sm">{{ item.description }}</span>
+                    </label>
+                    {% if item.is_completed %}
+                    <p class="text-xs text-gray-500 ml-8 mt-1">
+                        ✓ Par {{ item.completed_by.get_full_name }} le {{ item.date_completion|date:"d/m à H:i" }}
+                    </p>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Demandes d'achat (Matériel) -->
+        {% if travail.necessite_materiel %}
+        <div class="bg-purple-50 rounded-xl p-4 card-shadow mb-4 border-l-4 border-purple-500">
+            <div class="flex items-center justify-between mb-3">
+                <h2 class="font-bold text-purple-900 flex items-center">
+                    <i class="fas fa-shopping-cart text-purple-600 mr-2"></i>
+                    Matériel demandé
+                </h2>
+
+                <!-- Badge statut matériel -->
+                {% if travail.statut_materiel == 'materiel_recu' %}
+                <span class="text-xs px-2 py-1 rounded-full bg-green-100 text-green-800 font-semibold">
+                    <i class="fas fa-check-circle"></i> Reçu
+                </span>
+                {% elif travail.statut_materiel == 'en_attente_reception' %}
+                <span class="text-xs px-2 py-1 rounded-full bg-orange-100 text-orange-800 font-semibold">
+                    <i class="fas fa-clock"></i> En cours
+                </span>
+                {% elif travail.statut_materiel == 'en_attente_validation' %}
+                <span class="text-xs px-2 py-1 rounded-full bg-yellow-100 text-yellow-800 font-semibold">
+                    <i class="fas fa-hourglass-half"></i> À valider
+                </span>
+                {% endif %}
+            </div>
+
+            <!-- Liste des demandes -->
+            <div class="space-y-2 mb-3">
+                {% for demande in travail.demandes_achat.all %}
+                <div class="bg-white rounded-lg p-3 border border-purple-200" id="demande-{{ demande.id }}">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs font-mono text-gray-600">{{ demande.numero_facture }}</span>
+                        <span class="text-xs font-semibold {% if demande.etape_workflow == 'recue' %}text-green-600{% elif demande.etape_workflow == 'refuse' %}text-red-600{% else %}text-purple-600{% endif %}">
+                            {{ demande.get_etape_workflow_display }}
+                        </span>
+                    </div>
+                    <p class="text-sm text-gray-700 mb-1">{{ demande.motif_principal|truncatewords:10 }}</p>
+                    <div class="flex items-center justify-between text-xs text-gray-500 mb-2">
+                        <span>{{ demande.lignes_achat.count }} article(s)</span>
+                        <span class="font-semibold text-purple-600">{{ demande.montant_ttc|floatformat:0 }} F</span>
+                    </div>
+
+                    <!-- Bouton confirmer réception (si payé mais pas encore reçu) -->
+                    {% if demande.etape_workflow == 'paye' %}
+                    <button onclick="confirmerReception({{ demande.id }})"
+                            class="w-full mt-2 px-3 py-2 bg-green-600 text-white rounded-lg text-xs font-semibold hover:bg-green-700">
+                        <i class="fas fa-check mr-1"></i>
+                        J'ai reçu ce matériel
+                    </button>
+                    {% elif demande.etape_workflow == 'recue' %}
+                    <div class="mt-2 text-xs text-green-600 bg-green-50 rounded p-2">
+                        <i class="fas fa-check-circle mr-1"></i>
+                        Reçu le {{ demande.date_reception|date:"d/m/Y à H:i" }}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="text-xs text-purple-700 bg-purple-100 rounded p-2">
+                <i class="fas fa-info-circle mr-1"></i>
+                Coût total matériel: <strong>{{ travail.cout_total_materiel|floatformat:0 }} FCFA</strong>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Bouton demander matériel -->
+        {% if travail.statut != 'complete' and travail.statut != 'annule' %}
+        <div class="bg-white rounded-xl p-4 card-shadow mb-4">
+            <button onclick="window.location.href='{% url 'employees_mobile:travail_demande_materiel' travail.id %}'"
+                    class="w-full action-btn"
+                    style="background: linear-gradient(135deg, #9333ea 0%, #a855f7 100%); color: white;">
+                <i class="fas fa-shopping-cart mr-2"></i>
+                {% if travail.necessite_materiel %}
+                Ajouter du matériel
+                {% else %}
+                Demander du matériel
+                {% endif %}
+            </button>
+        </div>
+        {% endif %}
+
+        <!-- Galerie photos -->
+        {% if medias %}
+        <div class="bg-white rounded-xl p-4 card-shadow mb-4">
+            <h2 class="font-bold text-gray-900 mb-3 flex items-center">
+                <i class="fas fa-images text-imani-primary mr-2"></i>
+                Photos ({{ medias.count }})
+            </h2>
+
+            <div class="media-grid">
+                {% for media in medias %}
+                <div class="media-item" onclick="viewMedia('{{ media.file.url }}')">
+                    <img src="{{ media.file.url }}" alt="Photo {{ forloop.counter }}">
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Bouton d'upload photo -->
+        <div class="bg-white rounded-xl p-4 card-shadow mb-4">
+            <button onclick="openCamera()" class="w-full action-btn" style="background: linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%); color: white;">
+                <i class="fas fa-camera mr-2"></i>
+                Prendre une photo
+            </button>
+        </div>
+
+        <!-- Actions selon le statut -->
+        <div class="space-y-3">
+            {% if can_start %}
+            <form method="post" action="{% url 'employees_mobile:travail_start' travail.id %}">
+                {% csrf_token %}
+                <button type="submit" class="w-full action-btn btn-start">
+                    <i class="fas fa-play mr-2"></i>
+                    Démarrer le travail
+                </button>
+            </form>
+            {% endif %}
+
+            {% if can_complete %}
+            <a href="{% url 'employees_mobile:travail_complete' travail.id %}" class="block">
+                <div class="action-btn btn-complete">
+                    <i class="fas fa-check-circle mr-2"></i>
+                    Terminer le travail
+                </div>
+            </a>
+            {% endif %}
+        </div>
+
+        <!-- Informations supplémentaires -->
+        <div class="mt-6 p-4 bg-gray-100 rounded-xl text-xs text-gray-600">
+            <p class="mb-1"><strong>Créé le:</strong> {{ travail.created_at|date:"d/m/Y à H:i" }}</p>
+            {% if travail.cree_par %}
+            <p class="mb-1"><strong>Par:</strong> {{ travail.cree_par.get_full_name }}</p>
+            {% endif %}
+            {% if travail.date_debut %}
+            <p class="mb-1"><strong>Démarré le:</strong> {{ travail.date_debut|date:"d/m/Y à H:i" }}</p>
+            {% endif %}
+            {% if travail.date_fin %}
+            <p><strong>Terminé le:</strong> {{ travail.date_fin|date:"d/m/Y à H:i" }}</p>
+            {% endif %}
+        </div>
+    </main>
+
+    <script>
+        // Toggle checklist item
+        function toggleChecklist(checklistId) {
+            const item = document.querySelector(`[data-item-id="${checklistId}"]`);
+            const checkbox = item.querySelector('input[type="checkbox"]');
+
+            fetch(`{% url 'employees_mobile:travail_checklist_toggle' travail.id 0 %}`.replace('/0/', `/${checklistId}/`), {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    if (data.is_completed) {
+                        item.classList.add('completed');
+                    } else {
+                        item.classList.remove('completed');
+                    }
+                    // Recharger pour mettre à jour la progression
+                    setTimeout(() => window.location.reload(), 500);
+                } else {
+                    checkbox.checked = !checkbox.checked;
+                    alert('Erreur lors de la mise à jour');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                checkbox.checked = !checkbox.checked;
+            });
+        }
+
+        // Voir une photo en grand
+        function viewMedia(url) {
+            window.open(url, '_blank');
+        }
+
+        // Ouvrir la caméra
+        function openCamera() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.capture = 'camera';
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    // TODO: Upload vers serveur
+                    alert('Photo capturée! Upload en cours...');
+                }
+            };
+            input.click();
+        }
+
+        // Confirmer réception matériel
+        function confirmerReception(demandeId) {
+            if (!confirm('Confirmez-vous avoir reçu ce matériel ?')) {
+                return;
+            }
+
+            const demandeCard = document.getElementById(`demande-${demandeId}`);
+            const button = demandeCard.querySelector('button');
+
+            // Désactiver le bouton
+            if (button) {
+                button.disabled = true;
+                button.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Confirmation...';
+            }
+
+            fetch(`/employees/mobile/demandes/${demandeId}/confirmer-reception/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Succès
+                    alert(data.message);
+
+                    if (data.travail_debloque) {
+                        // Travail débloqué → recharger la page avec animation
+                        alert('🎉 Tout le matériel est reçu ! Le travail est maintenant en cours.');
+                    }
+
+                    // Recharger la page pour afficher le nouveau statut
+                    setTimeout(() => window.location.reload(), 500);
+                } else {
+                    // Erreur
+                    alert('Erreur : ' + data.error);
+                    if (button) {
+                        button.disabled = false;
+                        button.innerHTML = '<i class="fas fa-check mr-1"></i> J\'ai reçu ce matériel';
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Erreur de connexion');
+                if (button) {
+                    button.disabled = false;
+                    button.innerHTML = '<i class="fas fa-check mr-1"></i> J\'ai reçu ce matériel';
+                }
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,712 @@
+<!-- templates/employees/mobile/schedule.html -->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#23456b">
+    
+    <title>Mon Planning - Seyni Employés</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'seyni-primary': '#a25946',
+                        'seyni-secondary': '#23456b',
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        .safe-area {
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #23456b 0%, #a25946 100%);
+        }
+        
+        .day-card {
+            min-height: 120px;
+            transition: all 0.3s ease;
+        }
+        
+        .day-card.today {
+            ring-2 ring-offset-2 ring-blue-500;
+            transform: scale(1.02);
+        }
+        
+        .day-card.has-items {
+            border-left: 4px solid #a25946;
+        }
+        
+        .task-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 6px;
+        }
+        
+        .task-dot.planifie { background: #3B82F6; }
+        .task-dot.en_cours { background: #F59E0B; }
+        .task-dot.complete { background: #10B981; }
+        .task-dot.urgente { background: #EF4444; animation: pulse 2s infinite; }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .week-nav {
+            background: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-radius: 16px;
+            padding: 12px;
+            margin-bottom: 16px;
+        }
+        
+        .floating-add {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: #a25946;
+            color: white;
+            border: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            z-index: 40;
+        }
+        
+        .item-card {
+            background: white;
+            border-radius: 8px;
+            padding: 8px;
+            margin-bottom: 6px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            font-size: 12px;
+            position: relative;
+        }
+        
+        .item-card.task {
+            border-left: 3px solid #3B82F6;
+        }
+        
+        .item-card.intervention {
+            border-left: 3px solid #F59E0B;
+        }
+        
+        .empty-day {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #9CA3AF;
+            min-height: 80px;
+        }
+        
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+        }
+        
+        .day-header {
+            text-align: center;
+            font-weight: 600;
+            color: #6B7280;
+            padding: 8px 0;
+            font-size: 12px;
+        }
+        
+        .stats-bar {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .swipe-indicator {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #D1D5DB;
+            font-size: 12px;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 safe-area">
+    <!-- Header -->
+    <header class="gradient-bg text-white sticky top-0 z-50 shadow-lg">
+        <div class="px-4 py-4">
+            <div class="flex items-center space-x-3">
+                <button onclick="goBack()" class="p-2 hover:bg-black hover:bg-opacity-20 rounded-lg transition-colors">
+                    <i class="fas fa-arrow-left text-xl"></i>
+                </button>
+                <div class="flex-1">
+                    <h1 class="font-bold text-lg">Mon Planning</h1>
+                    <p class="text-blue-200 text-sm">{{ current_week_start|date:"d M" }} - {{ current_week_end|date:"d M Y" }}</p>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <button onclick="goToToday()" class="bg-white bg-opacity-20 px-3 py-1 rounded-lg text-sm">
+                        Aujourd'hui
+                    </button>
+                    <button onclick="toggleView()" class="p-2 hover:bg-black hover:bg-opacity-20 rounded-lg">
+                        <i id="view-icon" class="fas fa-th text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation de semaine -->
+    <div class="px-4 pt-4">
+        <div class="week-nav">
+            <div class="flex items-center justify-between">
+                <button onclick="previousWeek()" class="p-2 text-gray-600 hover:text-gray-900">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                
+                <div class="text-center">
+                    <p class="font-semibold text-gray-900">Semaine {{ current_week_start|date:"W" }}</p>
+                    <p class="text-sm text-gray-600">{{ current_week_start|date:"F Y" }}</p>
+                </div>
+                
+                <button onclick="nextWeek()" class="p-2 text-gray-600 hover:text-gray-900">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistiques de la semaine -->
+    <div class="px-4">
+        <div class="stats-bar">
+            <div class="grid grid-cols-3 gap-4 text-center">
+                <div>
+                    <p class="text-2xl font-bold" style="color: #a25946;">{{ total_tasks }}</p>
+                    <p class="text-xs text-gray-600">Tâches</p>
+                </div>
+                <div>
+                    <p class="text-2xl font-bold text-orange-600">{{ total_interventions }}</p>
+                    <p class="text-xs text-gray-600">Interventions</p>
+                </div>
+                <div>
+                    <p class="text-2xl font-bold text-green-600">{{ completion_rate }}%</p>
+                    <p class="text-xs text-gray-600">Terminées</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vue par semaine (par défaut) -->
+    <div id="week-view" class="px-4 pb-24">
+        <div class="calendar-grid">
+            <!-- En-têtes des jours -->
+            <div class="day-header">Lun</div>
+            <div class="day-header">Mar</div>
+            <div class="day-header">Mer</div>
+            <div class="day-header">Jeu</div>
+            <div class="day-header">Ven</div>
+            <div class="day-header">Sam</div>
+            <div class="day-header">Dim</div>
+            
+            <!-- Jours de la semaine -->
+            {% for day_num, day_data in schedule_data.items %}
+            <div class="day-card bg-white rounded-xl p-3 shadow-sm {% if day_data.date == today %}today{% endif %} {% if day_data.total_items > 0 %}has-items{% endif %}"
+                 onclick="openDayDetail('{{ day_data.date|date:"Y-m-d" }}')">
+                
+                <div class="text-center mb-2">
+                    <p class="text-lg font-bold text-gray-900">{{ day_data.date|date:"d" }}</p>
+                    <p class="text-xs text-gray-600">{{ day_data.date|date:"M" }}</p>
+                </div>
+                
+                {% if day_data.total_items > 0 %}
+                    <!-- Résumé des éléments -->
+                    <div class="space-y-1">
+                        {% for task in day_data.tasks|slice:":2" %}
+                        <div class="item-card task">
+                            <span class="task-dot {{ task.statut }}{% if task.priorite == 'urgente' %} urgente{% endif %}"></span>
+                            <span class="text-gray-900 font-medium truncate">{{ task.titre|truncatechars:15 }}</span>
+                            <p class="text-gray-500 text-xs">{{ task.date_prevue|date:"H:i" }}</p>
+                        </div>
+                        {% endfor %}
+                        
+                        {% if user.user_type == 'technicien' %}
+                            {% for intervention in day_data.interventions|slice:":2" %}
+                            <div class="item-card intervention">
+                                <span class="task-dot {{ intervention.statut }}{% if intervention.priorite == 'urgente' %} urgente{% endif %}"></span>
+                                <span class="text-gray-900 font-medium truncate">{{ intervention.titre|truncatechars:15 }}</span>
+                                <p class="text-gray-500 text-xs">{{ intervention.date_signalement|date:"H:i" }}</p>
+                            </div>
+                            {% endfor %}
+                        {% endif %}
+                        
+                        {% if day_data.total_items > 2 %}
+                        <div class="text-center mt-2">
+                            <span class="text-xs text-gray-500">+{{ day_data.total_items|add:"-2" }} autre{{ day_data.total_items|add:"-2"|pluralize }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                {% else %}
+                    <div class="empty-day">
+                        <i class="fas fa-calendar-check text-2xl mb-1"></i>
+                        <span class="text-xs">Libre</span>
+                    </div>
+                {% endif %}
+                
+                <div class="swipe-indicator">
+                    <i class="fas fa-chevron-right"></i>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Vue par jour (cachée par défaut) -->
+    <div id="day-view" class="hidden px-4 pb-24">
+        <div id="day-detail-content">
+            <!-- Le contenu sera chargé dynamiquement -->
+        </div>
+    </div>
+
+    <!-- Modal de détail du jour -->
+    <div id="day-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+        <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-xl max-h-[80vh] overflow-y-auto">
+            <div class="p-4 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 id="modal-day-title" class="text-lg font-semibold text-gray-900"></h3>
+                        <p id="modal-day-subtitle" class="text-sm text-gray-600"></p>
+                    </div>
+                    <button onclick="closeDayModal()" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div id="modal-day-content" class="p-4">
+                <!-- Le contenu sera chargé dynamiquement -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation bottom -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 safe-area">
+        <div class="grid grid-cols-4 py-2">
+            <a href="{% url 'employees:employee_dashboard_mobile' %}" 
+               class="flex flex-col items-center justify-center py-2 text-gray-500">
+                <i class="fas fa-home text-xl mb-1"></i>
+                <span class="text-xs">Accueil</span>
+            </a>
+            
+            <a href="{% url 'employees:my_tasks_mobile' %}" 
+               class="flex flex-col items-center justify-center py-2 text-gray-500">
+                <i class="fas fa-tasks text-xl mb-1"></i>
+                <span class="text-xs">Tâches</span>
+            </a>
+            
+            {% if user.user_type == 'technicien' %}
+            <a href="{% url 'employees:my_interventions_mobile' %}" 
+               class="flex flex-col items-center justify-center py-2 text-gray-500">
+                <i class="fas fa-tools text-xl mb-1"></i>
+                <span class="text-xs">Maintenance</span>
+            </a>
+            {% endif %}
+            
+            <a href="{% url 'employees:my_schedule_mobile' %}" 
+               class="flex flex-col items-center justify-center py-2" style="color: #a25946;">
+                <i class="fas fa-calendar-alt text-xl mb-1"></i>
+                <span class="text-xs">Planning</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Bouton flottant d'ajout -->
+    <button onclick="openQuickAddModal()" class="floating-add">
+        <i class="fas fa-plus"></i>
+    </button>
+
+    <!-- Toast container -->
+    <div id="toast-container" class="fixed top-20 left-4 right-4 z-50"></div>
+
+    <script>
+        let currentView = 'week';
+        let currentWeekStart = new Date('{{ current_week_start|date:"Y-m-d" }}');
+        let scheduleData = {{ schedule_data|safe }};
+        
+        // ===== Navigation =====
+        function goBack() {
+            window.history.back();
+        }
+        
+        function goToToday() {
+            const today = new Date();
+            const startOfWeek = new Date(today);
+            startOfWeek.setDate(today.getDate() - today.getDay() + 1); // Lundi
+            
+            const url = new URL(window.location);
+            url.searchParams.set('date', startOfWeek.toISOString().split('T')[0]);
+            window.location.href = url.toString();
+        }
+        
+        function previousWeek() {
+            const prevWeek = new Date(currentWeekStart);
+            prevWeek.setDate(currentWeekStart.getDate() - 7);
+            
+            const url = new URL(window.location);
+            url.searchParams.set('date', prevWeek.toISOString().split('T')[0]);
+            window.location.href = url.toString();
+        }
+        
+        function nextWeek() {
+            const nextWeek = new Date(currentWeekStart);
+            nextWeek.setDate(currentWeekStart.getDate() + 7);
+            
+            const url = new URL(window.location);
+            url.searchParams.set('date', nextWeek.toISOString().split('T')[0]);
+            window.location.href = url.toString();
+        }
+        
+        // ===== Vues =====
+        function toggleView() {
+            const weekView = document.getElementById('week-view');
+            const dayView = document.getElementById('day-view');
+            const viewIcon = document.getElementById('view-icon');
+            
+            if (currentView === 'week') {
+                currentView = 'day';
+                weekView.classList.add('hidden');
+                dayView.classList.remove('hidden');
+                viewIcon.className = 'fas fa-calendar-week text-xl';
+                loadDayView(new Date().toISOString().split('T')[0]);
+            } else {
+                currentView = 'week';
+                weekView.classList.remove('hidden');
+                dayView.classList.add('hidden');
+                viewIcon.className = 'fas fa-th text-xl';
+            }
+        }
+        
+        async function loadDayView(date) {
+            try {
+                const response = await fetch(`/employees/api/day-schedule/?date=${date}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    const content = document.getElementById('day-detail-content');
+                    content.innerHTML = generateDayViewHTML(data.day_data);
+                }
+            } catch (error) {
+                showToast('Erreur lors du chargement du jour', 'error');
+            }
+        }
+        
+        function generateDayViewHTML(dayData) {
+            const formatTime = (datetime) => {
+                return new Date(datetime).toLocaleTimeString('fr-FR', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            };
+            
+            let html = `
+                <div class="mb-6">
+                    <h2 class="text-xl font-bold text-gray-900 mb-2">${dayData.date_formatted}</h2>
+                    <div class="bg-blue-50 rounded-lg p-3">
+                        <div class="grid grid-cols-3 gap-4 text-center">
+                            <div>
+                                <p class="text-lg font-bold text-blue-600">${dayData.tasks.length}</p>
+                                <p class="text-xs text-blue-800">Tâches</p>
+                            </div>
+                            <div>
+                                <p class="text-lg font-bold text-orange-600">${dayData.interventions.length}</p>
+                                <p class="text-xs text-orange-800">Interventions</p>
+                            </div>
+                            <div>
+                                <p class="text-lg font-bold text-green-600">${dayData.completed_count}</p>
+                                <p class="text-xs text-green-800">Terminées</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Timeline du jour
+            const allItems = [...dayData.tasks, ...dayData.interventions]
+                .sort((a, b) => new Date(a.date_prevue || a.date_signalement) - new Date(b.date_prevue || b.date_signalement));
+            
+            if (allItems.length > 0) {
+                html += '<div class="space-y-4">';
+                
+                allItems.forEach(item => {
+                    const isTask = !!item.date_prevue;
+                    const time = formatTime(item.date_prevue || item.date_signalement);
+                    const statusColor = {
+                        'planifie': 'bg-blue-100 text-blue-800',
+                        'en_cours': 'bg-orange-100 text-orange-800',
+                        'complete': 'bg-green-100 text-green-800',
+                        'signale': 'bg-yellow-100 text-yellow-800',
+                        'assigne': 'bg-blue-100 text-blue-800'
+                    }[item.statut] || 'bg-gray-100 text-gray-800';
+                    
+                    html += `
+                        <div class="bg-white rounded-xl p-4 shadow-sm border-l-4 ${isTask ? 'border-blue-500' : 'border-orange-500'}"
+                             onclick="${isTask ? `viewTaskDetail(${item.id})` : `viewInterventionDetail(${item.id})`}">
+                            <div class="flex items-start justify-between mb-2">
+                                <div class="flex-1">
+                                    <h3 class="font-medium text-gray-900">${item.titre}</h3>
+                                    <p class="text-sm text-gray-600">${item.description || 'Aucune description'}</p>
+                                </div>
+                                <span class="${statusColor} px-2 py-1 rounded-full text-xs font-medium">
+                                    ${item.statut_display || item.statut}
+                                </span>
+                            </div>
+                            
+                            <div class="flex items-center justify-between text-xs text-gray-500">
+                                <div class="flex items-center space-x-4">
+                                    <span><i class="fas fa-clock mr-1"></i>${time}</span>
+                                    <span><i class="fas fa-${isTask ? 'tasks' : 'tools'} mr-1"></i>${isTask ? 'Tâche' : 'Intervention'}</span>
+                                    ${item.priorite === 'urgente' ? '<span class="text-red-600"><i class="fas fa-exclamation-triangle mr-1"></i>Urgent</span>' : ''}
+                                </div>
+                                <i class="fas fa-chevron-right text-gray-300"></i>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                html += '</div>';
+            } else {
+                html += `
+                    <div class="text-center py-12">
+                        <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-calendar-check text-gray-400 text-2xl"></i>
+                        </div>
+                        <h3 class="text-lg font-medium text-gray-900 mb-2">Journée libre</h3>
+                        <p class="text-gray-600">Aucune tâche ou intervention prévue</p>
+                    </div>
+                `;
+            }
+            
+            return html;
+        }
+        
+        // ===== Modal de jour =====
+        function openDayDetail(date) {
+            const modal = document.getElementById('day-modal');
+            const title = document.getElementById('modal-day-title');
+            const subtitle = document.getElementById('modal-day-subtitle');
+            const content = document.getElementById('modal-day-content');
+            
+            // Formater la date
+            const dateObj = new Date(date);
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            const formattedDate = dateObj.toLocaleDateString('fr-FR', options);
+            
+            title.textContent = formattedDate;
+            subtitle.textContent = `{{ total_items }} élément{{ total_items|pluralize }}`;
+            
+            // Charger le contenu
+            loadDayDetailContent(date, content);
+            
+            modal.classList.remove('hidden');
+        }
+        
+        function closeDayModal() {
+            document.getElementById('day-modal').classList.add('hidden');
+        }
+        
+        async function loadDayDetailContent(date, container) {
+            container.innerHTML = '<div class="text-center py-8"><i class="fas fa-spinner fa-spin text-gray-400 text-2xl"></i></div>';
+            
+            try {
+                const response = await fetch(`/employees/api/day-schedule/?date=${date}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    container.innerHTML = generateDayDetailHTML(data.day_data);
+                } else {
+                    container.innerHTML = '<div class="text-center py-8 text-red-500">Erreur lors du chargement</div>';
+                }
+            } catch (error) {
+                container.innerHTML = '<div class="text-center py-8 text-red-500">Erreur de connexion</div>';
+            }
+        }
+        
+        function generateDayDetailHTML(dayData) {
+            // Réutiliser la logique de generateDayViewHTML mais adapté pour le modal
+            return generateDayViewHTML(dayData);
+        }
+        
+        // ===== Actions =====
+        function viewTaskDetail(taskId) {
+            window.location.href = `/employees/mobile/tasks/${taskId}/`;
+        }
+        
+        function viewInterventionDetail(interventionId) {
+            window.location.href = `/employees/mobile/interventions/${interventionId}/`;
+        }
+        
+        function openQuickAddModal() {
+            // Ouvrir un modal pour ajouter rapidement une tâche
+            showToast('Fonctionnalité en développement', 'info');
+        }
+        
+        // ===== Utilitaires =====
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `mb-2 p-3 rounded-lg text-white shadow-lg transform transition-all duration-300 translate-x-full`;
+            
+            const colors = {
+                'success': 'bg-green-500',
+                'error': 'bg-red-500',
+                'warning': 'bg-yellow-500',
+                'info': 'bg-blue-500'
+            };
+            
+            toast.classList.add(colors[type] || colors.info);
+            toast.innerHTML = `
+                <div class="flex items-center justify-between">
+                    <span class="text-sm font-medium">${message}</span>
+                    <button onclick="this.parentElement.parentElement.remove()" class="ml-4 text-white">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+            
+            container.appendChild(toast);
+            setTimeout(() => toast.classList.remove('translate-x-full'), 100);
+            setTimeout(() => {
+                if (toast.parentElement) {
+                    toast.classList.add('translate-x-full');
+                    setTimeout(() => toast.remove(), 300);
+                }
+            }, 4000);
+        }
+        
+        // ===== Gestion des gestes tactiles =====
+        let startX = 0;
+        let startY = 0;
+        
+        document.addEventListener('touchstart', function(e) {
+            startX = e.touches[0].clientX;
+            startY = e.touches[0].clientY;
+        });
+        
+        document.addEventListener('touchend', function(e) {
+            const endX = e.changedTouches[0].clientX;
+            const endY = e.changedTouches[0].clientY;
+            
+            const diffX = startX - endX;
+            const diffY = startY - endY;
+            
+            // Vérifier si c'est un swipe horizontal
+            if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 50) {
+                if (diffX > 0) {
+                    // Swipe vers la gauche - semaine suivante
+                    nextWeek();
+                } else {
+                    // Swipe vers la droite - semaine précédente
+                    previousWeek();
+                }
+            }
+        });
+        
+        // ===== Statistiques dynamiques =====
+        function calculateStats() {
+            let totalTasks = 0;
+            let totalInterventions = 0;
+            let completedItems = 0;
+            
+            Object.values(scheduleData).forEach(day => {
+                totalTasks += day.tasks.length;
+                totalInterventions += day.interventions.length;
+                
+                day.tasks.forEach(task => {
+                    if (task.statut === 'complete') completedItems++;
+                });
+                
+                day.interventions.forEach(intervention => {
+                    if (intervention.statut === 'complete') completedItems++;
+                });
+            });
+            
+            const totalItems = totalTasks + totalInterventions;
+            const completionRate = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
+            
+            return {
+                totalTasks,
+                totalInterventions,
+                completionRate
+            };
+        }
+        
+        // ===== Initialisation =====
+        document.addEventListener('DOMContentLoaded', function() {
+            // Fermer le modal en cliquant à l'extérieur
+            document.getElementById('day-modal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeDayModal();
+                }
+            });
+            
+            // Mettre à jour les statistiques si nécessaire
+            const stats = calculateStats();
+            
+            // Feedback haptique pour les interactions
+            if ('vibrate' in navigator) {
+                document.addEventListener('click', function(e) {
+                    if (e.target.closest('.day-card, button')) {
+                        navigator.vibrate(10);
+                    }
+                });
+            }
+            
+            // Précharger les données du jour suivant/précédent
+            setTimeout(() => {
+                const tomorrow = new Date();
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                const yesterday = new Date();
+                yesterday.setDate(yesterday.getDate() - 1);
+                
+                // Précharger en silence
+                fetch(`/employees/api/day-schedule/?date=${tomorrow.toISOString().split('T')[0]}`).catch(() => {});
+                fetch(`/employees/api/day-schedule/?date=${yesterday.toISOString().split('T')[0]}`).catch(() => {});
+            }, 2000);
+        });
+        
+        // ===== Service Worker pour les notifications =====
+        if ('serviceWorker' in navigator && 'PushManager' in window) {
+            navigator.serviceWorker.register('/employees/mobile/sw.js')
+                .then(function(registration) {
+                    console.log('SW enregistré:', registration.scope);
+                })
+                .catch(function(error) {
+                    console.log('Erreur SW:', error);
+                });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,710 @@
+<!-- templates/properties/appartement_form.html -->
+{% extends 'base_dashboard.html' %}
+
+{% block title %}
+{% if object %}Modifier {{ object.nom }}{% else %}Nouvel appartement{% endif %} - {{ block.super %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-section {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        border: 1px solid #e5e7eb;
+        margin-bottom: 2rem;
+    }
+    
+    .form-header {
+        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+        border-radius: 12px;
+        padding: 2rem;
+        color: white;
+        margin-bottom: 2rem;
+    }
+    
+    .section-title {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #e5e7eb;
+    }
+    
+    .section-title i {
+        margin-right: 0.75rem;
+        width: 1.5rem;
+        text-align: center;
+    }
+    
+    .toggle-switch {
+        position: relative;
+        display: inline-block;
+        width: 60px;
+        height: 34px;
+    }
+    
+    .toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+    
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: .4s;
+        border-radius: 34px;
+    }
+    
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 26px;
+        width: 26px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        transition: .4s;
+        border-radius: 50%;
+    }
+    
+    input:checked + .slider {
+        background-color: #3b82f6;
+    }
+    
+    input:checked + .slider:before {
+        transform: translateX(26px);
+    }
+    
+    .help-text {
+        font-size: 0.875rem;
+        color: #6b7280;
+        margin-top: 0.25rem;
+    }
+    
+    .required-field {
+        color: #ef4444;
+    }
+    
+    .form-actions {
+        background: #f9fafb;
+        border-radius: 12px;
+        padding: 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .residence-selector {
+        background: #eff6ff;
+        border: 2px solid #dbeafe;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <!-- Breadcrumb -->
+    <nav class="flex items-center space-x-2 text-sm mb-6">
+        <a href="{% url 'dashboard:index' %}" class="text-gray-500 hover:text-gray-700">Dashboard</a>
+        <i class="fas fa-chevron-right text-gray-400"></i>
+        {% if object.residence %}
+        <a href="{% url 'properties:residence_detail' object.residence.pk %}" class="text-gray-500 hover:text-gray-700">{{ object.residence.nom }}</a>
+        <i class="fas fa-chevron-right text-gray-400"></i>
+        {% else %}
+        <a href="{% url 'properties:appartements_list' %}" class="text-gray-500 hover:text-gray-700">Appartements</a>
+        <i class="fas fa-chevron-right text-gray-400"></i>
+        {% endif %}
+        <span class="text-gray-900">
+            {% if object %}Modifier {{ object.nom }}{% else %}Nouvel appartement{% endif %}
+        </span>
+    </nav>
+
+    <!-- En-tête -->
+    <div class="form-header">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold mb-2">
+                    <i class="fas fa-home mr-3"></i>
+                    {% if object %}Modifier l'appartement{% else %}Créer un nouvel appartement{% endif %}
+                </h1>
+                <p class="text-blue-100">
+                    {% if object %}
+                        Modification des informations de l'appartement "{{ object.nom }}"
+                        {% if object.residence %} dans {{ object.residence.nom }}{% endif %}
+                    {% else %}
+                        Ajoutez un nouvel appartement à votre portefeuille
+                    {% endif %}
+                </p>
+            </div>
+            {% if object %}
+            <div class="text-right">
+                <div class="text-sm text-blue-200">Créé le</div>
+                <div class="font-medium">{{ object.created_at|date:"d/m/Y" }}</div>
+                {% if object.contrat_actuel %}
+                <div class="text-sm text-green-200 mt-1">
+                    <i class="fas fa-user mr-1"></i>Occupé
+                </div>
+                {% else %}
+                <div class="text-sm text-blue-200 mt-1">
+                    <i class="fas fa-check-circle mr-1"></i>Disponible
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="space-y-0">
+        {% csrf_token %}
+
+        <!-- Affichage de TOUTES les erreurs du formulaire -->
+        {% if form.errors %}
+        <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-exclamation-triangle text-red-500"></i>
+                </div>
+                <div class="ml-3">
+                    <h3 class="text-sm font-medium text-red-800">Erreurs de validation du formulaire</h3>
+                    <div class="mt-2 text-sm text-red-700">
+                        <!-- Erreurs générales (non liées à un champ) -->
+                        {% if form.non_field_errors %}
+                        <div class="mb-3">
+                            <strong>Erreurs générales :</strong>
+                            <ul class="list-disc list-inside space-y-1 mt-1">
+                                {% for error in form.non_field_errors %}
+                                <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+
+                        <!-- Erreurs par champ -->
+                        <div>
+                            <strong>Erreurs par champ :</strong>
+                            <ul class="list-disc list-inside space-y-1 mt-1">
+                                {% for field in form %}
+                                    {% if field.errors %}
+                                        {% for error in field.errors %}
+                                        <li><strong>{{ field.label }} :</strong> {{ error }}</li>
+                                        {% endfor %}
+                                    {% endif %}
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Sélection de résidence (pour nouvel appartement) -->
+        {% if not object %}
+        <div class="form-section">
+            <div class="section-title">
+                <i class="fas fa-building text-purple-600"></i>
+                <h2 class="text-xl font-semibold text-gray-900">Résidence</h2>
+            </div>
+
+            <div class="residence-selector">
+                <label for="{{ form.residence.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                    Sélectionner la résidence <span class="required-field">*</span>
+                </label>
+                {{ form.residence }}
+                {% if form.residence.errors %}
+                    <div class="text-red-600 text-sm mt-1">{{ form.residence.errors.0 }}</div>
+                {% endif %}
+                <div class="help-text">Choisissez la résidence où se trouve cet appartement</div>
+            </div>
+        </div>
+        {% else %}
+        <!-- Champ caché pour la résidence lors de la modification -->
+        <input type="hidden" name="residence" value="{{ object.residence.pk }}">
+        {% endif %}
+
+        <!-- Informations de base -->
+        <div class="form-section">
+            <div class="section-title">
+                <i class="fas fa-tag text-blue-600"></i>
+                <h2 class="text-xl font-semibold text-gray-900">Informations de base</h2>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="{{ form.nom.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Nom/Numéro de l'appartement <span class="required-field">*</span>
+                    </label>
+                    {{ form.nom }}
+                    {% if form.nom.errors %}
+                        <div class="text-red-600 text-sm mt-1">{{ form.nom.errors.0 }}</div>
+                    {% endif %}
+                    <div class="help-text">Ex: Apt 2A, Studio 12, Bureau RDC</div>
+                </div>
+                
+                <div>
+                    <label for="{{ form.type_bien.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Type de bien <span class="required-field">*</span>
+                    </label>
+                    {{ form.type_bien }}
+                    {% if form.type_bien.errors %}
+                        <div class="text-red-600 text-sm mt-1">{{ form.type_bien.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                
+                <div>
+                    <label for="{{ form.etage.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Étage
+                    </label>
+                    {{ form.etage }}
+                    {% if form.etage.errors %}
+                        <div class="text-red-600 text-sm mt-1">{{ form.etage.errors.0 }}</div>
+                    {% endif %}
+                    <div class="help-text">0 pour RDC, -1 pour sous-sol</div>
+                </div>
+                
+                <div>
+                    <label for="{{ form.statut_occupation.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Statut d'occupation
+                    </label>
+                    {{ form.statut_occupation }}
+                    {% if form.statut_occupation.errors %}
+                        <div class="text-red-600 text-sm mt-1">{{ form.statut_occupation.errors.0 }}</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Caractéristiques physiques -->
+        <div class="form-section">
+            <div class="section-title">
+                <i class="fas fa-ruler-combined text-green-600"></i>
+                <h2 class="text-xl font-semibold text-gray-900">Caractéristiques physiques</h2>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                    <label for="{{ form.superficie.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Superficie (m²)
+                    </label>
+                    {{ form.superficie }}
+                    {% if form.superficie.errors %}
+                        <div class="text-red-600 text-sm mt-1">{{ form.superficie.errors.0 }}</div>
+                    {% endif %}
+                    <div class="help-text">Surface habitable en mètres carrés</div>
+                </div>
+                
+                <div>
+                    <label for="{{ form.nb_pieces.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Nombre de pièces <span class="required-field">*</span>
+                    </label>
+                    {{ form.nb_pieces }}
+                    {% if form.nb_pieces.errors %}
+                        <div class="text-red-600 text-sm mt-1">{{ form.nb_pieces.errors.0 }}</div>
+                    {% endif %}
+                    <div class="help-text">Salon, chambres, cuisine, etc.</div>
+                </div>
+                
+                <div>
+                    <label for="{{ form.nb_chambres.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Nombre de chambres
+                    </label>
+                    {{ form.nb_chambres }}
+                    {% if form.nb_chambres.errors %}
+                        <div class="text-red-600 text-sm mt-1">{{ form.nb_chambres.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                
+                <div>
+                    <label for="{{ form.nb_sdb.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Salles de bain
+                    </label>
+                    {{ form.nb_sdb }}
+                    {% if form.nb_sdb.errors %}
+                        <div class="text-red-600 text-sm mt-1">{{ form.nb_sdb.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                
+                <div>
+                    <label for="{{ form.nb_wc.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Nombre de WC
+                    </label>
+                    {{ form.nb_wc }}
+                    {% if form.nb_wc.errors %}
+                        <div class="text-red-600 text-sm mt-1">{{ form.nb_wc.errors.0 }}</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Équipements et commodités -->
+        <div class="form-section">
+            <div class="section-title">
+                <i class="fas fa-check-circle text-purple-600"></i>
+                <h2 class="text-xl font-semibold text-gray-900">Équipements et commodités</h2>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="space-y-4">
+                    <!-- Meublé -->
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <label class="text-sm font-medium text-gray-700">Meublé</label>
+                            <div class="help-text">L'appartement est-il fourni avec des meubles ?</div>
+                        </div>
+                        <label class="toggle-switch">
+                            {{ form.is_meuble }}
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    
+                    <!-- Balcon -->
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <label class="text-sm font-medium text-gray-700">Balcon/Terrasse</label>
+                            <div class="help-text">Dispose d'un espace extérieur privatif</div>
+                        </div>
+                        <label class="toggle-switch">
+                            {{ form.has_balcon }}
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="space-y-4">
+                    <!-- Parking -->
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <label class="text-sm font-medium text-gray-700">Parking</label>
+                            <div class="help-text">Place de parking incluse</div>
+                        </div>
+                        <label class="toggle-switch">
+                            {{ form.has_parking }}
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    
+                    <!-- Climatisation -->
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <label class="text-sm font-medium text-gray-700">Climatisation</label>
+                            <div class="help-text">Système de climatisation installé</div>
+                        </div>
+                        <label class="toggle-switch">
+                            {{ form.has_climatisation }}
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Équipements supplémentaires -->
+            <div class="mt-6">
+                <label for="{{ form.equipements_inclus.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                    Équipements supplémentaires
+                </label>
+                {{ form.equipements_inclus }}
+                {% if form.equipements_inclus.errors %}
+                    <div class="text-red-600 text-sm mt-1">{{ form.equipements_inclus.errors.0 }}</div>
+                {% endif %}
+                <div class="help-text">Ex: Électroménager, internet, gardiennage, etc.</div>
+            </div>
+        </div>
+
+        <!-- Informations financières -->
+        <div class="form-section">
+            <div class="section-title">
+                <i class="fas fa-euro-sign text-green-600"></i>
+                <h2 class="text-xl font-semibold text-gray-900">Informations financières</h2>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="{{ form.loyer_base.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Loyer de base (FCFA) <span class="required-field">*</span>
+                    </label>
+                    {{ form.loyer_base }}
+                    {% if form.loyer_base.errors %}
+                        <div class="text-red-600 text-sm mt-1">{{ form.loyer_base.errors.0 }}</div>
+                    {% endif %}
+                    <div class="help-text">Loyer mensuel hors charges</div>
+                </div>
+                
+                <div>
+                    <label for="{{ form.charges.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Charges mensuelles (FCFA)
+                    </label>
+                    {{ form.charges }}
+                    {% if form.charges.errors %}
+                        <div class="text-red-600 text-sm mt-1">{{ form.charges.errors.0 }}</div>
+                    {% endif %}
+                    <div class="help-text">Eau, électricité, entretien, etc.</div>
+                </div>
+                
+                <div>
+                    <label for="{{ form.depot_garantie.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Dépôt de garantie (FCFA)
+                    </label>
+                    {{ form.depot_garantie }}
+                    {% if form.depot_garantie.errors %}
+                        <div class="text-red-600 text-sm mt-1">{{ form.depot_garantie.errors.0 }}</div>
+                    {% endif %}
+                    <div class="help-text">Caution demandée au locataire</div>
+                </div>
+                
+                <div>
+                    <label for="{{ form.frais_agence.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Frais d'agence (FCFA)
+                    </label>
+                    {{ form.frais_agence }}
+                    {% if form.frais_agence.errors %}
+                        <div class="text-red-600 text-sm mt-1">{{ form.frais_agence.errors.0 }}</div>
+                    {% endif %}
+                    <div class="help-text">Commission ou frais de dossier</div>
+                </div>
+                
+                <div class="md:col-span-2">
+                    <label for="{{ form.mode_location.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Mode de location
+                    </label>
+                    {{ form.mode_location }}
+                    {% if form.mode_location.errors %}
+                        <div class="text-red-600 text-sm mt-1">{{ form.mode_location.errors.0 }}</div>
+                    {% endif %}
+                    <div class="help-text">Type de bail et conditions de location</div>
+                </div>
+            </div>
+            
+            <!-- Calcul automatique du loyer total -->
+            <div class="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+                <div class="flex items-center justify-between">
+                    <span class="text-sm font-medium text-green-800">Loyer total mensuel:</span>
+                    <span id="loyer-total" class="text-lg font-bold text-green-900">-- FCFA</span>
+                </div>
+                <div class="text-xs text-green-600 mt-1">Loyer de base + charges</div>
+            </div>
+        </div>
+
+        <!-- Description et notes -->
+        <div class="form-section">
+            <div class="section-title">
+                <i class="fas fa-align-left text-orange-600"></i>
+                <h2 class="text-xl font-semibold text-gray-900">Description et notes</h2>
+            </div>
+            
+            <div class="space-y-6">
+                <div>
+                    <label for="{{ form.description.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Description de l'appartement
+                    </label>
+                    {{ form.description }}
+                    {% if form.description.errors %}
+                        <div class="text-red-600 text-sm mt-1">{{ form.description.errors.0 }}</div>
+                    {% endif %}
+                    <div class="help-text">Description détaillée pour les annonces et contrats</div>
+                </div>
+                
+                <div>
+                    <label for="{{ form.notes_internes.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Notes internes
+                    </label>
+                    {{ form.notes_internes }}
+                    {% if form.notes_internes.errors %}
+                        <div class="text-red-600 text-sm mt-1">{{ form.notes_internes.errors.0 }}</div>
+                    {% endif %}
+                    <div class="help-text">Informations internes non visibles par les locataires</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="form-actions">
+            <div class="flex items-center space-x-4">
+                <a href="{% if object and object.residence %}{% url 'properties:residence_detail' object.residence.pk %}{% else %}{% url 'properties:appartements_list' %}{% endif %}" 
+                   class="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600 transition-colors flex items-center">
+                    <i class="fas fa-times mr-2"></i>
+                    Annuler
+                </a>
+                
+                {% if object %}
+                <a href="{% url 'properties:appartement_delete' object.pk %}" 
+                   class="bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-600 transition-colors flex items-center"
+                   onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet appartement ?')">
+                    <i class="fas fa-trash mr-2"></i>
+                    Supprimer
+                </a>
+                {% endif %}
+            </div>
+            
+            <div class="flex items-center space-x-3">
+                <button type="submit" name="action" value="save_continue" 
+                        class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center">
+                    <i class="fas fa-save mr-2"></i>
+                    {% if object %}Enregistrer et continuer{% else %}Créer et ajouter photos{% endif %}
+                </button>
+                
+                <button type="submit" 
+                        class="bg-blue-600 text-white px-8 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center font-medium">
+                    <i class="fas fa-check mr-2"></i>
+                    {% if object %}Enregistrer les modifications{% else %}Créer l'appartement{% endif %}
+                </button>
+            </div>
+        </div>
+    </form>
+    
+    <!-- Aide contextuelle -->
+    <div class="mt-8 bg-blue-50 border border-blue-200 rounded-xl p-6">
+        <h3 class="text-lg font-semibold text-blue-900 mb-3">
+            <i class="fas fa-lightbulb text-blue-600 mr-2"></i>
+            Conseils pour créer un appartement
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-blue-800">
+            <div>
+                <h4 class="font-medium mb-2">Informations essentielles :</h4>
+                <ul class="space-y-1 list-disc list-inside">
+                    <li>Utilisez un nom clair et unique dans la résidence</li>
+                    <li>Vérifiez la cohérence des nombres de pièces</li>
+                    <li>Soyez précis sur les équipements inclus</li>
+                    <li>Fixez un loyer cohérent avec le marché local</li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="font-medium mb-2">Prochaines étapes :</h4>
+                <ul class="space-y-1 list-disc list-inside">
+                    <li>Ajoutez des photos de qualité</li>
+                    <li>Rédigez une description attractive</li>
+                    <li>Vérifiez les informations avec le proprietaire</li>
+                    <li>Publiez l'annonce si l'appartement est libre</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Calcul automatique du loyer total
+document.addEventListener('DOMContentLoaded', function() {
+    const loyerBaseField = document.getElementById('{{ form.loyer_base.id_for_label }}');
+    const chargesField = document.getElementById('{{ form.charges.id_for_label }}');
+    const loyerTotalDisplay = document.getElementById('loyer-total');
+    
+    function calculateTotal() {
+        const loyerBase = parseFloat(loyerBaseField.value) || 0;
+        const charges = parseFloat(chargesField.value) || 0;
+        const total = loyerBase + charges;
+        
+        loyerTotalDisplay.textContent = total.toLocaleString('fr-FR') + ' FCFA';
+        
+        // Mise à jour visuelle
+        if (total > 0) {
+            loyerTotalDisplay.parentElement.classList.remove('bg-green-50');
+            loyerTotalDisplay.parentElement.classList.add('bg-green-100');
+        }
+    }
+    
+    if (loyerBaseField && chargesField) {
+        loyerBaseField.addEventListener('input', calculateTotal);
+        chargesField.addEventListener('input', calculateTotal);
+        
+        // Calcul initial
+        calculateTotal();
+    }
+    
+    // Validation cohérence pièces/chambres
+    const piecesField = document.getElementById('{{ form.nb_pieces.id_for_label }}');
+    const chambresField = document.getElementById('{{ form.nb_chambres.id_for_label }}');
+    
+    function validateRooms() {
+        const pieces = parseInt(piecesField.value) || 0;
+        const chambres = parseInt(chambresField.value) || 0;
+        
+        if (chambres > pieces) {
+            chambresField.style.borderColor = '#f59e0b';
+            showRoomWarning('Le nombre de chambres ne peut pas dépasser le nombre de pièces');
+        } else {
+            chambresField.style.borderColor = '#d1d5db';
+            hideRoomWarning();
+        }
+    }
+    
+    function showRoomWarning(message) {
+        let warning = document.getElementById('room-warning');
+        if (!warning) {
+            warning = document.createElement('div');
+            warning.id = 'room-warning';
+            warning.className = 'text-yellow-600 text-sm mt-1';
+            chambresField.parentNode.appendChild(warning);
+        }
+        warning.textContent = message;
+    }
+    
+    function hideRoomWarning() {
+        const warning = document.getElementById('room-warning');
+        if (warning) {
+            warning.remove();
+        }
+    }
+    
+    if (piecesField && chambresField) {
+        piecesField.addEventListener('change', validateRooms);
+        chambresField.addEventListener('change', validateRooms);
+    }
+    
+    // Auto-suggestion du dépôt de garantie (2-3 mois de loyer)
+    const depotField = document.getElementById('{{ form.depot_garantie.id_for_label }}');
+    
+    function suggestDepot() {
+        const loyer = parseFloat(loyerBaseField.value) || 0;
+        if (loyer > 0 && (!depotField.value || depotField.value == '0')) {
+            const suggestion = loyer * 2; // 2 mois par défaut
+            depotField.placeholder = `Suggestion: ${suggestion.toLocaleString('fr-FR')} FCFA (2 mois)`;
+        }
+    }
+    
+    if (loyerBaseField && depotField) {
+        loyerBaseField.addEventListener('blur', suggestDepot);
+    }
+    
+    // Validation avant soumission
+    const form = document.querySelector('form');
+    form.addEventListener('submit', function(e) {
+        const requiredFields = form.querySelectorAll('input[required], select[required]');
+        let isValid = true;
+        
+        requiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                isValid = false;
+                field.style.borderColor = '#ef4444';
+            } else {
+                field.style.borderColor = '#d1d5db';
+            }
+        });
+        
+        if (!isValid) {
+            e.preventDefault();
+            alert('Veuillez remplir tous les champs obligatoires.');
+            return false;
+        }
+        
+        // Validation loyer
+        const loyer = parseFloat(loyerBaseField.value) || 0;
+        if (loyer <= 0) {
+            e.preventDefault();
+            alert('Le loyer de base doit être supérieur à 0.');
+            loyerBaseField.focus();
+            return false;
+        }
+    });
+});
+</script>
+{% endblock %}

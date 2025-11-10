@@ -1,0 +1,108 @@
+{% extends 'base_dashboard.html' %}
+
+{% block page_title %}Copropriétaires{% endblock %}
+{% block page_subtitle %}Gestion des copropriétaires{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <nav class="text-sm text-gray-600">
+        <a href="{% url 'syndic:dashboard' %}" class="hover:text-imani-primary">Syndic</a>
+        <span class="mx-2">/</span>
+        <span class="text-gray-900 font-medium">Copropriétaires</span>
+    </nav>
+</div>
+
+<div class="flex justify-between items-center mb-6">
+    <div>
+        <h3 class="text-xl font-semibold text-gray-800">Liste des copropriétaires</h3>
+        <p class="text-sm text-gray-600 mt-1">{{ coproprietaires|length }} copropriétaire{{ coproprietaires|length|pluralize }}</p>
+    </div>
+    <a href="{% url 'syndic:coproprietaire_create' %}" class="imani-gradient text-white px-6 py-2.5 rounded-lg flex items-center space-x-2 hover:opacity-90 transition-opacity">
+        <i class="fas fa-plus"></i>
+        <span>Nouveau copropriétaire</span>
+    </a>
+</div>
+
+<!-- Filtres -->
+<div class="imani-card p-6 mb-6">
+    <form method="get" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Statut</label>
+            <select name="statut" class="w-full border-gray-300 rounded-md">
+                <option value="">Tous</option>
+                <option value="actif" {% if statut_filter == 'actif' %}selected{% endif %}>Actif</option>
+                <option value="inactif" {% if statut_filter == 'inactif' %}selected{% endif %}>Inactif</option>
+            </select>
+        </div>
+        <div class="md:col-span-2 flex items-end">
+            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md">
+                Filtrer
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Table -->
+<div class="imani-card overflow-hidden">
+    <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+            <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Copropriétaire</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Copropriété</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tantièmes</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Quote-part</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date entrée</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Statut</th>
+                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
+            </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+            {% for copro in coproprietaires %}
+            <tr class="hover:bg-gray-50">
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-sm font-medium text-gray-900">{{ copro.tiers.nom_complet }}</div>
+                    <div class="text-sm text-gray-500">{{ copro.tiers.telephone }}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {{ copro.copropriete.residence.nom }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {{ copro.nombre_tantiemes }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    {{ copro.quote_part|floatformat:2 }}%
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {{ copro.date_entree|date:"d/m/Y" }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    {% if copro.is_active %}
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                        Actif
+                    </span>
+                    {% else %}
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                        Inactif
+                    </span>
+                    {% endif %}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-right text-sm space-x-3">
+                    <a href="{% url 'syndic:copropriete_detail' copro.copropriete.pk %}" class="text-imani-primary hover:text-imani-secondary">
+                        <i class="fas fa-building"></i> Copropriété
+                    </a>
+                    <a href="{% url 'syndic:coproprietaire_update' copro.pk %}" class="text-blue-600 hover:text-blue-900">
+                        <i class="fas fa-edit"></i> Modifier
+                    </a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7" class="px-6 py-4 text-center text-gray-500">
+                    Aucun copropriétaire trouvé
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

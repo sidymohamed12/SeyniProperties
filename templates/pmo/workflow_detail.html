@@ -1,0 +1,503 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Workflow {{ workflow.contrat.numero_contrat }} - PMO - Imani{% endblock %}
+
+{% block page_title %}Workflow PMO{% endblock %}
+{% block page_subtitle %}{{ workflow.contrat.numero_contrat }} - {{ workflow.contrat.locataire.nom_complet }}{% endblock %}
+
+{% block content %}
+<!-- Actions rapides (Modifier/Supprimer) -->
+{% if user.is_staff and workflow.etape_actuelle in 'verification_dossier,attente_facture' and workflow.contrat.statut == 'brouillon' %}
+<div class="mb-4 flex justify-end gap-3">
+    <a href="{% url 'contracts:pmo_workflow_edit' workflow.id %}"
+       class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm transition-all font-medium">
+        <i class="fas fa-edit mr-2"></i>Modifier le workflow
+    </a>
+    <a href="{% url 'contracts:pmo_workflow_delete' workflow.id %}"
+       class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm transition-all font-medium">
+        <i class="fas fa-trash mr-2"></i>Supprimer
+    </a>
+</div>
+{% endif %}
+
+<!-- Informations contrat -->
+<div class="imani-card p-6 mb-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+            <p class="text-sm text-gray-600">Appartement</p>
+            <p class="font-bold text-imani-primary">{{ workflow.contrat.appartement.nom }}</p>
+            <p class="text-sm text-gray-600">{{ workflow.contrat.appartement.residence.nom }}</p>
+        </div>
+        <div>
+            <p class="text-sm text-gray-600">Locataire</p>
+            <p class="font-bold">{{ workflow.contrat.locataire.nom_complet }}</p>
+            <p class="text-sm text-gray-600">{{ workflow.contrat.locataire.email }}</p>
+        </div>
+        <div>
+            <p class="text-sm text-gray-600">Responsable PMO</p>
+            <p class="font-bold">{{ workflow.responsable_pmo.get_full_name|default:"Non assigné" }}</p>
+        </div>
+    </div>
+
+    <!-- Badge de statut modifiable -->
+    {% if workflow.etape_actuelle in 'verification_dossier,attente_facture' and workflow.contrat.statut == 'brouillon' %}
+    <div class="mt-4 pt-4 border-t border-gray-200">
+        <div class="flex items-center gap-2 text-sm text-gray-600">
+            <i class="fas fa-info-circle text-blue-500"></i>
+            <span>Ce workflow peut encore être <strong class="text-blue-600">modifié</strong> ou <strong class="text-red-600">supprimé</strong> car il est en phase de vérification.</span>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Timeline -->
+<div class="imani-card p-6 mb-6">
+    <h2 class="text-xl font-bold text-imani-primary mb-6">Progression du workflow</h2>
+    <div class="relative">
+        {% for etape in timeline_etapes %}
+        <div class="flex items-center mb-8 last:mb-0">
+            <div class="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center
+                {% if etape.completed %}bg-green-500{% elif etape.current %}imani-gradient{% else %}bg-gray-300{% endif %}">
+                <i class="fas {{ etape.icon }} text-white"></i>
+            </div>
+            <div class="ml-4 flex-1">
+                <p class="font-bold {% if etape.current %}text-imani-primary{% elif etape.completed %}text-green-600{% else %}text-gray-400{% endif %}">
+                    {{ etape.label }}
+                </p>
+            </div>
+            {% if etape.current %}
+            <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">En cours</span>
+            {% elif etape.completed %}
+            <i class="fas fa-check-circle text-green-500 text-2xl"></i>
+            {% endif %}
+        </div>
+        {% if not forloop.last %}
+        <div class="ml-6 h-8 w-0.5 {% if etape.completed %}bg-green-500{% else %}bg-gray-300{% endif %}"></div>
+        {% endif %}
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Actions selon l'étape actuelle -->
+{% if workflow.etape_actuelle == 'redaction_contrat' %}
+<div class="imani-card p-6 mb-6 border-l-4 border-purple-500">
+    <h3 class="font-bold text-lg mb-4 text-purple-600">
+        <i class="fas fa-file-signature mr-2"></i>Action requise : Rédaction et Signature du Contrat
+    </h3>
+    <p class="text-gray-600 mb-4">Le dossier et la facture initiale ont été validés. Suivez ces étapes :</p>
+
+    <div class="space-y-4">
+        <!-- Étape 1 : Télécharger le contrat brouillon -->
+        <div class="flex items-start gap-4 p-4 bg-purple-50 rounded-lg">
+            <div class="w-10 h-10 bg-purple-600 text-white rounded-full flex items-center justify-center font-bold flex-shrink-0">1</div>
+            <div class="flex-1">
+                <h4 class="font-semibold text-gray-900 mb-1">Télécharger le contrat (version brouillon)</h4>
+                <p class="text-sm text-gray-600 mb-3">Générez le PDF du contrat pour collecte des signatures</p>
+                <a href="{% url 'contracts:download_pdf' workflow.contrat.pk %}" target="_blank"
+                   class="inline-block px-4 py-2 bg-white border-2 border-purple-600 text-purple-600 hover:bg-purple-600 hover:text-white rounded-lg transition-all font-medium">
+                    <i class="fas fa-download mr-2"></i>Télécharger le contrat PDF
+                </a>
+            </div>
+        </div>
+
+        <!-- Étape 2 : Faire signer -->
+        <div class="flex items-start gap-4 p-4 bg-gray-50 rounded-lg">
+            <div class="w-10 h-10 bg-gray-400 text-white rounded-full flex items-center justify-center font-bold flex-shrink-0">2</div>
+            <div class="flex-1">
+                <h4 class="font-semibold text-gray-900 mb-1">Faire signer le contrat</h4>
+                <p class="text-sm text-gray-600">Collectez les signatures du locataire et du propriétaire (physique ou numérique)</p>
+            </div>
+        </div>
+
+        <!-- Étape 3 : Uploader le contrat signé -->
+        <div class="flex items-start gap-4 p-4 bg-purple-50 rounded-lg">
+            <div class="w-10 h-10 bg-purple-600 text-white rounded-full flex items-center justify-center font-bold flex-shrink-0">3</div>
+            <div class="flex-1">
+                <h4 class="font-semibold text-gray-900 mb-1">Uploader le contrat signé</h4>
+                <p class="text-sm text-gray-600 mb-3">Uploadez le scan du contrat signé par les deux parties</p>
+                <a href="{% url 'contracts:pmo_upload_contrat' workflow.id %}"
+                   class="inline-block px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-all font-medium">
+                    <i class="fas fa-upload mr-2"></i>Uploader le contrat signé
+                </a>
+            </div>
+        </div>
+
+        {% if workflow.contrat.fichier_contrat %}
+        <!-- Contrat signé uploadé -->
+        <div class="flex items-start gap-4 p-4 bg-green-50 border-2 border-green-500 rounded-lg">
+            <div class="w-10 h-10 bg-green-500 text-white rounded-full flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-check text-xl"></i>
+            </div>
+            <div class="flex-1">
+                <h4 class="font-semibold text-green-900 mb-1">Contrat signé uploadé ✓</h4>
+                <div class="flex items-center gap-4 text-sm text-gray-700 mb-2">
+                    <span class="{% if workflow.contrat.signe_par_locataire %}text-green-600{% else %}text-red-600{% endif %}">
+                        <i class="fas fa-{% if workflow.contrat.signe_par_locataire %}check-circle{% else %}times-circle{% endif %} mr-1"></i>
+                        Locataire
+                    </span>
+                    <span class="{% if workflow.contrat.signe_par_bailleur %}text-green-600{% else %}text-red-600{% endif %}">
+                        <i class="fas fa-{% if workflow.contrat.signe_par_bailleur %}check-circle{% else %}times-circle{% endif %} mr-1"></i>
+                        Propriétaire
+                    </span>
+                </div>
+                <a href="{{ workflow.contrat.fichier_contrat.url }}" target="_blank"
+                   class="text-sm text-blue-600 hover:text-blue-700">
+                    <i class="fas fa-eye mr-1"></i>Voir le contrat signé
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% elif workflow.etape_actuelle == 'visite_entree' %}
+<div class="imani-card p-6 mb-6 border-l-4 border-orange-500">
+    <h3 class="font-bold text-lg mb-4 text-orange-600">
+        <i class="fas fa-calendar-check mr-2"></i>Étape : Visite d'Entrée et État des Lieux
+    </h3>
+    <p class="text-gray-600 mb-4">Le contrat est signé. Planifiez la visite d'entrée, créez et uploadez l'état des lieux.</p>
+
+    <!-- Étape 1: Planification de la visite -->
+    {% if workflow.date_visite_entree %}
+    <div class="mb-6 p-4 bg-green-50 border-l-4 border-green-500 rounded-lg">
+        <div class="flex items-start gap-3">
+            <div class="w-10 h-10 bg-green-600 text-white rounded-full flex items-center justify-center font-bold flex-shrink-0">
+                <i class="fas fa-check"></i>
+            </div>
+            <div class="flex-1">
+                <h4 class="font-semibold text-gray-900 mb-2">✓ Visite planifiée</h4>
+                <div class="text-sm text-gray-700 space-y-1">
+                    <p><strong>Date :</strong> {{ workflow.date_visite_entree|date:"d/m/Y à H:i" }}</p>
+                    {% if workflow.lieu_rdv_visite %}
+                    <p><strong>Lieu de rendez-vous :</strong> {{ workflow.lieu_rdv_visite }}</p>
+                    {% endif %}
+                    {% if workflow.observations_visite %}
+                    <p><strong>Observations :</strong> {{ workflow.observations_visite }}</p>
+                    {% endif %}
+                </div>
+                <a href="{% url 'contracts:pmo_planifier_visite' workflow.id %}"
+                   class="mt-2 inline-block text-sm text-orange-600 hover:text-orange-700 font-medium">
+                    <i class="fas fa-edit mr-1"></i>Modifier la planification
+                </a>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="mb-6 p-4 bg-orange-50 border-l-4 border-orange-500 rounded-lg">
+        <div class="flex items-start gap-3">
+            <div class="w-10 h-10 bg-orange-600 text-white rounded-full flex items-center justify-center font-bold flex-shrink-0">1</div>
+            <div class="flex-1">
+                <h4 class="font-semibold text-gray-900 mb-2">Planifier la visite d'entrée</h4>
+                <p class="text-sm text-gray-600 mb-3">Fixez la date et l'heure de la visite avec le locataire</p>
+                <a href="{% url 'contracts:pmo_planifier_visite' workflow.id %}"
+                   class="inline-block px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-all font-medium text-sm">
+                    <i class="fas fa-calendar-alt mr-2"></i>Planifier la visite
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Étape 2: Création de l'état des lieux PDF -->
+    <div class="mb-6 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-lg">
+        <div class="flex items-start gap-3">
+            <div class="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold flex-shrink-0">2</div>
+            <div class="flex-1">
+                <h4 class="font-semibold text-gray-900 mb-2">Créer l'état des lieux</h4>
+                <p class="text-sm text-gray-600 mb-3">Générez le document PDF d'état des lieux pour remplissage lors de la visite</p>
+                <div class="flex gap-2">
+                    <a href="{% url 'properties:etat_lieux_create' %}?workflow={{ workflow.id }}&contrat={{ workflow.contrat.id }}"
+                       class="inline-block px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all font-medium text-sm">
+                        <i class="fas fa-file-alt mr-2"></i>Créer l'état des lieux
+                    </a>
+                </div>
+                <p class="text-xs text-gray-500 mt-2">
+                    <i class="fas fa-info-circle mr-1"></i>Vous pourrez remplir les détails puis télécharger le PDF
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Étape 3: Upload de l'état des lieux signé -->
+    {% if workflow.rapport_etat_lieux %}
+    <div class="mb-6 p-4 bg-green-50 border-l-4 border-green-500 rounded-lg">
+        <div class="flex items-start gap-3">
+            <div class="w-10 h-10 bg-green-600 text-white rounded-full flex items-center justify-center font-bold flex-shrink-0">
+                <i class="fas fa-check"></i>
+            </div>
+            <div class="flex-1">
+                <h4 class="font-semibold text-gray-900 mb-2">✓ État des lieux uploadé</h4>
+                <p class="text-sm text-gray-600 mb-2">Le rapport d'état des lieux a été enregistré</p>
+                <div class="flex gap-2">
+                    <a href="{{ workflow.rapport_etat_lieux.url }}" target="_blank"
+                       class="inline-block px-3 py-2 bg-white border-2 border-green-600 text-green-600 hover:bg-green-600 hover:text-white rounded-lg transition-all font-medium text-sm">
+                        <i class="fas fa-eye mr-1"></i>Voir le document
+                    </a>
+                    <a href="{% url 'contracts:pmo_upload_etat_lieux' workflow.id %}"
+                       class="inline-block text-sm text-blue-600 hover:text-blue-700 font-medium px-3 py-2">
+                        <i class="fas fa-upload mr-1"></i>Remplacer
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="mb-6 p-4 bg-gray-50 border-l-4 border-gray-400 rounded-lg">
+        <div class="flex items-start gap-3">
+            <div class="w-10 h-10 bg-gray-400 text-white rounded-full flex items-center justify-center font-bold flex-shrink-0">3</div>
+            <div class="flex-1">
+                <h4 class="font-semibold text-gray-900 mb-2">Uploader l'état des lieux signé</h4>
+                <p class="text-sm text-gray-600 mb-3">Après la visite, scannez et uploadez le document signé par les deux parties</p>
+                <a href="{% url 'contracts:pmo_upload_etat_lieux' workflow.id %}"
+                   class="inline-block px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-all font-medium text-sm">
+                    <i class="fas fa-file-upload mr-2"></i>Uploader l'état des lieux
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% elif workflow.etape_actuelle == 'remise_cles' %}
+<div class="imani-card p-6 mb-6 border-l-4 border-green-500">
+    <h3 class="font-bold text-lg mb-4 text-green-600">
+        <i class="fas fa-key mr-2"></i>Étape : Remise des Clés
+    </h3>
+    <p class="text-gray-600 mb-4">L'état des lieux est complété. Créez l'attestation de remise des clés et enregistrez la remise.</p>
+
+    <!-- Étape 1: Création de l'attestation de remise des clés -->
+    <div class="mb-6 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-lg">
+        <div class="flex items-start gap-3">
+            <div class="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold flex-shrink-0">1</div>
+            <div class="flex-1">
+                <h4 class="font-semibold text-gray-900 mb-2">Créer l'attestation de remise des clés</h4>
+                <p class="text-sm text-gray-600 mb-3">Générez le document PDF d'attestation de remise des clés</p>
+                <div class="flex gap-2">
+                    <a href="{% url 'properties:remise_cles_create' %}?workflow={{ workflow.id }}&contrat={{ workflow.contrat.id }}"
+                       class="inline-block px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all font-medium text-sm">
+                        <i class="fas fa-file-alt mr-2"></i>Créer l'attestation
+                    </a>
+                </div>
+                <p class="text-xs text-gray-500 mt-2">
+                    <i class="fas fa-info-circle mr-1"></i>Remplissez les informations puis téléchargez le PDF
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Étape 2: Enregistrer la remise des clés dans le workflow -->
+    {% if workflow.date_remise_cles %}
+    <div class="mb-6 p-4 bg-green-50 border-l-4 border-green-500 rounded-lg">
+        <div class="flex items-start gap-3">
+            <div class="w-10 h-10 bg-green-600 text-white rounded-full flex items-center justify-center font-bold flex-shrink-0">
+                <i class="fas fa-check"></i>
+            </div>
+            <div class="flex-1">
+                <h4 class="font-semibold text-gray-900 mb-2">✓ Remise des clés enregistrée</h4>
+                <div class="text-sm text-gray-700 space-y-1">
+                    <p><strong>Date :</strong> {{ workflow.date_remise_cles|date:"d/m/Y à H:i" }}</p>
+                    <p><strong>Nombre de clés :</strong> {{ workflow.nombre_cles }}</p>
+                    {% if workflow.cles_remises_par %}
+                    <p><strong>Remises par :</strong> {{ workflow.cles_remises_par.get_full_name }}</p>
+                    {% endif %}
+                </div>
+                <a href="{% url 'contracts:pmo_remise_cles' workflow.id %}"
+                   class="mt-2 inline-block text-sm text-green-600 hover:text-green-700 font-medium">
+                    <i class="fas fa-edit mr-1"></i>Modifier
+                </a>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="mb-6 p-4 bg-green-50 border-l-4 border-green-500 rounded-lg">
+        <div class="flex items-start gap-3">
+            <div class="w-10 h-10 bg-green-600 text-white rounded-full flex items-center justify-center font-bold flex-shrink-0">2</div>
+            <div class="flex-1">
+                <h4 class="font-semibold text-gray-900 mb-2">Enregistrer la remise des clés</h4>
+                <p class="text-sm text-gray-600 mb-3">Enregistrez la date, l'heure et le nombre de clés remises</p>
+                <a href="{% url 'contracts:pmo_remise_cles' workflow.id %}"
+                   class="inline-block px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all font-medium text-sm">
+                    <i class="fas fa-key mr-2"></i>Enregistrer la remise
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+
+<!-- Documents Requis -->
+<div class="imani-card p-6 mb-6">
+    <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-bold text-gray-900">
+            <i class="fas fa-folder-open mr-2 text-blue-600"></i>
+            Documents Requis
+        </h3>
+        <a href="{% url 'contracts:pmo_upload_document' workflow.id %}"
+           class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm transition-all">
+            <i class="fas fa-upload mr-2"></i>Uploader un document
+        </a>
+    </div>
+
+    {% if documents %}
+        <div class="space-y-3">
+            {% for document in documents %}
+            <div class="flex items-center justify-between p-4 border rounded-lg transition-all
+                {% if document.statut == 'verifie' %}bg-green-50 border-green-200
+                {% elif document.statut == 'refuse' %}bg-red-50 border-red-200
+                {% elif document.statut == 'recu' %}bg-blue-50 border-blue-200
+                {% else %}bg-gray-50 border-gray-200{% endif %}">
+
+                <div class="flex-1">
+                    <div class="flex items-center gap-2 mb-1">
+                        <p class="font-medium text-gray-900">
+                            {{ document.get_type_document_display }}
+                            {% if document.obligatoire %}
+                            <span class="text-red-500 text-lg">*</span>
+                            {% endif %}
+                        </p>
+                        <span class="text-xs px-2 py-1 rounded-full
+                            {% if document.statut == 'verifie' %}bg-green-600 text-white
+                            {% elif document.statut == 'refuse' %}bg-red-600 text-white
+                            {% elif document.statut == 'recu' %}bg-blue-600 text-white
+                            {% else %}bg-gray-400 text-white{% endif %}">
+                            {{ document.get_statut_display }}
+                        </span>
+                    </div>
+                    {% if document.commentaire %}
+                    <p class="text-sm text-gray-600">{{ document.commentaire }}</p>
+                    {% endif %}
+                    {% if document.date_verification %}
+                    <p class="text-xs text-gray-500 mt-1">
+                        Vérifié le {{ document.date_verification|date:"d/m/Y à H:i" }}
+                        {% if document.verifie_par %}par {{ document.verifie_par.get_full_name }}{% endif %}
+                    </p>
+                    {% endif %}
+                </div>
+
+                <div class="flex gap-2">
+                    {% if document.fichier %}
+                        <a href="{{ document.fichier.url }}" target="_blank"
+                           class="px-3 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded text-sm transition-all">
+                            <i class="fas fa-eye mr-1"></i>Voir
+                        </a>
+                        <a href="{% url 'contracts:pmo_supprimer_document' workflow.id document.id %}"
+                           class="px-3 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded text-sm transition-all">
+                            <i class="fas fa-trash mr-1"></i>Supprimer
+                        </a>
+                    {% endif %}
+
+                    {% if document.statut == 'recu' %}
+                        <form method="post" action="{% url 'contracts:pmo_valider_document' document.id %}" class="inline">
+                            {% csrf_token %}
+                            <button type="submit"
+                                    class="px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded text-sm transition-all">
+                                <i class="fas fa-check mr-1"></i>Valider
+                            </button>
+                        </form>
+                        <button onclick="if(confirm('Refuser ce document?')) document.getElementById('refus-form-{{ document.id }}').submit();"
+                                class="px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded text-sm transition-all">
+                            <i class="fas fa-times mr-1"></i>Refuser
+                        </button>
+                        <form id="refus-form-{{ document.id }}" method="post" action="{% url 'contracts:pmo_refuser_document' document.id %}" class="hidden">
+                            {% csrf_token %}
+                        </form>
+                    {% elif document.statut == 'attendu' %}
+                        <a href="{% url 'contracts:pmo_upload_document_existing' workflow.id document.id %}"
+                           class="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm transition-all">
+                            <i class="fas fa-upload mr-1"></i>Uploader
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Statut global du dossier -->
+        <div class="mt-4 p-4 rounded-lg
+            {% if workflow.statut_dossier == 'complet' %}bg-green-100 border-green-300
+            {% elif workflow.statut_dossier == 'incomplet' %}bg-red-100 border-red-300
+            {% else %}bg-yellow-100 border-yellow-300{% endif %} border-2">
+            <div class="flex items-center gap-3">
+                <i class="fas fa-info-circle text-2xl
+                    {% if workflow.statut_dossier == 'complet' %}text-green-600
+                    {% elif workflow.statut_dossier == 'incomplet' %}text-red-600
+                    {% else %}text-yellow-600{% endif %}"></i>
+                <div>
+                    <p class="font-bold">Statut du dossier : {{ workflow.get_statut_dossier_display }}</p>
+                    <p class="text-sm">
+                        {% if workflow.statut_dossier == 'complet' %}
+                            ✅ Tous les documents obligatoires ont été vérifiés. Vous pouvez envoyer le dossier au service Finance.
+                        {% elif workflow.statut_dossier == 'incomplet' %}
+                            ⚠️ Certains documents obligatoires sont manquants ou refusés.
+                        {% else %}
+                            ⏳ En cours de vérification des documents.
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="text-center py-8 text-gray-500">
+            <i class="fas fa-folder-open text-4xl mb-3"></i>
+            <p>Aucun document requis pour ce workflow.</p>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Actions selon l'étape -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    {% if workflow.etape_actuelle != 'termine' %}
+        {% if workflow.peut_avancer %}
+        <div class="imani-card p-6">
+            <h3 class="font-bold text-lg mb-4 text-green-600"><i class="fas fa-check-circle mr-2"></i>Prêt à avancer</h3>
+            <p class="text-gray-600 mb-4">Toutes les conditions sont remplies pour passer à l'étape suivante.</p>
+            <form method="post" action="{% url 'contracts:pmo_passer_etape' workflow.id %}">
+                {% csrf_token %}
+                <button class="w-full px-4 py-3 imani-gradient text-white rounded-lg hover:opacity-90 font-medium">
+                    <i class="fas fa-arrow-right mr-2"></i>Passer à l'étape suivante
+                </button>
+            </form>
+        </div>
+        {% else %}
+        <div class="imani-card p-6 border-l-4 border-orange-500">
+            <h3 class="font-bold text-lg mb-4 text-orange-600"><i class="fas fa-exclamation-triangle mr-2"></i>Conditions non remplies</h3>
+            <p class="text-gray-600">Complétez les actions requises pour avancer.</p>
+        </div>
+        {% endif %}
+    {% else %}
+    <!-- Workflow terminé - Message de succès -->
+    <div class="imani-card p-6 border-l-4 border-green-500">
+        <h3 class="font-bold text-lg mb-4 text-green-600"><i class="fas fa-check-double mr-2"></i>Workflow terminé !</h3>
+        <p class="text-gray-600 mb-4">Le contrat est maintenant actif et le locataire peut emménager.</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+            <div class="p-4 bg-green-50 rounded-lg">
+                <p class="text-sm font-semibold text-green-800 mb-1">Contrat</p>
+                <p class="text-sm text-gray-600">Statut : <span class="font-bold text-green-700">{{ workflow.contrat.get_statut_display }}</span></p>
+            </div>
+            <div class="p-4 bg-blue-50 rounded-lg">
+                <p class="text-sm font-semibold text-blue-800 mb-1">Prochaines actions</p>
+                <p class="text-sm text-gray-600">Suivi des paiements mensuels</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Historique -->
+    <div class="imani-card p-6">
+        <h3 class="font-bold text-lg mb-4 text-imani-primary"><i class="fas fa-history mr-2"></i>Historique</h3>
+        {% if historique %}
+        <div class="space-y-2 max-h-64 overflow-y-auto">
+            {% for h in historique %}
+            <div class="text-sm">
+                <p class="font-medium">{{ h.etape_precedente }} → {{ h.etape_suivante }}</p>
+                <p class="text-gray-600 text-xs">{{ h.date_transition|date:"d/m/Y H:i" }} - {{ h.effectue_par.get_full_name }}</p>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-gray-500 text-sm">Aucun historique</p>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,519 @@
+<!-- templates/properties/property_search.html -->
+{% extends 'base_dashboard.html' %}
+
+{% block title %}Recherche avancée - {{ block.super }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .search-header {
+        background: linear-gradient(135deg, #1e40af 0%, #3730a3 100%);
+        border-radius: 12px;
+        color: white;
+    }
+    
+    .search-form {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        border: 1px solid #e5e7eb;
+    }
+    
+    .result-card {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        border: 1px solid #e5e7eb;
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+    
+    .result-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    }
+    
+    .filter-group {
+        background: #f8fafc;
+        border-radius: 8px;
+        padding: 1rem;
+        border: 1px solid #e2e8f0;
+    }
+    
+    .price-range {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .active-filter {
+        background: #dbeafe;
+        border-color: #3b82f6;
+        color: #1d4ed8;
+    }
+    
+    .no-results {
+        background: linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%);
+        border-radius: 12px;
+        padding: 3rem;
+        text-align: center;
+    }
+    
+    .quick-filter {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.5rem 1rem;
+        border-radius: 9999px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        cursor: pointer;
+        border: 1px solid #d1d5db;
+        background: white;
+        color: #374151;
+    }
+    
+    .quick-filter:hover {
+        background: #f3f4f6;
+        border-color: #9ca3af;
+    }
+    
+    .quick-filter.active {
+        background: #3b82f6;
+        color: white;
+        border-color: #3b82f6;
+    }
+    
+    .search-stats {
+        background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+        border: 1px solid #a7f3d0;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <!-- En-tête de recherche -->
+    <div class="search-header p-8 mb-8">
+        <div class="text-center">
+            <h1 class="text-4xl font-bold mb-2">
+                <i class="fas fa-search mr-3"></i>
+                Recherche avancée
+            </h1>
+            <p class="text-blue-100 text-lg">
+                Trouvez le bien immobilier parfait avec nos filtres détaillés
+            </p>
+        </div>
+    </div>
+
+    <!-- Formulaire de recherche avancée -->
+    <div class="search-form p-6 mb-8">
+        <form method="GET" id="searchForm">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Recherche textuelle -->
+                <div class="lg:col-span-3">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-search mr-1"></i>
+                        Recherche générale
+                    </label>
+                    <input type="text" name="q" value="{{ query }}" 
+                           placeholder="Nom d'appartement, résidence, quartier..."
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg">
+                </div>
+
+                <!-- Type de bien -->
+                <div class="filter-group">
+                    <label class="block text-sm font-medium text-gray-700 mb-3">
+                        <i class="fas fa-home mr-1"></i>
+                        Type de bien
+                    </label>
+                    <select name="type" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        <option value="">Tous les types</option>
+                        <option value="studio" {% if type_bien == 'studio' %}selected{% endif %}>Studio</option>
+                        <option value="f1" {% if type_bien == 'f1' %}selected{% endif %}>F1 (1 pièce)</option>
+                        <option value="f2" {% if type_bien == 'f2' %}selected{% endif %}>F2 (2 pièces)</option>
+                        <option value="f3" {% if type_bien == 'f3' %}selected{% endif %}>F3 (3 pièces)</option>
+                        <option value="f4" {% if type_bien == 'f4' %}selected{% endif %}>F4 (4 pièces)</option>
+                        <option value="f5_plus" {% if type_bien == 'f5_plus' %}selected{% endif %}>F5+ (5 pièces et plus)</option>
+                        <option value="duplex" {% if type_bien == 'duplex' %}selected{% endif %}>Duplex</option>
+                        <option value="commercial" {% if type_bien == 'commercial' %}selected{% endif %}>Local commercial</option>
+                    </select>
+                </div>
+
+                <!-- Localisation -->
+                <div class="filter-group">
+                    <label class="block text-sm font-medium text-gray-700 mb-3">
+                        <i class="fas fa-map-marker-alt mr-1"></i>
+                        Localisation
+                    </label>
+                    <input type="text" name="ville" value="{{ ville }}" 
+                           placeholder="Ville ou quartier"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                </div>
+
+                <!-- Budget -->
+                <div class="filter-group">
+                    <label class="block text-sm font-medium text-gray-700 mb-3">
+                        <i class="fas fa-euro-sign mr-1"></i>
+                        Budget mensuel (FCFA)
+                    </label>
+                    <div class="price-range">
+                        <input type="number" name="prix_min" value="{{ prix_min }}" 
+                               placeholder="Min" min="0" step="1000"
+                               class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        <span class="text-gray-500">à</span>
+                        <input type="number" name="prix_max" value="{{ prix_max }}" 
+                               placeholder="Max" min="0" step="1000"
+                               class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filtres rapides -->
+            <div class="mt-6">
+                <label class="block text-sm font-medium text-gray-700 mb-3">
+                    <i class="fas fa-filter mr-1"></i>
+                    Filtres rapides
+                </label>
+                <div class="flex flex-wrap gap-3">
+                    <button type="button" class="quick-filter" data-filter="meuble">
+                        <i class="fas fa-couch mr-1"></i>Meublé
+                    </button>
+                    <button type="button" class="quick-filter" data-filter="parking">
+                        <i class="fas fa-car mr-1"></i>Parking
+                    </button>
+                    <button type="button" class="quick-filter" data-filter="balcon">
+                        <i class="fas fa-tree mr-1"></i>Balcon
+                    </button>
+                    <button type="button" class="quick-filter" data-filter="climatisation">
+                        <i class="fas fa-snowflake mr-1"></i>Climatisation
+                    </button>
+                    <button type="button" class="quick-filter" data-filter="libre">
+                        <i class="fas fa-check-circle mr-1"></i>Disponible
+                    </button>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex items-center justify-between mt-8 pt-6 border-t border-gray-200">
+                <button type="button" onclick="clearFilters()" 
+                        class="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors">
+                    <i class="fas fa-times mr-2"></i>Effacer les filtres
+                </button>
+                
+                <button type="submit" 
+                        class="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold">
+                    <i class="fas fa-search mr-2"></i>Rechercher
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Statistiques de recherche -->
+    {% if query or type_bien or ville or prix_min or prix_max %}
+    <div class="search-stats">
+        <div class="flex items-center justify-between">
+            <div>
+                <h3 class="font-semibold text-green-800">
+                    <i class="fas fa-chart-line mr-2"></i>
+                    Résultats de recherche
+                </h3>
+                <p class="text-green-700">
+                    {{ appartements.count }} appartement{{ appartements.count|pluralize }} trouvé{{ appartements.count|pluralize }}
+                    {% if query %}pour "{{ query }}"{% endif %}
+                </p>
+            </div>
+            <div class="text-right">
+                <div class="text-sm text-green-600">Filtres actifs:</div>
+                <div class="flex flex-wrap gap-1 mt-1">
+                    {% if query %}
+                    <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">{{ query }}</span>
+                    {% endif %}
+                    {% if type_bien %}
+                    <span class="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded">{{ type_bien|title }}</span>
+                    {% endif %}
+                    {% if ville %}
+                    <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">{{ ville }}</span>
+                    {% endif %}
+                    {% if prix_min or prix_max %}
+                    <span class="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
+                        {{ prix_min|default:"0" }} - {{ prix_max|default:"∞" }} FCFA
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Résultats de recherche -->
+    {% if appartements %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for appartement in appartements %}
+        <div class="result-card" onclick="window.location.href='{% url 'properties:appartement_detail' appartement.pk %}'">
+            <!-- Image ou placeholder -->
+            <div class="h-48 bg-gradient-to-br from-blue-400 to-purple-500 relative">
+                {% if appartement.image_principale %}
+                <img src="{{ appartement.image_principale.url }}" alt="{{ appartement.nom }}" class="w-full h-full object-cover">
+                {% else %}
+                <div class="absolute inset-0 flex items-center justify-center">
+                    <i class="fas fa-home text-white text-4xl opacity-50"></i>
+                </div>
+                {% endif %}
+                
+                <!-- Badges -->
+                <div class="absolute top-3 right-3">
+                    <span class="px-2 py-1 text-xs font-medium rounded-full
+                        {% if appartement.statut_occupation == 'libre' or appartement.statut_occupation == 'available' %}bg-green-500 text-white
+                        {% elif appartement.statut_occupation == 'occupe' or appartement.statut_occupation == 'occupied' %}bg-yellow-500 text-white
+                        {% else %}bg-red-500 text-white{% endif %}">
+                        {% if appartement.statut_occupation == 'libre' or appartement.statut_occupation == 'available' %}Libre
+                        {% elif appartement.statut_occupation == 'occupe' or appartement.statut_occupation == 'occupied' %}Occupé
+                        {% else %}Maintenance{% endif %}
+                    </span>
+                </div>
+                
+                <div class="absolute top-3 left-3">
+                    <span class="px-2 py-1 text-xs font-medium bg-white bg-opacity-90 text-gray-800 rounded-full">
+                        {{ appartement.get_type_bien_display }}
+                    </span>
+                </div>
+            </div>
+            
+            <!-- Contenu -->
+            <div class="p-4">
+                <div class="flex items-start justify-between mb-2">
+                    <div>
+                        <h3 class="font-semibold text-lg text-gray-900">{{ appartement.nom }}</h3>
+                        <p class="text-sm text-purple-600">
+                            <i class="fas fa-building mr-1"></i>
+                            {{ appartement.residence.nom }}
+                        </p>
+                        <p class="text-xs text-gray-500">
+                            <i class="fas fa-map-marker-alt mr-1"></i>
+                            {{ appartement.residence.quartier }}, {{ appartement.residence.ville }}
+                        </p>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-bold text-blue-600">{{ appartement.loyer_base|floatformat:0 }} FCFA</p>
+                        {% if appartement.charges %}
+                        <p class="text-xs text-gray-500">+ {{ appartement.charges|floatformat:0 }} charges</p>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Caractéristiques -->
+                <div class="grid grid-cols-3 gap-2 text-xs text-gray-600 mb-3">
+                    <div class="text-center">
+                        <i class="fas fa-door-open text-blue-500"></i>
+                        <div class="font-medium">{{ appartement.nb_pieces }} pièce{{ appartement.nb_pieces|pluralize }}</div>
+                    </div>
+                    <div class="text-center">
+                        <i class="fas fa-bed text-green-500"></i>
+                        <div class="font-medium">{{ appartement.nb_chambres }} ch.</div>
+                    </div>
+                    <div class="text-center">
+                        <i class="fas fa-expand text-purple-500"></i>
+                        <div class="font-medium">{{ appartement.superficie|default:"--" }} m²</div>
+                    </div>
+                </div>
+                
+                <!-- Tags équipements -->
+                <div class="flex flex-wrap gap-1 mb-3">
+                    {% if appartement.is_meuble %}
+                    <span class="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">Meublé</span>
+                    {% endif %}
+                    {% if appartement.has_balcon %}
+                    <span class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">Balcon</span>
+                    {% endif %}
+                    {% if appartement.has_parking %}
+                    <span class="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">Parking</span>
+                    {% endif %}
+                    {% if appartement.has_climatisation %}
+                    <span class="text-xs bg-cyan-100 text-cyan-700 px-2 py-1 rounded">Clim</span>
+                    {% endif %}
+                </div>
+                
+                <!-- Actions -->
+                <div class="flex items-center justify-between pt-3 border-t border-gray-100">
+                    <div class="text-xs text-gray-500">
+                        Étage: {% if appartement.etage == 0 %}RDC{% elif appartement.etage == -1 %}Sous-sol{% else %}{{ appartement.etage }}e{% endif %}
+                    </div>
+                    
+                    <div class="flex items-center space-x-2">
+                        {% if appartement.statut_occupation == 'libre' or appartement.statut_occupation == 'available' %}
+                        <a href="{% url 'contracts:create' %}?appartement={{ appartement.pk }}" 
+                           class="text-green-600 hover:text-green-800 text-sm" 
+                           onclick="event.stopPropagation();" title="Nouveau contrat">
+                            <i class="fas fa-file-signature"></i>
+                        </a>
+                        {% endif %}
+                        <span class="text-blue-600 hover:text-blue-800 text-sm" title="Voir détails">
+                            <i class="fas fa-eye"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Message si limitation des résultats -->
+    {% if appartements.count == 50 %}
+    <div class="mt-8 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+        <div class="flex items-center">
+            <i class="fas fa-info-circle text-yellow-600 mr-2"></i>
+            <div>
+                <p class="text-yellow-800 font-medium">Résultats limités</p>
+                <p class="text-yellow-700 text-sm">Seuls les 50 premiers résultats sont affichés. Affinez votre recherche pour des résultats plus précis.</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    {% else %}
+    <!-- Aucun résultat -->
+    <div class="no-results">
+        <i class="fas fa-search text-yellow-600 text-6xl mb-4"></i>
+        <h3 class="text-2xl font-semibold text-yellow-800 mb-2">Aucun résultat trouvé</h3>
+        <p class="text-yellow-700 mb-6">
+            {% if query or type_bien or ville or prix_min or prix_max %}
+                Essayez de modifier vos critères de recherche ou d'élargir votre zone géographique.
+            {% else %}
+                Utilisez les filtres ci-dessus pour rechercher des biens immobiliers.
+            {% endif %}
+        </p>
+        
+        <div class="flex items-center justify-center space-x-4">
+            <button onclick="clearFilters()" 
+                    class="px-6 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors">
+                <i class="fas fa-times mr-2"></i>Effacer les filtres
+            </button>
+            <a href="{% url 'properties:appartements_list' %}" 
+               class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                <i class="fas fa-list mr-2"></i>Voir tous les biens
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Suggestions -->
+    {% if appartements.count == 0 and query %}
+    <div class="mt-8 bg-blue-50 border border-blue-200 rounded-xl p-6">
+        <h3 class="text-lg font-semibold text-blue-900 mb-3">
+            <i class="fas fa-lightbulb text-blue-600 mr-2"></i>
+            Suggestions de recherche
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-blue-800">
+            <div>
+                <h4 class="font-medium mb-2">Élargissez votre recherche :</h4>
+                <ul class="space-y-1">
+                    <li>• Vérifiez l'orthographe des mots-clés</li>
+                    <li>• Utilisez des termes plus généraux</li>
+                    <li>• Supprimez certains filtres</li>
+                    <li>• Augmentez votre budget maximum</li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="font-medium mb-2">Recherches populaires :</h4>
+                <div class="flex flex-wrap gap-2">
+                    <a href="?type=studio" class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded hover:bg-blue-200">Studio</a>
+                    <a href="?type=f2" class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded hover:bg-blue-200">F2</a>
+                    <a href="?ville=Dakar" class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded hover:bg-blue-200">Dakar</a>
+                    <a href="?prix_max=200000" class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded hover:bg-blue-200">&lt; 200k FCFA</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Actions de navigation -->
+    <div class="flex items-center justify-between mt-12 pt-6 border-t border-gray-200">
+        <a href="{% url 'dashboard:index' %}" 
+           class="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors flex items-center">
+            <i class="fas fa-arrow-left mr-2"></i>
+            Retour au dashboard
+        </a>
+        
+        <div class="flex items-center space-x-3">
+            <a href="{% url 'properties:select' %}" 
+               class="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center">
+                <i class="fas fa-hand-pointer mr-2"></i>
+                Mode sélection
+            </a>
+            <a href="{% url 'properties:appartements_list' %}" 
+               class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center">
+                <i class="fas fa-list mr-2"></i>
+                Liste complète
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+// Gestion des filtres rapides
+document.querySelectorAll('.quick-filter').forEach(button => {
+    button.addEventListener('click', function() {
+        this.classList.toggle('active');
+        updateQuickFilters();
+    });
+});
+
+function updateQuickFilters() {
+    // Cette fonction pourrait être étendue pour appliquer automatiquement les filtres
+    // Pour l'instant, elle gère juste l'apparence visuelle
+}
+
+function clearFilters() {
+    // Réinitialiser le formulaire
+    document.getElementById('searchForm').reset();
+    
+    // Décocher les filtres rapides
+    document.querySelectorAll('.quick-filter').forEach(button => {
+        button.classList.remove('active');
+    });
+    
+    // Optionnel : soumettre automatiquement pour effacer les résultats
+    // document.getElementById('searchForm').submit();
+}
+
+// Suggestions de prix automatiques
+document.addEventListener('DOMContentLoaded', function() {
+    const typeSelect = document.querySelector('select[name="type"]');
+    const prixMinInput = document.querySelector('input[name="prix_min"]');
+    const prixMaxInput = document.querySelector('input[name="prix_max"]');
+    
+    // Suggestions de prix selon le type
+    const priceSuggestions = {
+        'studio': { min: 80000, max: 150000 },
+        'f1': { min: 100000, max: 180000 },
+        'f2': { min: 150000, max: 250000 },
+        'f3': { min: 200000, max: 350000 },
+        'f4': { min: 300000, max: 500000 },
+        'f5_plus': { min: 400000, max: 800000 },
+        'commercial': { min: 200000, max: 1000000 }
+    };
+    
+    typeSelect?.addEventListener('change', function() {
+        const suggestion = priceSuggestions[this.value];
+        if (suggestion && !prixMinInput.value && !prixMaxInput.value) {
+            prixMinInput.placeholder = `Suggéré: ${suggestion.min.toLocaleString('fr-FR')}`;
+            prixMaxInput.placeholder = `Suggéré: ${suggestion.max.toLocaleString('fr-FR')}`;
+        }
+    });
+});
+
+// Auto-soumission du formulaire avec debounce pour la recherche textuelle
+let searchTimeout;
+document.querySelector('input[name="q"]')?.addEventListener('input', function() {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+        // Optionnel : soumission automatique après 2 secondes de pause
+        // document.getElementById('searchForm').submit();
+    }, 2000);
+});
+</script>
+{% endblock %}

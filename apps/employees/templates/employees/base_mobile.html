@@ -1,0 +1,296 @@
+from django.contrib import admin
+from django.urls import path, include
+from django.conf import settings
+from django.conf.urls.static import static
+from django.http import HttpResponse
+
+def home_view(request):
+    return HttpResponse("""
+    <!DOCTYPE html>
+    <html lang="fr">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Accueil - Seyni Properties</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+        <script>
+            tailwind.config = {
+                theme: {
+                    extend: {
+                        colors: {
+                            seyni: {
+                                50: '#f5f3f2',
+                                100: '#e8e3e0',
+                                200: '#d4c7c0',
+                                300: '#baa298',
+                                400: '#a25946',
+                                500: '#8d4e3d',
+                                600: '#794234',
+                                700: '#63362c',
+                                800: '#4e2b23',
+                                900: '#3a1f1a',
+                                primary: '#a25946',
+                            },
+                            navy: {
+                                50: '#f1f3f6',
+                                100: '#e1e6ed',
+                                200: '#c4cddb',
+                                300: '#9eacc2',
+                                400: '#758ba6',
+                                500: '#586e8b',
+                                600: '#475972',
+                                700: '#23456b',
+                                800: '#1d3a57',
+                                900: '#162e43',
+                                primary: '#23456b',
+                            }
+                        }
+                    }
+                }
+            }
+        </script>
+    </head>
+    <body class="bg-gradient-to-br from-gray-50 to-navy-50 min-h-screen">
+        <!-- Background Pattern -->
+        <div class="absolute inset-0 bg-white/60"></div>
+        <div class="absolute inset-0" style="background-image: url('data:image/svg+xml,%3Csvg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="%23f1f3f6" fill-opacity="0.4"%3E%3Cpath d="m0 40l40-40v40z"/%3E%3Cpath d="m40 40v-40l-40 40z"/%3E%3C/g%3E%3C/svg%3E');"></div>
+        
+        <div class="relative min-h-screen flex">
+            <!-- Section gauche - Informations -->
+            <div class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-navy-700 to-navy-800 relative overflow-hidden">
+                <div class="absolute inset-0 bg-black/20"></div>
+                <div class="relative z-10 flex flex-col justify-center px-12 text-white">
+                    <div class="mb-8">
+                        <img src="https://www.seyniproperties.sn/wp-content/uploads/2023/07/Header-logo-seyni-properties-2.png" 
+                             alt="Seyni Properties" 
+                             class="h-16 w-auto mb-8 filter brightness-0 invert">
+                    </div>
+                    
+                    <h1 class="text-4xl font-bold mb-6">
+                        Bienvenue sur le
+                        <span class="text-seyni-400">Système de Gestion</span>
+                    </h1>
+                    
+                    <p class="text-xl mb-8 text-navy-100">
+                        Gérez votre portefeuille immobilier avec simplicité et efficacité
+                    </p>
+                    
+                    <div class="space-y-4">
+                        <div class="flex items-center space-x-3">
+                            <div class="bg-white/20 p-2 rounded-lg">
+                                <i class="fas fa-building text-seyni-400"></i>
+                            </div>
+                            <span>Gestion des biens immobiliers</span>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <div class="bg-white/20 p-2 rounded-lg">
+                                <i class="fas fa-users text-seyni-400"></i>
+                            </div>
+                            <span>Suivi des locataires et proprietaires</span>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <div class="bg-white/20 p-2 rounded-lg">
+                                <i class="fas fa-chart-line text-seyni-400"></i>
+                            </div>
+                            <span>Tableaux de bord et rapports</span>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <div class="bg-white/20 p-2 rounded-lg">
+                                <i class="fas fa-mobile-alt text-seyni-400"></i>
+                            </div>
+                            <span>Interface mobile optimisée</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Decorative elements -->
+                <div class="absolute top-10 right-10 w-32 h-32 bg-white/10 rounded-full"></div>
+                <div class="absolute bottom-10 right-20 w-20 h-20 bg-seyni-400/20 rounded-full"></div>
+                <div class="absolute top-1/2 right-5 w-16 h-16 bg-white/5 rounded-full"></div>
+            </div>
+            
+            <!-- Section droite - Navigation -->
+            <div class="flex-1 flex flex-col justify-center px-6 sm:px-12 lg:px-16">
+                <div class="w-full max-w-md mx-auto">
+                    <!-- Logo mobile -->
+                    <div class="lg:hidden text-center mb-8">
+                        <img src="https://www.seyniproperties.sn/wp-content/uploads/2023/07/Header-logo-seyni-properties-2.png" 
+                             alt="Seyni Properties" 
+                             class="h-12 w-auto mx-auto mb-4">
+                        <h2 class="text-2xl font-bold text-gray-900">Système de Gestion</h2>
+                    </div>
+                    
+                    <!-- Titre desktop -->
+                    <div class="hidden lg:block mb-8">
+                        <h2 class="text-3xl font-bold text-gray-900 mb-2">Système de Gestion</h2>
+                        <p class="text-gray-600">Accédez à votre espace de travail</p>
+                    </div>
+                    
+                    <!-- Navigation principale -->
+                    <div class="space-y-4 mb-8">
+                        <a href="/admin/" 
+                           class="w-full flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg 
+                                  hover:bg-navy-50 hover:border-navy-200 transition-all duration-200 shadow-sm hover:shadow-md">
+                            <div class="flex items-center space-x-3">
+                                <div class="bg-navy-700 p-3 rounded-lg">
+                                    <i class="fas fa-cog text-white text-lg"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-semibold text-gray-900">Administration Django</h3>
+                                    <p class="text-sm text-gray-600">Gestion complète du système</p>
+                                </div>
+                            </div>
+                            <i class="fas fa-arrow-right text-gray-400"></i>
+                        </a>
+                        
+                        <a href="/employees/" 
+                           class="w-full flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg 
+                                  hover:bg-seyni-50 hover:border-seyni-200 transition-all duration-200 shadow-sm hover:shadow-md">
+                            <div class="flex items-center space-x-3">
+                                <div class="bg-seyni-400 p-3 rounded-lg">
+                                    <i class="fas fa-user-tie text-white text-lg"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-semibold text-gray-900">Gestion Employés</h3>
+                                    <p class="text-sm text-gray-600">Tâches, planning et suivi mobile</p>
+                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-100 text-green-800 mt-1">
+                                        <i class="fas fa-mobile-alt mr-1"></i>Mobile Ready
+                                    </span>
+                                </div>
+                            </div>
+                            <i class="fas fa-arrow-right text-gray-400"></i>
+                        </a>
+                        
+                        <a href="/dashboard/" 
+                           class="w-full flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg 
+                                  hover:bg-blue-50 hover:border-blue-200 transition-all duration-200 shadow-sm hover:shadow-md">
+                            <div class="flex items-center space-x-3">
+                                <div class="bg-blue-600 p-3 rounded-lg">
+                                    <i class="fas fa-chart-line text-white text-lg"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-semibold text-gray-900">Dashboard Manager</h3>
+                                    <p class="text-sm text-gray-600">Vue d'ensemble et statistiques</p>
+                                </div>
+                            </div>
+                            <i class="fas fa-arrow-right text-gray-400"></i>
+                        </a>
+                    </div>
+                    
+                    <!-- Accès rapide -->
+                    <div class="bg-gray-50 rounded-lg border border-gray-200 p-4">
+                        <h3 class="text-sm font-medium text-gray-700 mb-3">
+                            <i class="fas fa-rocket text-navy-700 mr-1"></i>
+                            Accès rapide aux modules
+                        </h3>
+                        <div class="grid grid-cols-2 gap-2 text-xs">
+                            <a href="/properties/" 
+                               class="bg-white border border-gray-200 rounded px-3 py-2 text-center hover:bg-navy-50 hover:border-navy-200 transition-colors">
+                                <i class="fas fa-building text-navy-700 block mb-1"></i>
+                                Biens
+                            </a>
+                            <a href="/tenants/" 
+                               class="bg-white border border-gray-200 rounded px-3 py-2 text-center hover:bg-navy-50 hover:border-navy-200 transition-colors">
+                                <i class="fas fa-users text-navy-700 block mb-1"></i>
+                                Locataires
+                            </a>
+                            <a href="/contracts/" 
+                               class="bg-white border border-gray-200 rounded px-3 py-2 text-center hover:bg-navy-50 hover:border-navy-200 transition-colors">
+                                <i class="fas fa-file-contract text-navy-700 block mb-1"></i>
+                                Contrats
+                            </a>
+                            <a href="/maintenance/" 
+                               class="bg-white border border-gray-200 rounded px-3 py-2 text-center hover:bg-navy-50 hover:border-navy-200 transition-colors">
+                                <i class="fas fa-tools text-navy-700 block mb-1"></i>
+                                Maintenance
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- Informations système -->
+                    <div class="mt-6 p-3 bg-green-50 border border-green-200 rounded-lg">
+                        <div class="flex items-center space-x-2 text-green-800">
+                            <i class="fas fa-check-circle"></i>
+                            <span class="text-sm font-medium">Système opérationnel</span>
+                        </div>
+                        <p class="text-xs text-green-600 mt-1">
+                            Django configuré avec succès • Base de données connectée
+                        </p>
+                    </div>
+                    
+                    <!-- Footer -->
+                    <div class="mt-8 text-center text-sm text-gray-500">
+                        <p>© 2025 Seyni Properties. Tous droits réservés.</p>
+                        <p class="mt-1">
+                            <a href="https://www.seyniproperties.sn" class="text-navy-700 hover:text-navy-600">
+                                www.seyniproperties.sn
+                            </a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <script>
+            // Animation d'entrée
+            document.addEventListener('DOMContentLoaded', function() {
+                const elements = document.querySelectorAll('.space-y-4 > *');
+                elements.forEach((el, index) => {
+                    el.style.opacity = '0';
+                    el.style.transform = 'translateY(20px)';
+                    setTimeout(() => {
+                        el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+                        el.style.opacity = '1';
+                        el.style.transform = 'translateY(0)';
+                    }, index * 150);
+                });
+            });
+            
+            // Effet hover amélioré
+            document.querySelectorAll('a[href]').forEach(link => {
+                link.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-2px)';
+                });
+                
+                link.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                });
+            });
+        </script>
+    </body>
+    </html>
+    """)
+
+urlpatterns = [
+    # Administration
+    path('admin/', admin.site.urls),
+    
+    # Applications principales
+    path('dashboard/', include('apps.dashboard.urls')),
+urlpatterns = [
+    # Administration
+    path('admin/', admin.site.urls),
+    
+    # Applications principales
+    path('dashboard/', include('apps.dashboard.urls')),
+    path('accounts/', include('apps.accounts.urls')),
+    path('properties/', include('apps.properties.urls')),
+    path('landlords/', include('apps.landlords.urls')),
+    path('tenants/', include('apps.tenants.urls')),
+    path('contracts/', include('apps.contracts.urls')),
+    path('payments/', include('apps.payments.urls')),
+    path('maintenance/', include('apps.maintenance.urls')),
+    path('employees/', include('apps.employees.urls')),
+    path('accounting/', include('apps.accounting.urls')),
+    path('notifications/', include('apps.notifications.urls')),
+    path('portals/', include('apps.portals.urls')),
+    path('api/', include('apps.api.urls')),
+    
+    # Page d'accueil
+    path('', home_view, name='home'),
+]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

@@ -1,0 +1,11 @@
+# seyni_properties/railway.toml
+[build]
+builder = "dockerfile"
+
+[deploy]
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 10
+
+[environments.production.variables]
+RAILWAY_STATIC_URL = "/static/"
+RAILWAY_STATIC_ROOT = "staticfiles"

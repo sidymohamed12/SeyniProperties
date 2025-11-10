@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#23456b">
+
+    <title>Mon Profil - Imani Properties</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'imani-primary': '#23456b',
+                        'imani-secondary': '#a25946',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        body {
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+            -webkit-tap-highlight-color: transparent;
+            overscroll-behavior: none;
+        }
+
+        .safe-area {
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #23456b 0%, #a25946 100%);
+        }
+
+        .card-shadow {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #23456b 0%, #a25946 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .profile-picture {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            border: 4px solid white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            object-fit: cover;
+        }
+
+        .btn-primary {
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(135deg, #23456b 0%, #a25946 100%);
+            color: white;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-secondary {
+            padding: 0.75rem 1.5rem;
+            background: white;
+            color: #23456b;
+            border: 2px solid #23456b;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .btn-primary:active, .btn-secondary:active {
+            transform: scale(0.98);
+        }
+
+        .imani-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            transition: all 0.2s;
+        }
+
+        .imani-input:focus {
+            outline: none;
+            border-color: #23456b;
+            box-shadow: 0 0 0 3px rgba(35, 69, 107, 0.1);
+        }
+
+        .section-header {
+            font-weight: bold;
+            color: #23456b;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .travail-item {
+            background: white;
+            border-radius: 0.75rem;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            border-left: 4px solid #23456b;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            max-width: 90%;
+            max-height: 80%;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 safe-area">
+    <!-- Header -->
+    <header class="gradient-bg text-white sticky top-0 z-50 shadow-lg">
+        <div class="px-4 py-4">
+            <div class="flex items-center justify-between mb-3">
+                <a href="{% url 'employees_mobile:dashboard' %}" class="text-white">
+                    <i class="fas fa-arrow-left text-xl"></i>
+                </a>
+                <span class="text-sm opacity-90">Mon Profil</span>
+            </div>
+
+            <!-- Photo de profil et nom -->
+            <div class="text-center py-4">
+                <div class="relative inline-block">
+                    {% if user.profile_picture %}
+                    <img src="{{ user.profile_picture.url }}" alt="Photo de profil" class="profile-picture">
+                    {% else %}
+                    <div class="profile-picture bg-white flex items-center justify-center">
+                        <i class="fas fa-user text-4xl text-imani-primary"></i>
+                    </div>
+                    {% endif %}
+
+                    <button onclick="openPhotoModal()" class="absolute bottom-0 right-0 bg-white text-imani-primary rounded-full p-2 shadow-lg">
+                        <i class="fas fa-camera"></i>
+                    </button>
+                </div>
+
+                <h1 class="text-xl font-bold mt-3">{{ user.get_full_name }}</h1>
+                <p class="text-sm opacity-90">{{ employee.get_specialite_display }}</p>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenu principal -->
+    <main class="p-4 pb-20">
+        <!-- Messages -->
+        {% if messages %}
+        <div class="mb-4">
+            {% for message in messages %}
+            <div class="p-3 rounded-lg mb-2 {% if message.tags == 'error' %}bg-red-50 text-red-800{% elif message.tags == 'success' %}bg-green-50 text-green-800{% else %}bg-blue-50 text-blue-800{% endif %}">
+                <div class="flex items-center text-sm">
+                    <i class="fas {% if message.tags == 'error' %}fa-exclamation-circle{% elif message.tags == 'success' %}fa-check-circle{% else %}fa-info-circle{% endif %} mr-2"></i>
+                    {{ message }}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Statistiques -->
+        <div class="mb-6">
+            <h2 class="section-header">
+                <i class="fas fa-chart-line"></i>
+                Mes statistiques
+            </h2>
+
+            <div class="grid grid-cols-2 gap-3 mb-3">
+                <div class="stat-card card-shadow">
+                    <div class="stat-number">{{ travaux_stats.total|default:0 }}</div>
+                    <div class="text-xs text-gray-600 mt-1">Travaux totaux</div>
+                </div>
+
+                <div class="stat-card card-shadow">
+                    <div class="stat-number">{{ travaux_stats.termines|default:0 }}</div>
+                    <div class="text-xs text-gray-600 mt-1">Terminés</div>
+                </div>
+
+                <div class="stat-card card-shadow">
+                    <div class="stat-number">{{ travaux_stats.en_cours|default:0 }}</div>
+                    <div class="text-xs text-gray-600 mt-1">En cours</div>
+                </div>
+
+                <div class="stat-card card-shadow">
+                    <div class="stat-number">{{ taux_completion }}%</div>
+                    <div class="text-xs text-gray-600 mt-1">Taux de réussite</div>
+                </div>
+            </div>
+
+            {% if travaux_stats.temps_moyen %}
+            <div class="bg-white rounded-xl p-4 card-shadow text-center">
+                <div class="text-2xl font-bold text-imani-primary">{{ travaux_stats.temps_moyen|floatformat:1 }}h</div>
+                <div class="text-xs text-gray-600">Temps moyen par travail</div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Informations personnelles -->
+        <div class="mb-6">
+            <h2 class="section-header">
+                <i class="fas fa-user"></i>
+                Informations personnelles
+            </h2>
+
+            <div class="bg-white rounded-xl p-4 card-shadow space-y-3">
+                <div>
+                    <div class="text-xs text-gray-500 mb-1">Nom complet</div>
+                    <div class="font-medium">{{ user.get_full_name }}</div>
+                </div>
+
+                <div>
+                    <div class="text-xs text-gray-500 mb-1">Email</div>
+                    <div class="font-medium">{{ user.email|default:"Non renseigné" }}</div>
+                </div>
+
+                <div>
+                    <div class="text-xs text-gray-500 mb-1">Téléphone</div>
+                    <div class="font-medium">{{ user.phone|default:"Non renseigné" }}</div>
+                </div>
+
+                <div>
+                    <div class="text-xs text-gray-500 mb-1">Spécialité</div>
+                    <div class="font-medium">{{ employee.get_specialite_display }}</div>
+                </div>
+
+                <div>
+                    <div class="text-xs text-gray-500 mb-1">Statut</div>
+                    <div>
+                        {% if employee.actif %}
+                        <span class="inline-block px-3 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">
+                            <i class="fas fa-check-circle mr-1"></i>
+                            Actif
+                        </span>
+                        {% else %}
+                        <span class="inline-block px-3 py-1 bg-gray-100 text-gray-800 text-xs font-medium rounded-full">
+                            <i class="fas fa-pause-circle mr-1"></i>
+                            Inactif
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Travaux récents -->
+        {% if travaux_recents %}
+        <div class="mb-6">
+            <h2 class="section-header">
+                <i class="fas fa-history"></i>
+                Travaux récemment terminés
+            </h2>
+
+            {% for travail in travaux_recents %}
+            <div class="travail-item">
+                <div class="flex items-start justify-between mb-2">
+                    <div class="flex-1">
+                        <div class="font-medium text-gray-900">{{ travail.titre }}</div>
+                        <div class="text-xs text-gray-500 mt-1">{{ travail.numero_travail }}</div>
+                    </div>
+                    <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                        <i class="fas fa-check mr-1"></i>
+                        Terminé
+                    </span>
+                </div>
+                <div class="flex items-center text-xs text-gray-600 gap-3">
+                    <span>
+                        <i class="fas fa-calendar mr-1"></i>
+                        {{ travail.date_fin|date:"d/m/Y" }}
+                    </span>
+                    {% if travail.temps_passe %}
+                    <span>
+                        <i class="fas fa-clock mr-1"></i>
+                        {{ travail.temps_passe }}h
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Actions -->
+        <div class="space-y-3">
+            <button onclick="openPasswordModal()" class="btn-primary w-full">
+                <i class="fas fa-key mr-2"></i>
+                Changer mon mot de passe
+            </button>
+
+            <a href="{% url 'employees_mobile:dashboard' %}" class="block">
+                <button class="btn-secondary w-full">
+                    <i class="fas fa-arrow-left mr-2"></i>
+                    Retour au dashboard
+                </button>
+            </a>
+        </div>
+    </main>
+
+    <!-- Modal Photo de profil -->
+    <div id="photoModal" class="modal">
+        <div class="modal-content">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-bold text-imani-primary">Changer ma photo</h3>
+                <button onclick="closePhotoModal()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="file" name="profile_photo" accept="image/*" class="imani-input mb-4">
+                <button type="submit" name="upload_photo" class="btn-primary w-full">
+                    <i class="fas fa-upload mr-2"></i>
+                    Télécharger la photo
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Changement de mot de passe -->
+    <div id="passwordModal" class="modal">
+        <div class="modal-content">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-bold text-imani-primary">Changer mon mot de passe</h3>
+                <button onclick="closePasswordModal()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+
+            <form method="post">
+                {% csrf_token %}
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Mot de passe actuel
+                        </label>
+                        <input type="password" name="old_password" class="imani-input" required>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Nouveau mot de passe
+                        </label>
+                        <input type="password" name="new_password1" class="imani-input" required>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Confirmer le nouveau mot de passe
+                        </label>
+                        <input type="password" name="new_password2" class="imani-input" required>
+                    </div>
+
+                    <button type="submit" name="change_password" class="btn-primary w-full">
+                        <i class="fas fa-check mr-2"></i>
+                        Changer le mot de passe
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openPhotoModal() {
+            document.getElementById('photoModal').classList.add('active');
+        }
+
+        function closePhotoModal() {
+            document.getElementById('photoModal').classList.remove('active');
+        }
+
+        function openPasswordModal() {
+            document.getElementById('passwordModal').classList.add('active');
+        }
+
+        function closePasswordModal() {
+            document.getElementById('passwordModal').classList.remove('active');
+        }
+
+        // Fermer les modals en cliquant à l'extérieur
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

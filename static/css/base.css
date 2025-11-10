@@ -1,0 +1,51 @@
+/* static/css/base.css - Styles de base pour Seyni Properties */
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f5f5f5;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.header {
+    background-color: #2c3e50;
+    color: white;
+    padding: 1rem;
+    text-align: center;
+}
+
+.btn {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #3498db;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    margin: 5px;
+}
+
+.btn:hover {
+    background-color: #2980b9;
+}
+
+.success {
+    color: #27ae60;
+    background-color: #d5f4e6;
+    padding: 10px;
+    border-radius: 5px;
+    margin: 10px 0;
+}
+
+.error {
+    color: #e74c3c;
+    background-color: #fdf2f2;
+    padding: 10px;
+    border-radius: 5px;
+    margin: 10px 0;
+}

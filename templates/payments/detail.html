@@ -1,0 +1,273 @@
+<!-- templates/payments/detail.html -->
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Paiement {{ payment.numero_paiement }} - Imani{% endblock %}
+
+{% block page_title %}Détail du Paiement{% endblock %}
+{% block page_subtitle %}{{ payment.numero_paiement }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .info-card {
+        background: white;
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .section-header {
+        border-bottom: 2px solid #e5e7eb;
+        padding-bottom: 0.75rem;
+        margin-bottom: 1.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <!-- Breadcrumb -->
+    <div class="mb-6">
+        <a href="{% url 'payments:list' %}" class="text-blue-600 hover:text-blue-700">
+            <i class="fas fa-arrow-left mr-2"></i>Retour à la liste des paiements
+        </a>
+    </div>
+
+    <!-- En-tête -->
+    <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">
+                    <i class="fas fa-receipt text-green-600 mr-3"></i>
+                    {{ payment.numero_paiement }}
+                </h1>
+                <p class="text-gray-600">Détails complets du paiement</p>
+            </div>
+
+            <div class="mt-4 md:mt-0">
+                <span class="text-sm px-4 py-2 rounded-full font-medium
+                    {% if payment.statut == 'valide' %}bg-green-100 text-green-800
+                    {% elif payment.statut == 'en_attente' %}bg-yellow-100 text-yellow-800
+                    {% elif payment.statut == 'refuse' %}bg-red-100 text-red-800
+                    {% else %}bg-gray-100 text-gray-800{% endif %}">
+                    <i class="fas fa-circle text-xs mr-2"></i>
+                    {{ payment.get_statut_display }}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Colonne gauche - Informations principales -->
+        <div class="lg:col-span-2 space-y-6">
+            <!-- Informations du paiement -->
+            <div class="info-card">
+                <h2 class="section-header text-xl font-semibold text-gray-900">
+                    <i class="fas fa-info-circle text-blue-600 mr-2"></i>
+                    Informations du paiement
+                </h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-500 mb-1">Numéro de paiement</label>
+                        <p class="text-lg font-semibold text-gray-900">{{ payment.numero_paiement }}</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-500 mb-1">Date de paiement</label>
+                        <p class="text-lg text-gray-900">{{ payment.date_paiement|date:"d/m/Y" }}</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-500 mb-1">Montant payé</label>
+                        <p class="text-2xl font-bold text-green-600">{{ payment.montant|floatformat:0 }} FCFA</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-500 mb-1">Moyen de paiement</label>
+                        <p class="text-lg text-gray-900">{{ payment.get_moyen_paiement_display }}</p>
+                    </div>
+
+                    {% if payment.reference_transaction %}
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-500 mb-1">Référence de transaction</label>
+                        <p class="text-lg text-gray-900 font-mono">{{ payment.reference_transaction }}</p>
+                    </div>
+                    {% endif %}
+
+                    {% if payment.notes %}
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-500 mb-1">Notes</label>
+                        <p class="text-gray-700">{{ payment.notes }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Informations de la facture -->
+            <div class="info-card">
+                <h2 class="section-header text-xl font-semibold text-gray-900">
+                    <i class="fas fa-file-invoice text-purple-600 mr-2"></i>
+                    Facture associée
+                </h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-500 mb-1">Numéro de facture</label>
+                        <p class="text-lg font-semibold text-gray-900">
+                            <a href="{% url 'payments:invoice_detail' payment.facture.pk %}"
+                               class="text-blue-600 hover:text-blue-800">
+                                {{ payment.facture.numero_facture }}
+                            </a>
+                        </p>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-500 mb-1">Montant de la facture</label>
+                        <p class="text-lg text-gray-900">{{ payment.facture.montant_ttc|floatformat:0 }} FCFA</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-500 mb-1">Locataire</label>
+                        <p class="text-lg text-gray-900">{{ payment.facture.contrat.locataire.nom_complet }}</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-500 mb-1">Appartement</label>
+                        <p class="text-lg text-gray-900">
+                            {{ payment.facture.contrat.appartement.nom }} -
+                            {{ payment.facture.contrat.appartement.residence.nom }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Validation -->
+            {% if payment.statut == 'valide' and payment.valide_par %}
+            <div class="info-card bg-green-50">
+                <h2 class="section-header text-xl font-semibold text-green-800 border-green-200">
+                    <i class="fas fa-check-circle mr-2"></i>
+                    Validation
+                </h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-green-700 mb-1">Validé par</label>
+                        <p class="text-lg text-green-900">{{ payment.valide_par.get_full_name }}</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-green-700 mb-1">Date de validation</label>
+                        <p class="text-lg text-green-900">{{ payment.date_validation|date:"d/m/Y à H:i" }}</p>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Colonne droite - Actions et historique -->
+        <div class="space-y-6">
+            <!-- Actions -->
+            <div class="info-card">
+                <h3 class="font-semibold text-gray-900 mb-4">
+                    <i class="fas fa-cog mr-2"></i>Actions
+                </h3>
+
+                <div class="space-y-2">
+                    {% if payment.statut == 'valide' %}
+                    <!-- Actions pour paiement validé -->
+                    <a href="{% url 'payments:receipt_download' payment.pk %}"
+                       class="block w-full p-3 bg-green-600 hover:bg-green-700 text-white rounded-lg text-center transition duration-200">
+                        <i class="fas fa-download mr-2"></i>
+                        Télécharger la quittance
+                    </a>
+
+                    <a href="{% url 'payments:receipt_preview' payment.pk %}" target="_blank"
+                       class="block w-full p-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-center transition duration-200">
+                        <i class="fas fa-eye mr-2"></i>
+                        Aperçu de la quittance
+                    </a>
+                    {% endif %}
+
+                    {% if payment.statut == 'en_attente' and request.user.is_staff %}
+                    <!-- Actions pour paiement en attente -->
+                    <button onclick="validatePayment({{ payment.pk }})"
+                            class="block w-full p-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition duration-200">
+                        <i class="fas fa-check mr-2"></i>
+                        Valider le paiement
+                    </button>
+
+                    <button onclick="refusePayment({{ payment.pk }})"
+                            class="block w-full p-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition duration-200">
+                        <i class="fas fa-times mr-2"></i>
+                        Refuser le paiement
+                    </button>
+                    {% endif %}
+
+                    <a href="{% url 'payments:invoice_detail' payment.facture.pk %}"
+                       class="block w-full p-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-center transition duration-200">
+                        <i class="fas fa-file-invoice mr-2"></i>
+                        Voir la facture
+                    </a>
+                </div>
+            </div>
+
+            <!-- Historique -->
+            <div class="info-card">
+                <h3 class="font-semibold text-gray-900 mb-4">
+                    <i class="fas fa-history mr-2"></i>Historique
+                </h3>
+
+                <div class="space-y-3 text-sm">
+                    <div>
+                        <p class="text-gray-500 mb-1">Créé le</p>
+                        <p class="font-medium text-gray-900">{{ payment.created_at|date:"d/m/Y à H:i" }}</p>
+                    </div>
+
+                    <div>
+                        <p class="text-gray-500 mb-1">Dernière modification</p>
+                        <p class="font-medium text-gray-900">{{ payment.updated_at|date:"d/m/Y à H:i" }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script>
+function validatePayment(paymentId) {
+    if (!confirm('Voulez-vous vraiment valider ce paiement ?')) {
+        return;
+    }
+
+    fetch(`/payments/api/paiements/${paymentId}/valider/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('✅ ' + data.message);
+            location.reload();
+        } else {
+            alert('❌ Erreur: ' + (data.error || 'Une erreur est survenue'));
+        }
+    })
+    .catch(error => {
+        alert('❌ Erreur lors de la validation: ' + error);
+    });
+}
+
+function refusePayment(paymentId) {
+    if (!confirm('Voulez-vous vraiment refuser ce paiement ?')) {
+        return;
+    }
+
+    // TODO: Implémenter l'API de refus
+    alert('Fonctionnalité de refus à implémenter');
+}
+</script>
+{% endblock %}

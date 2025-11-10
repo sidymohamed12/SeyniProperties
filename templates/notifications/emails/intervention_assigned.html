@@ -1,0 +1,75 @@
+<!-- templates/notifications/emails/intervention_assigned.html -->
+{% extends 'notifications/emails/base_email.html' %}
+
+{% block title %}Nouvelle Intervention Assignée - IMANY{% endblock %}
+
+{% block content %}
+<div class="greeting">
+    Bonjour {{ technicien }},
+</div>
+
+{% if intervention.priorite == 'urgente' %}
+<div class="urgent-banner">
+    <strong>🚨 INTERVENTION URGENTE</strong>
+    <p style="margin: 8px 0 0 0; color: #991b1b;">
+        Cette intervention nécessite votre attention immédiate.
+    </p>
+</div>
+{% endif %}
+
+<div class="content">
+    <p>Une nouvelle intervention vous a été assignée et requiert votre attention.</p>
+</div>
+
+<div class="info-box">
+    <h3>📋 Détails de l'intervention</h3>
+    
+    <div class="info-row">
+        <span class="info-label">Bien concerné :</span>
+        <span class="info-value">{{ intervention.property }}</span>
+    </div>
+    
+    <div class="info-row">
+        <span class="info-label">Priorité :</span>
+        <span class="info-value">
+            <span class="priority-badge priority-{{ intervention.priorite }}">
+                {{ intervention.get_priorite_display }}
+            </span>
+        </span>
+    </div>
+    
+    {% if intervention.date_intervention %}
+    <div class="info-row">
+        <span class="info-label">Date prévue :</span>
+        <span class="info-value">{{ intervention.date_intervention|date:"d/m/Y à H:i" }}</span>
+    </div>
+    {% endif %}
+    
+    <div class="info-row">
+        <span class="info-label">Type :</span>
+        <span class="info-value">{{ intervention.get_type_intervention_display }}</span>
+    </div>
+    
+    {% if intervention.description %}
+    <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e5e7eb;">
+        <span class="info-label" style="display: block; margin-bottom: 8px;">Description :</span>
+        <span class="info-value" style="display: block;">{{ intervention.description }}</span>
+    </div>
+    {% endif %}
+</div>
+
+<div style="text-align: center;">
+    <a href="{{ link_url }}" class="button">
+        📱 Voir l'intervention
+    </a>
+</div>
+
+<div class="content" style="margin-top: 30px; font-size: 14px; color: #6b7280;">
+    <p><strong>Action requise :</strong></p>
+    <ul style="margin: 10px 0; padding-left: 20px;">
+        <li>Connectez-vous à la plateforme IMANY</li>
+        <li>Consultez les détails complets de l'intervention</li>
+        <li>Mettez à jour le statut une fois l'intervention démarrée</li>
+    </ul>
+</div>
+{% endblock %}

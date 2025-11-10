@@ -1,0 +1,437 @@
+<!-- templates/properties/property_selection.html -->
+{% extends 'base_dashboard.html' %}
+
+{% block title %}Sélectionner un bien - {{ block.super }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .residence-section {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        border: 1px solid #e5e7eb;
+        margin-bottom: 2rem;
+    }
+    
+    .residence-header {
+        background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+        color: white;
+        padding: 1.5rem;
+    }
+    
+    .appartement-item {
+        transition: all 0.2s ease;
+        cursor: pointer;
+        border-radius: 8px;
+        margin: 0.5rem;
+        padding: 1rem;
+        border: 2px solid transparent;
+    }
+    
+    .appartement-item:hover {
+        background-color: #f3f4f6;
+        border-color: #3b82f6;
+        transform: translateY(-1px);
+    }
+    
+    .appartement-item.selected {
+        background-color: #eff6ff;
+        border-color: #3b82f6;
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+    }
+    
+    .filter-bar {
+        background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .action-button {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        transition: all 0.2s ease;
+        text-decoration: none;
+    }
+    
+    .action-button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .stat-card {
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 8px;
+        padding: 1rem;
+        text-align: center;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <!-- En-tête -->
+    <div class="text-center mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">
+            <i class="fas fa-search text-blue-600 mr-3"></i>
+            Sélectionner un bien
+        </h1>
+        <p class="text-gray-600">Choisissez l'appartement pour lequel vous souhaitez créer un contrat</p>
+    </div>
+
+    <!-- Barre de filtres -->
+    <div class="filter-bar">
+        <div class="flex flex-wrap items-center gap-4">
+            <div class="flex-1 min-w-64">
+                <input type="text" id="searchInput" placeholder="Rechercher par nom d'appartement ou résidence..." 
+                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            </div>
+            
+            <select id="typeFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                <option value="">Tous les types</option>
+                <option value="studio">Studio</option>
+                <option value="f1">F1</option>
+                <option value="f2">F2</option>
+                <option value="f3">F3</option>
+                <option value="f4">F4</option>
+                <option value="f5_plus">F5+</option>
+                <option value="duplex">Duplex</option>
+                <option value="commercial">Commercial</option>
+            </select>
+            
+            <select id="residenceFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                <option value="">Toutes les résidences</option>
+                {% for residence_id, data in residences_data.items %}
+                <option value="{{ residence_id }}">{{ data.residence.nom }}</option>
+                {% endfor %}
+            </select>
+            
+            <button onclick="clearFilters()" class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors">
+                <i class="fas fa-times mr-1"></i>Effacer
+            </button>
+        </div>
+    </div>
+
+    <!-- Statistiques rapides -->
+    <div class="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-8">
+        <h3 class="text-lg font-semibold text-blue-900 mb-4">
+            <i class="fas fa-chart-bar text-blue-600 mr-2"></i>
+            Aperçu des biens disponibles
+        </h3>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="text-2xl font-bold text-blue-600" id="totalApartments">
+                    {% for residence_id, data in residences_data.items %}{{ data.appartements|length|add:0 }}{% empty %}0{% endfor %}
+                </div>
+                <div class="text-sm text-gray-600">Total appartements</div>
+            </div>
+            <div class="stat-card">
+                <div class="text-2xl font-bold text-green-600" id="totalResidences">{{ residences_data|length }}</div>
+                <div class="text-sm text-gray-600">Résidences</div>
+            </div>
+            <div class="stat-card">
+                <div class="text-2xl font-bold text-purple-600" id="visibleApartments">
+                    {% for residence_id, data in residences_data.items %}{{ data.appartements|length|add:0 }}{% empty %}0{% endfor %}
+                </div>
+                <div class="text-sm text-gray-600">Visibles</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Liste des résidences et appartements -->
+    <div id="residencesContainer">
+        {% for residence_id, data in residences_data.items %}
+        <div class="residence-section" data-residence-id="{{ residence_id }}">
+            <!-- En-tête de la résidence -->
+            <div class="residence-header">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-2xl font-bold mb-1">
+                            <i class="fas fa-building mr-2"></i>
+                            {{ data.residence.nom }}
+                        </h2>
+                        <p class="text-purple-100">
+                            <i class="fas fa-map-marker-alt mr-1"></i>
+                            {{ data.residence.quartier }}, {{ data.residence.ville }}
+                        </p>
+                        <div class="flex items-center space-x-4 mt-2">
+                            <span class="bg-white bg-opacity-20 px-3 py-1 rounded-full text-sm">
+                                {{ data.residence.get_type_residence_display }}
+                            </span>
+                            <span class="bg-white bg-opacity-20 px-3 py-1 rounded-full text-sm">
+                                {{ data.appartements|length }} appartement{{ data.appartements|length|pluralize }} disponible{{ data.appartements|length|pluralize }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-sm text-purple-200">proprietaire</div>
+                        <div class="font-semibold">{{ data.residence.proprietaire.nom_complet }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Liste des appartements -->
+            <div class="p-4">
+                {% if data.appartements %}
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {% for appartement in data.appartements %}
+                    <div class="appartement-item" 
+                         data-appartement-id="{{ appartement.id }}"
+                         data-type="{{ appartement.type_bien }}"
+                         data-residence-id="{{ residence_id }}"
+                         data-nom="{{ appartement.nom|lower }}"
+                         data-residence-nom="{{ data.residence.nom|lower }}"
+                         onclick="selectApartment({{ appartement.id }}, '{{ appartement.nom }}', '{{ data.residence.nom }}')">
+                        
+                        <div class="flex items-start justify-between mb-3">
+                            <div>
+                                <h4 class="font-semibold text-lg text-gray-900">{{ appartement.nom }}</h4>
+                                <p class="text-sm text-gray-600">{{ appartement.get_type_bien_display }}</p>
+                            </div>
+                            <span class="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
+                                Disponible
+                            </span>
+                        </div>
+
+                        <div class="space-y-2 text-sm text-gray-600 mb-4">
+                            <div class="flex items-center justify-between">
+                                <span>Étage:</span>
+                                <span class="font-medium">
+                                    {% if appartement.etage == 0 %}RDC
+                                    {% elif appartement.etage == -1 %}Sous-sol
+                                    {% else %}{{ appartement.etage }}e{% endif %}
+                                </span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span>Superficie:</span>
+                                <span class="font-medium">{{ appartement.superficie|default:"--" }} m²</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span>Pièces:</span>
+                                <span class="font-medium">{{ appartement.nb_pieces }}</span>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between pt-3 border-t border-gray-200">
+                            <div>
+                                <div class="font-bold text-blue-600">{{ appartement.loyer_base|floatformat:0 }} FCFA</div>
+                                {% if appartement.charges %}
+                                <div class="text-xs text-gray-500">+ {{ appartement.charges|floatformat:0 }} charges</div>
+                                {% endif %}
+                            </div>
+                            <div class="flex items-center space-x-1">
+                                {% if appartement.is_meuble %}
+                                <span class="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">Meublé</span>
+                                {% endif %}
+                                {% if appartement.has_parking %}
+                                <span class="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">Parking</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-8">
+                    <i class="fas fa-home text-gray-300 text-4xl mb-3"></i>
+                    <p class="text-gray-500">Aucun appartement disponible dans cette résidence</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <div class="text-center py-12">
+            <i class="fas fa-home text-gray-300 text-6xl mb-4"></i>
+            <h3 class="text-xl font-medium text-gray-500 mb-2">Aucun appartement disponible</h3>
+            <p class="text-gray-400 mb-6">Il n'y a actuellement aucun appartement libre</p>
+            <a href="{% url 'properties:appartement_create' %}" 
+               class="action-button bg-blue-600 text-white hover:bg-blue-700">
+                <i class="fas fa-plus mr-2"></i>Créer un appartement
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Appartement sélectionné -->
+    <div id="selectedApartment" class="hidden fixed bottom-6 right-6 bg-white border border-gray-200 rounded-xl shadow-lg p-4 max-w-sm">
+        <div class="flex items-start justify-between mb-3">
+            <div>
+                <h4 class="font-semibold text-gray-900" id="selectedName">--</h4>
+                <p class="text-sm text-gray-600" id="selectedResidence">--</p>
+            </div>
+            <button onclick="clearSelection()" class="text-gray-400 hover:text-gray-600">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="flex items-center space-x-2">
+            <a href="#" id="createContractLink" 
+               class="flex-1 action-button bg-green-600 text-white hover:bg-green-700 text-center text-sm">
+                <i class="fas fa-file-signature mr-1"></i>Créer contrat
+            </a>
+            <a href="#" id="viewDetailsLink" 
+               class="action-button bg-blue-600 text-white hover:bg-blue-700 text-sm">
+                <i class="fas fa-eye"></i>
+            </a>
+        </div>
+    </div>
+
+    <!-- Actions de navigation -->
+    <div class="flex items-center justify-between mt-8 pt-6 border-t border-gray-200">
+        <a href="{% url 'dashboard:index' %}" 
+           class="action-button bg-gray-500 text-white hover:bg-gray-600">
+            <i class="fas fa-arrow-left mr-2"></i>
+            Retour au dashboard
+        </a>
+        
+        <div class="flex items-center space-x-3">
+            <a href="{% url 'properties:appartements_list' %}" 
+               class="action-button bg-purple-600 text-white hover:bg-purple-700">
+                <i class="fas fa-list mr-2"></i>
+                Voir tous les appartements
+            </a>
+            <a href="{% url 'properties:appartement_create' %}" 
+               class="action-button bg-blue-600 text-white hover:bg-blue-700">
+                <i class="fas fa-plus mr-2"></i>
+                Nouveau bien
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+let selectedApartmentId = null;
+
+function selectApartment(id, name, residence) {
+    // Supprimer la sélection précédente
+    document.querySelectorAll('.appartement-item').forEach(item => {
+        item.classList.remove('selected');
+    });
+    
+    // Sélectionner le nouvel appartement
+    document.querySelector(`[data-appartement-id="${id}"]`).classList.add('selected');
+    selectedApartmentId = id;
+    
+    // Mettre à jour la zone de sélection
+    const selectedDiv = document.getElementById('selectedApartment');
+    const selectedName = document.getElementById('selectedName');
+    const selectedResidence = document.getElementById('selectedResidence');
+    const createContractLink = document.getElementById('createContractLink');
+    const viewDetailsLink = document.getElementById('viewDetailsLink');
+    
+    selectedName.textContent = name;
+    selectedResidence.textContent = residence;
+    createContractLink.href = `/contracts/create/?appartement=${id}`;
+    viewDetailsLink.href = `/properties/appartements/${id}/`;
+    
+    selectedDiv.classList.remove('hidden');
+    
+    // Animation d'apparition
+    selectedDiv.style.transform = 'translateY(100%)';
+    selectedDiv.style.opacity = '0';
+    setTimeout(() => {
+        selectedDiv.style.transform = 'translateY(0)';
+        selectedDiv.style.opacity = '1';
+        selectedDiv.style.transition = 'all 0.3s ease';
+    }, 10);
+}
+
+function clearSelection() {
+    document.querySelectorAll('.appartement-item').forEach(item => {
+        item.classList.remove('selected');
+    });
+    document.getElementById('selectedApartment').classList.add('hidden');
+    selectedApartmentId = null;
+}
+
+function clearFilters() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('typeFilter').value = '';
+    document.getElementById('residenceFilter').value = '';
+    filterApartments();
+}
+
+function filterApartments() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const typeFilter = document.getElementById('typeFilter').value;
+    const residenceFilter = document.getElementById('residenceFilter').value;
+    
+    let visibleCount = 0;
+    let visibleResidences = 0;
+    
+    document.querySelectorAll('.residence-section').forEach(residenceSection => {
+        const residenceId = residenceSection.dataset.residenceId;
+        let hasVisibleApartments = false;
+        
+        // Filtrer par résidence si sélectionné
+        if (residenceFilter && residenceFilter !== residenceId) {
+            residenceSection.style.display = 'none';
+            return;
+        }
+        
+        // Filtrer les appartements dans cette résidence
+        residenceSection.querySelectorAll('.appartement-item').forEach(item => {
+            const nom = item.dataset.nom;
+            const residenceNom = item.dataset.residenceNom;
+            const type = item.dataset.type;
+            
+            let visible = true;
+            
+            // Filtre de recherche
+            if (searchTerm && !nom.includes(searchTerm) && !residenceNom.includes(searchTerm)) {
+                visible = false;
+            }
+            
+            // Filtre de type
+            if (typeFilter && type !== typeFilter) {
+                visible = false;
+            }
+            
+            if (visible) {
+                item.style.display = 'block';
+                hasVisibleApartments = true;
+                visibleCount++;
+            } else {
+                item.style.display = 'none';
+            }
+        });
+        
+        // Afficher/masquer la résidence selon qu'elle a des appartements visibles
+        if (hasVisibleApartments) {
+            residenceSection.style.display = 'block';
+            visibleResidences++;
+        } else {
+            residenceSection.style.display = 'none';
+        }
+    });
+    
+    // Mettre à jour les statistiques
+    document.getElementById('visibleApartments').textContent = visibleCount;
+}
+
+// Écouter les changements de filtres
+document.getElementById('searchInput').addEventListener('input', filterApartments);
+document.getElementById('typeFilter').addEventListener('change', filterApartments);
+document.getElementById('residenceFilter').addEventListener('change', filterApartments);
+
+// Calculer le total initial
+document.addEventListener('DOMContentLoaded', function() {
+    let totalApartments = 0;
+    document.querySelectorAll('.appartement-item').forEach(() => totalApartments++);
+    document.getElementById('totalApartments').textContent = totalApartments;
+});
+</script>
+{% endblock %}

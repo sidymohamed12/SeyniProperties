@@ -1,0 +1,419 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Nouvelle Demande d'Achat{% endblock %}
+
+{% block page_title %}Nouvelle Demande d'Achat{% endblock %}
+{% block page_subtitle %}Créez une demande d'achat pour matériel ou fournitures{% endblock %}
+
+{% block extra_css %}
+<style>
+    .imani-card {
+        background: white;
+        border-radius: 0.75rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+    }
+
+    .imani-card:hover {
+        box-shadow: 0 4px 12px rgba(35, 69, 107, 0.15);
+    }
+
+    .imani-input {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.5rem;
+        transition: all 0.2s;
+    }
+
+    .imani-input:focus {
+        outline: none;
+        border-color: #23456b;
+        box-shadow: 0 0 0 3px rgba(35, 69, 107, 0.1);
+    }
+
+    .imani-label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #374151;
+        margin-bottom: 0.5rem;
+    }
+
+    .imani-section-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #23456b;
+        margin-bottom: 1.25rem;
+        display: flex;
+        align-items: center;
+    }
+
+    .imani-btn-primary {
+        padding: 0.75rem 1.5rem;
+        background: linear-gradient(135deg, #23456b 0%, #a25946 100%);
+        color: white;
+        border-radius: 0.5rem;
+        font-weight: 500;
+        transition: all 0.3s;
+        border: none;
+        cursor: pointer;
+    }
+
+    .imani-btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(35, 69, 107, 0.3);
+    }
+
+    .imani-btn-add {
+        padding: 0.5rem 1rem;
+        background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%);
+        color: white;
+        border-radius: 0.5rem;
+        font-weight: 500;
+        transition: all 0.3s;
+        border: none;
+        cursor: pointer;
+        font-size: 0.875rem;
+    }
+
+    .imani-btn-add:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
+    }
+
+    .article-card {
+        background: linear-gradient(135deg, rgba(35, 69, 107, 0.03) 0%, rgba(162, 89, 70, 0.03) 100%);
+        border: 2px solid #e5e7eb;
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        transition: all 0.3s;
+    }
+
+    .article-card:hover {
+        border-color: #23456b;
+        box-shadow: 0 4px 12px rgba(35, 69, 107, 0.1);
+    }
+
+    .total-display {
+        background: linear-gradient(135deg, #23456b 0%, #a25946 100%);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 0.75rem;
+        text-align: right;
+    }
+
+    .btn-remove {
+        color: #dc2626;
+        transition: all 0.2s;
+    }
+
+    .btn-remove:hover {
+        color: #991b1b;
+        transform: scale(1.1);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <!-- Navigation -->
+    <div class="mb-6">
+        <a href="{% url 'payments:demande_achat_list' %}" class="inline-flex items-center text-gray-600 hover:text-imani-primary transition-colors">
+            <i class="fas fa-arrow-left mr-2"></i>
+            Retour à la liste des demandes
+        </a>
+    </div>
+
+    <!-- Formulaire -->
+    <form method="post" id="demande-form" class="space-y-6">
+        {% csrf_token %}
+
+        <!-- Informations générales -->
+        <div class="imani-card p-6">
+            <h2 class="imani-section-title">
+                <i class="fas fa-info-circle text-imani-primary mr-2"></i>
+                Informations Générales
+            </h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Service/Fonction -->
+                <div>
+                    <label for="{{ form.service_fonction.id_for_label }}" class="imani-label">
+                        {{ form.service_fonction.label }} <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.service_fonction }}
+                    {% if form.service_fonction.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.service_fonction.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Date échéance -->
+                <div>
+                    <label for="{{ form.date_echeance.id_for_label }}" class="imani-label">
+                        {{ form.date_echeance.label }} <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.date_echeance }}
+                    {% if form.date_echeance.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.date_echeance.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Travail lié -->
+                <div class="md:col-span-2">
+                    <label for="{{ form.travail_lie.id_for_label }}" class="imani-label">
+                        {{ form.travail_lie.label }}
+                        <span class="text-gray-500 text-xs ml-1">(optionnel)</span>
+                    </label>
+                    {{ form.travail_lie }}
+                    <p class="mt-1 text-xs text-gray-500">
+                        <i class="fas fa-link text-imani-secondary mr-1"></i>
+                        Sélectionnez un travail si cette demande est liée à une intervention ou tâche spécifique
+                    </p>
+                    {% if form.travail_lie.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.travail_lie.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Motif principal -->
+                <div class="md:col-span-2">
+                    <label for="{{ form.motif_principal.id_for_label }}" class="imani-label">
+                        {{ form.motif_principal.label }} <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.motif_principal }}
+                    {% if form.motif_principal.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.motif_principal.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Articles demandés -->
+        <div class="imani-card p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="imani-section-title mb-0">
+                    <i class="fas fa-list text-imani-primary mr-2"></i>
+                    Articles Demandés
+                </h2>
+                <button type="button" id="add-article" class="imani-btn-add">
+                    <i class="fas fa-plus mr-2"></i>Ajouter un article
+                </button>
+            </div>
+
+            {{ formset.management_form }}
+
+            <div id="articles-container" class="space-y-4">
+                {% for form in formset %}
+                    <div class="article-form article-card" data-form-index="{{ forloop.counter0 }}">
+                        <div class="flex justify-between items-start mb-4">
+                            <h3 class="text-base font-semibold text-imani-primary">
+                                <i class="fas fa-box mr-2"></i>
+                                Article #<span class="article-number">{{ forloop.counter }}</span>
+                            </h3>
+                            {% if not forloop.first %}
+                                <button type="button" class="remove-article btn-remove">
+                                    <i class="fas fa-trash-alt mr-1"></i>Supprimer
+                                </button>
+                            {% endif %}
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <!-- Désignation -->
+                            <div class="md:col-span-2">
+                                <label class="imani-label">
+                                    Désignation <span class="text-red-500">*</span>
+                                </label>
+                                {{ form.designation }}
+                            </div>
+
+                            <!-- Quantité -->
+                            <div>
+                                <label class="imani-label">
+                                    Quantité <span class="text-red-500">*</span>
+                                </label>
+                                {{ form.quantite }}
+                            </div>
+
+                            <!-- Unité -->
+                            <div>
+                                <label class="imani-label">
+                                    Unité <span class="text-red-500">*</span>
+                                </label>
+                                {{ form.unite }}
+                            </div>
+
+                            <!-- Fournisseur -->
+                            <div>
+                                <label class="imani-label">
+                                    Fournisseur
+                                </label>
+                                {{ form.fournisseur }}
+                            </div>
+
+                            <!-- Prix unitaire -->
+                            <div>
+                                <label class="imani-label">
+                                    Prix unitaire (FCFA) <span class="text-red-500">*</span>
+                                </label>
+                                {{ form.prix_unitaire }}
+                            </div>
+
+                            <!-- Motif -->
+                            <div class="md:col-span-3">
+                                <label class="imani-label">
+                                    Motif/Justification <span class="text-red-500">*</span>
+                                </label>
+                                {{ form.motif }}
+                            </div>
+                        </div>
+
+                        <!-- Champs cachés -->
+                        {{ form.id }}
+                        {{ form.DELETE }}
+                    </div>
+                {% endfor %}
+            </div>
+
+            <!-- Total estimé -->
+            <div class="mt-6">
+                <div class="total-display">
+                    <p class="text-sm opacity-90 mb-1">Total Estimé</p>
+                    <p class="text-3xl font-bold">
+                        <span id="total-amount">0</span> FCFA
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Messages d'erreur formset -->
+        {% if formset.non_form_errors %}
+            <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
+                <div class="flex">
+                    <i class="fas fa-exclamation-circle text-red-500 mt-1 mr-2"></i>
+                    <div>
+                        <p class="text-sm text-red-700">{{ formset.non_form_errors }}</p>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
+        <!-- Boutons d'action -->
+        <div class="flex justify-end items-center pt-6">
+            <button type="submit" class="imani-btn-primary">
+                <i class="fas fa-save mr-2"></i>
+                Créer la demande d'achat
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const container = document.getElementById('articles-container');
+    const addButton = document.getElementById('add-article');
+    const totalForms = document.querySelector('[name$="-TOTAL_FORMS"]');
+
+    // Pré-remplir le travail lié si l'URL contient travail_id
+    const urlParams = new URLSearchParams(window.location.search);
+    const travailId = urlParams.get('travail_id');
+    if (travailId) {
+        const travailSelect = document.querySelector('[name="travail_lie"]');
+        if (travailSelect) {
+            travailSelect.value = travailId;
+            // Highlight pour attirer l'attention
+            travailSelect.parentElement.classList.add('ring-2', 'ring-imani-secondary', 'rounded-lg', 'p-2');
+        }
+    }
+
+    // Fonction pour calculer le total
+    function calculateTotal() {
+        let total = 0;
+        document.querySelectorAll('.article-form:not([style*="display: none"])').forEach(form => {
+            const deleteCheckbox = form.querySelector('[name$="-DELETE"]');
+            if (deleteCheckbox && deleteCheckbox.checked) return;
+
+            const quantite = parseFloat(form.querySelector('[name$="-quantite"]')?.value) || 0;
+            const prix = parseFloat(form.querySelector('[name$="-prix_unitaire"]')?.value) || 0;
+            total += quantite * prix;
+        });
+
+        document.getElementById('total-amount').textContent = total.toLocaleString('fr-FR');
+    }
+
+    // Fonction pour mettre à jour les numéros d'articles
+    function updateArticleNumbers() {
+        let visibleIndex = 1;
+        document.querySelectorAll('.article-form').forEach(form => {
+            const deleteCheckbox = form.querySelector('[name$="-DELETE"]');
+            if (!deleteCheckbox || !deleteCheckbox.checked) {
+                form.querySelector('.article-number').textContent = visibleIndex;
+                visibleIndex++;
+            }
+        });
+    }
+
+    // Ajouter un article
+    addButton.addEventListener('click', function() {
+        const formCount = parseInt(totalForms.value);
+        const newForm = container.querySelector('.article-form').cloneNode(true);
+
+        // Remplacer les index
+        newForm.innerHTML = newForm.innerHTML.replace(/-0-/g, `-${formCount}-`);
+        newForm.innerHTML = newForm.innerHTML.replace(/_0_/g, `_${formCount}_`);
+
+        // Vider les valeurs
+        newForm.querySelectorAll('input, textarea, select').forEach(input => {
+            if (input.type === 'checkbox') {
+                input.checked = false;
+            } else if (!input.name.includes('TOTAL_FORMS') && !input.name.includes('INITIAL_FORMS')) {
+                input.value = '';
+            }
+        });
+
+        // Ajouter le bouton supprimer si ce n'est pas déjà présent
+        const header = newForm.querySelector('.flex');
+        if (!header.querySelector('.remove-article')) {
+            const removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.className = 'remove-article btn-remove';
+            removeBtn.innerHTML = '<i class="fas fa-trash-alt mr-1"></i>Supprimer';
+            header.appendChild(removeBtn);
+        }
+
+        container.appendChild(newForm);
+        totalForms.value = formCount + 1;
+        updateArticleNumbers();
+    });
+
+    // Supprimer un article
+    container.addEventListener('click', function(e) {
+        if (e.target.closest('.remove-article')) {
+            const form = e.target.closest('.article-form');
+            const deleteCheckbox = form.querySelector('[name$="-DELETE"]');
+
+            if (deleteCheckbox) {
+                deleteCheckbox.checked = true;
+                form.style.display = 'none';
+            } else {
+                form.remove();
+            }
+
+            updateArticleNumbers();
+            calculateTotal();
+        }
+    });
+
+    // Calculer total en temps réel
+    container.addEventListener('input', function(e) {
+        if (e.target.name?.includes('-quantite') || e.target.name?.includes('-prix_unitaire')) {
+            calculateTotal();
+        }
+    });
+
+    // Calcul initial
+    calculateTotal();
+    updateArticleNumbers();
+});
+</script>
+{% endblock %}

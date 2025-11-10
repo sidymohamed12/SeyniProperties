@@ -1,0 +1,690 @@
+<!-- templates/employees/mobile/task_complete_form.html -->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#23456b">
+    
+    <title>Terminer la tâche - {{ task.titre }}</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'seyni-primary': '#a25946',
+                        'seyni-secondary': '#23456b',
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        .safe-area {
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #23456b 0%, #a25946 100%);
+        }
+        
+        .form-input {
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 12px 16px;
+            transition: all 0.3s ease;
+        }
+        
+        .form-input:focus {
+            border-color: #a25946;
+            box-shadow: 0 0 0 3px rgba(162, 89, 70, 0.1);
+            outline: none;
+        }
+        
+        .btn-primary {
+            background: #a25946;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 14px 24px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            background: #8b4a3c;
+            transform: translateY(-1px);
+        }
+        
+        .btn-primary:active {
+            transform: scale(0.98);
+        }
+        
+        .photo-preview {
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .delete-photo {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(239, 68, 68, 0.9);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .voice-recording {
+            background: linear-gradient(45deg, #ef4444, #dc2626);
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        .timer {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 safe-area">
+    <!-- Header -->
+    <header class="gradient-bg text-white sticky top-0 z-50 shadow-lg">
+        <div class="px-4 py-4">
+            <div class="flex items-center space-x-3">
+                <button onclick="goBack()" class="p-2 hover:bg-black hover:bg-opacity-20 rounded-lg transition-colors">
+                    <i class="fas fa-arrow-left text-xl"></i>
+                </button>
+                <div class="flex-1">
+                    <h1 class="font-bold text-lg">Terminer la tâche</h1>
+                    <p class="text-blue-200 text-sm">{{ task.titre }}</p>
+                </div>
+                <div class="text-right">
+                    <span class="bg-green-500 px-3 py-1 rounded-full text-xs font-medium">
+                        <i class="fas fa-check mr-1"></i>
+                        Finalisation
+                    </span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenu principal -->
+    <main class="p-4">
+        <!-- Informations de la tâche -->
+        <div class="bg-white rounded-xl p-4 mb-6 shadow-sm">
+            <div class="flex items-start space-x-3">
+                <div class="flex-shrink-0">
+                    <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                        <i class="fas fa-{{ task.type_tache == 'menage' and 'broom' or task.type_tache == 'maintenance_preventive' and 'tools' or 'tasks' }} text-blue-600"></i>
+                    </div>
+                </div>
+                <div class="flex-1">
+                    <h3 class="font-semibold text-gray-900 mb-1">{{ task.titre }}</h3>
+                    <p class="text-sm text-gray-600 mb-2">{{ task.description|default:"Aucune description" }}</p>
+                    <div class="flex items-center space-x-4 text-xs text-gray-500">
+                        <span><i class="fas fa-clock mr-1"></i>{{ task.date_prevue|date:"d/m H:i" }}</span>
+                        {% if task.bien %}
+                        <span><i class="fas fa-map-marker-alt mr-1"></i>{{ task.bien.name }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Formulaire de completion -->
+        <form id="complete-form" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <!-- Temps passé -->
+            <div class="bg-white rounded-xl p-4 mb-4 shadow-sm">
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    <i class="fas fa-stopwatch mr-2 text-gray-400"></i>
+                    Temps passé (optionnel)
+                </label>
+                <div class="grid grid-cols-3 gap-3">
+                    <div>
+                        <input type="number" name="heures" id="heures" min="0" max="24" 
+                               class="form-input w-full text-center" placeholder="0">
+                        <label class="block text-xs text-gray-500 text-center mt-1">heures</label>
+                    </div>
+                    <div>
+                        <input type="number" name="minutes" id="minutes" min="0" max="59" 
+                               class="form-input w-full text-center" placeholder="0">
+                        <label class="block text-xs text-gray-500 text-center mt-1">minutes</label>
+                    </div>
+                    <div class="flex items-center justify-center">
+                        <button type="button" onclick="startTimer()" id="timer-btn" 
+                                class="bg-green-500 text-white p-3 rounded-xl">
+                            <i class="fas fa-play"></i>
+                        </button>
+                    </div>
+                </div>
+                <div id="timer-display" class="hidden text-center mt-3">
+                    <span class="timer text-2xl font-bold text-green-600">00:00:00</span>
+                </div>
+            </div>
+
+            <!-- Rapport de tâche -->
+            <div class="bg-white rounded-xl p-4 mb-4 shadow-sm">
+                <label class="block text-sm font-medium text-gray-700 mb-3">
+                    <i class="fas fa-file-alt mr-2 text-gray-400"></i>
+                    Rapport de tâche
+                    {% if task.type_tache in 'maintenance_preventive,etat_lieux' %}
+                    <span class="text-red-500">*</span>
+                    {% endif %}
+                </label>
+                
+                <!-- Boutons de rapport rapide -->
+                <div class="grid grid-cols-2 gap-2 mb-3">
+                    <button type="button" onclick="setQuickReport('Tâche réalisée selon les consignes. Aucun problème détecté.')" 
+                            class="bg-green-50 text-green-700 p-3 rounded-lg text-sm border border-green-200">
+                        <i class="fas fa-check mr-1"></i>
+                        Tâche OK
+                    </button>
+                    <button type="button" onclick="setQuickReport('Tâche réalisée avec quelques difficultés mineures. Voir détails ci-dessous.')" 
+                            class="bg-yellow-50 text-yellow-700 p-3 rounded-lg text-sm border border-yellow-200">
+                        <i class="fas fa-exclamation-triangle mr-1"></i>
+                        Avec remarques
+                    </button>
+                </div>
+                
+                <textarea name="commentaire" id="commentaire" rows="4" 
+                          class="form-input w-full resize-none" 
+                          placeholder="Décrivez le travail effectué, les éventuels problèmes rencontrés..."
+                          {% if task.type_tache in 'maintenance_preventive,etat_lieux' %}required{% endif %}></textarea>
+                
+                <!-- Enregistrement vocal -->
+                <div class="mt-3 flex items-center space-x-2">
+                    <button type="button" onclick="toggleVoiceRecording()" id="voice-btn" 
+                            class="bg-gray-100 text-gray-600 px-4 py-2 rounded-lg flex items-center space-x-2">
+                        <i class="fas fa-microphone"></i>
+                        <span>Enregistrement vocal</span>
+                    </button>
+                    <div id="recording-indicator" class="hidden flex items-center space-x-2 text-red-600">
+                        <div class="voice-recording w-3 h-3 rounded-full"></div>
+                        <span class="timer text-sm">00:00</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Photos avant/après -->
+            <div class="bg-white rounded-xl p-4 mb-4 shadow-sm">
+                <label class="block text-sm font-medium text-gray-700 mb-3">
+                    <i class="fas fa-camera mr-2 text-gray-400"></i>
+                    Photos du résultat
+                </label>
+                
+                <!-- Boutons de prise de photos -->
+                <div class="grid grid-cols-2 gap-3 mb-4">
+                    <button type="button" onclick="takePhoto('avant')" 
+                            class="bg-blue-50 text-blue-700 p-4 rounded-xl border-2 border-dashed border-blue-200 flex flex-col items-center">
+                        <i class="fas fa-camera text-2xl mb-2"></i>
+                        <span class="text-sm font-medium">Photo avant</span>
+                    </button>
+                    <button type="button" onclick="takePhoto('apres')" 
+                            class="bg-green-50 text-green-700 p-4 rounded-xl border-2 border-dashed border-green-200 flex flex-col items-center">
+                        <i class="fas fa-camera text-2xl mb-2"></i>
+                        <span class="text-sm font-medium">Photo après</span>
+                    </button>
+                </div>
+                
+                <!-- Galerie des photos prises -->
+                <div id="photos-gallery" class="grid grid-cols-2 gap-3"></div>
+                
+                <!-- Input caché pour les photos -->
+                <input type="file" id="photo-input" accept="image/*" capture="environment" class="hidden" multiple>
+            </div>
+
+            <!-- Matériel utilisé (optionnel) -->
+            <div class="bg-white rounded-xl p-4 mb-6 shadow-sm">
+                <label class="block text-sm font-medium text-gray-700 mb-3">
+                    <i class="fas fa-tools mr-2 text-gray-400"></i>
+                    Matériel/Produits utilisés (optionnel)
+                </label>
+                <div id="materials-list" class="space-y-2">
+                    <div class="flex items-center space-x-2">
+                        <input type="text" name="materials[]" 
+                               class="form-input flex-1" 
+                               placeholder="Ex: Produit nettoyant, Tournevis...">
+                        <button type="button" onclick="addMaterialField()" 
+                                class="bg-gray-100 text-gray-600 p-2 rounded-lg">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Boutons d'action -->
+            <div class="space-y-3">
+                <button type="submit" class="btn-primary w-full flex items-center justify-center space-x-2">
+                    <i class="fas fa-check"></i>
+                    <span>Terminer la tâche</span>
+                </button>
+                
+                <button type="button" onclick="saveDraft()" 
+                        class="w-full bg-gray-100 text-gray-700 py-3 rounded-xl font-medium">
+                    <i class="fas fa-save mr-2"></i>
+                    Sauvegarder en brouillon
+                </button>
+                
+                <button type="button" onclick="goBack()" 
+                        class="w-full bg-white text-gray-600 py-3 rounded-xl font-medium border border-gray-200">
+                    <i class="fas fa-times mr-2"></i>
+                    Annuler
+                </button>
+            </div>
+        </form>
+    </main>
+
+    <!-- Modal de confirmation -->
+    <div id="confirm-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl p-6 max-w-sm w-full">
+            <div class="text-center">
+                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-check text-green-600 text-2xl"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900 mb-2">Confirmer la completion</h3>
+                <p class="text-gray-600 mb-6">Êtes-vous sûr de vouloir marquer cette tâche comme terminée ?</p>
+                <div class="flex space-x-3">
+                    <button onclick="hideConfirmModal()" 
+                            class="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg">
+                        Annuler
+                    </button>
+                    <button onclick="submitForm()" 
+                            class="flex-1 btn-primary py-2 rounded-lg">
+                        Confirmer
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast container -->
+    <div id="toast-container" class="fixed top-20 left-4 right-4 z-50"></div>
+
+    <!-- Loading overlay -->
+    <div id="loading-overlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl p-6 flex flex-col items-center">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-3"></div>
+            <p class="text-gray-700">Finalisation en cours...</p>
+        </div>
+    </div>
+
+    <script>
+        let timerInterval = null;
+        let timerStart = null;
+        let isRecording = false;
+        let mediaRecorder = null;
+        let audioChunks = [];
+        let photosData = [];
+
+        // ===== Navigation =====
+        function goBack() {
+            window.history.back();
+        }
+
+        // ===== Timer =====
+        function startTimer() {
+            const timerBtn = document.getElementById('timer-btn');
+            const timerDisplay = document.getElementById('timer-display');
+            
+            if (timerInterval) {
+                // Arrêter le timer
+                clearInterval(timerInterval);
+                timerInterval = null;
+                timerBtn.innerHTML = '<i class="fas fa-play"></i>';
+                timerBtn.className = 'bg-green-500 text-white p-3 rounded-xl';
+                
+                // Calculer le temps total et remplir les champs
+                const totalMinutes = Math.floor((Date.now() - timerStart) / 60000);
+                const hours = Math.floor(totalMinutes / 60);
+                const minutes = totalMinutes % 60;
+                
+                document.getElementById('heures').value = hours;
+                document.getElementById('minutes').value = minutes;
+                
+            } else {
+                // Démarrer le timer
+                timerStart = Date.now();
+                timerDisplay.classList.remove('hidden');
+                timerBtn.innerHTML = '<i class="fas fa-pause"></i>';
+                timerBtn.className = 'bg-red-500 text-white p-3 rounded-xl';
+                
+                timerInterval = setInterval(() => {
+                    const elapsed = Date.now() - timerStart;
+                    const hours = Math.floor(elapsed / 3600000);
+                    const minutes = Math.floor((elapsed % 3600000) / 60000);
+                    const seconds = Math.floor((elapsed % 60000) / 1000);
+                    
+                    document.querySelector('#timer-display .timer').textContent = 
+                        `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                }, 1000);
+            }
+        }
+
+        // ===== Rapport rapide =====
+        function setQuickReport(text) {
+            document.getElementById('commentaire').value = text;
+        }
+
+        // ===== Enregistrement vocal =====
+        async function toggleVoiceRecording() {
+            const voiceBtn = document.getElementById('voice-btn');
+            const indicator = document.getElementById('recording-indicator');
+            
+            if (!isRecording) {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mediaRecorder = new MediaRecorder(stream);
+                    audioChunks = [];
+                    
+                    mediaRecorder.ondataavailable = (event) => {
+                        audioChunks.push(event.data);
+                    };
+                    
+                    mediaRecorder.onstop = () => {
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                        // Ici vous pourriez traiter l'audio
+                        showToast('Enregistrement sauvegardé', 'success');
+                    };
+                    
+                    mediaRecorder.start();
+                    isRecording = true;
+                    
+                    voiceBtn.innerHTML = '<i class="fas fa-stop"></i><span>Arrêter</span>';
+                    voiceBtn.className = 'bg-red-500 text-white px-4 py-2 rounded-lg flex items-center space-x-2';
+                    indicator.classList.remove('hidden');
+                    
+                    // Timer pour l'enregistrement
+                    let recordingStart = Date.now();
+                    const recordingTimer = setInterval(() => {
+                        if (!isRecording) {
+                            clearInterval(recordingTimer);
+                            return;
+                        }
+                        const elapsed = Date.now() - recordingStart;
+                        const minutes = Math.floor(elapsed / 60000);
+                        const seconds = Math.floor((elapsed % 60000) / 1000);
+                        indicator.querySelector('.timer').textContent = 
+                            `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                    }, 1000);
+                    
+                } catch (error) {
+                    showToast('Impossible d\'accéder au microphone', 'error');
+                }
+            } else {
+                mediaRecorder.stop();
+                mediaRecorder.stream.getTracks().forEach(track => track.stop());
+                isRecording = false;
+                
+                voiceBtn.innerHTML = '<i class="fas fa-microphone"></i><span>Enregistrement vocal</span>';
+                voiceBtn.className = 'bg-gray-100 text-gray-600 px-4 py-2 rounded-lg flex items-center space-x-2';
+                indicator.classList.add('hidden');
+            }
+        }
+
+        // ===== Photos =====
+        function takePhoto(type) {
+            const input = document.getElementById('photo-input');
+            input.setAttribute('data-photo-type', type);
+            input.click();
+        }
+
+        document.getElementById('photo-input').addEventListener('change', function(e) {
+            const files = e.target.files;
+            const type = this.getAttribute('data-photo-type');
+            
+            for (let file of files) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    addPhotoToGallery(event.target.result, type, file);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        function addPhotoToGallery(src, type, file) {
+            const gallery = document.getElementById('photos-gallery');
+            const photoId = 'photo_' + Date.now();
+            
+            const photoDiv = document.createElement('div');
+            photoDiv.className = 'photo-preview relative';
+            photoDiv.innerHTML = `
+                <img src="${src}" alt="Photo ${type}" class="w-full h-32 object-cover">
+                <button type="button" onclick="removePhoto('${photoId}')" class="delete-photo">
+                    <i class="fas fa-times"></i>
+                </button>
+                <div class="absolute bottom-2 left-2 bg-black bg-opacity-70 text-white px-2 py-1 rounded text-xs">
+                    ${type === 'avant' ? 'Avant' : 'Après'}
+                </div>
+            `;
+            photoDiv.id = photoId;
+            
+            gallery.appendChild(photoDiv);
+            
+            // Stocker les données de la photo
+            photosData.push({
+                id: photoId,
+                type: type,
+                file: file,
+                data: src
+            });
+        }
+
+        function removePhoto(photoId) {
+            document.getElementById(photoId).remove();
+            photosData = photosData.filter(photo => photo.id !== photoId);
+        }
+
+        // ===== Matériel =====
+        function addMaterialField() {
+            const container = document.getElementById('materials-list');
+            const div = document.createElement('div');
+            div.className = 'flex items-center space-x-2';
+            div.innerHTML = `
+                <input type="text" name="materials[]" 
+                       class="form-input flex-1" 
+                       placeholder="Ex: Produit nettoyant, Tournevis...">
+                <button type="button" onclick="this.parentElement.remove()" 
+                        class="bg-red-100 text-red-600 p-2 rounded-lg">
+                    <i class="fas fa-minus"></i>
+                </button>
+            `;
+            container.appendChild(div);
+        }
+
+        // ===== Soumission du formulaire =====
+        document.getElementById('complete-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            showConfirmModal();
+        });
+
+        function showConfirmModal() {
+            document.getElementById('confirm-modal').classList.remove('hidden');
+        }
+
+        function hideConfirmModal() {
+            document.getElementById('confirm-modal').classList.add('hidden');
+        }
+
+        async function submitForm() {
+            hideConfirmModal();
+            
+            try {
+                showLoading(true);
+                
+                const formData = new FormData();
+                
+                // Ajouter les données du formulaire
+                const form = document.getElementById('complete-form');
+                const formElements = new FormData(form);
+                for (let [key, value] of formElements.entries()) {
+                    formData.append(key, value);
+                }
+                
+                // Calculer le temps total en minutes
+                const heures = parseInt(document.getElementById('heures').value) || 0;
+                const minutes = parseInt(document.getElementById('minutes').value) || 0;
+                const totalMinutes = (heures * 60) + minutes;
+                if (totalMinutes > 0) {
+                    formData.append('temps_passe', totalMinutes);
+                }
+                
+                // Ajouter les photos
+                photosData.forEach((photo, index) => {
+                    formData.append(`photo_${index}_type`, photo.type);
+                    formData.append(`photo_${index}`, photo.file);
+                });
+                
+                const response = await fetch(`/employees/mobile/tasks/{{ task.id }}/complete/`, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken'),
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showToast(data.message, 'success');
+                    setTimeout(() => {
+                        window.location.href = '/employees/mobile/tasks/{{ task.id }}/';
+                    }, 1500);
+                } else {
+                    showToast(data.error, 'error');
+                }
+                
+            } catch (error) {
+                showToast('Erreur de connexion', 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // ===== Sauvegarde brouillon =====
+        function saveDraft() {
+            const formData = {
+                commentaire: document.getElementById('commentaire').value,
+                heures: document.getElementById('heures').value,
+                minutes: document.getElementById('minutes').value,
+                materials: Array.from(document.querySelectorAll('input[name="materials[]"]')).map(input => input.value).filter(val => val.trim()),
+                photos: photosData.length
+            };
+            
+            localStorage.setItem(`task_${{{ task.id }}}_draft`, JSON.stringify(formData));
+            showToast('Brouillon sauvegardé', 'success');
+        }
+
+        // ===== Utilitaires =====
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `mb-2 p-3 rounded-lg text-white shadow-lg transform transition-all duration-300 translate-x-full`;
+            
+            const colors = {
+                'success': 'bg-green-500',
+                'error': 'bg-red-500',
+                'warning': 'bg-yellow-500',
+                'info': 'bg-blue-500'
+            };
+            
+            toast.classList.add(colors[type] || colors.info);
+            toast.innerHTML = `
+                <div class="flex items-center justify-between">
+                    <span class="text-sm font-medium">${message}</span>
+                    <button onclick="this.parentElement.parentElement.remove()" class="ml-4 text-white">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+            
+            container.appendChild(toast);
+            setTimeout(() => toast.classList.remove('translate-x-full'), 100);
+            setTimeout(() => {
+                if (toast.parentElement) {
+                    toast.classList.add('translate-x-full');
+                    setTimeout(() => toast.remove(), 300);
+                }
+            }, 4000);
+        }
+
+        function showLoading(show) {
+            const overlay = document.getElementById('loading-overlay');
+            if (show) {
+                overlay.classList.remove('hidden');
+            } else {
+                overlay.classList.add('hidden');
+            }
+        }
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        // ===== Initialisation =====
+        document.addEventListener('DOMContentLoaded', function() {
+            // Charger le brouillon s'il existe
+            const draft = localStorage.getItem(`task_${{{ task.id }}}_draft`);
+            if (draft) {
+                try {
+                    const data = JSON.parse(draft);
+                    document.getElementById('commentaire').value = data.commentaire || '';
+                    document.getElementById('heures').value = data.heures || '';
+                    document.getElementById('minutes').value = data.minutes || '';
+                    
+                    // Recréer les champs matériel
+                    if (data.materials && data.materials.length > 1) {
+                        for (let i = 1; i < data.materials.length; i++) {
+                            addMaterialField();
+                        }
+                        const materialInputs = document.querySelectorAll('input[name="materials[]"]');
+                        data.materials.forEach((material, index) => {
+                            if (materialInputs[index]) {
+                                materialInputs[index].value = material;
+                            }
+                        });
+                    }
+                    
+                    showToast('Brouillon restauré', 'info');
+                } catch (e) {
+                    console.warn('Erreur lors du chargement du brouillon:', e);
+                }
+            }
+        });
+    </script>
+</body>
+</html>

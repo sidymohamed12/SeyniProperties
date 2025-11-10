@@ -1,0 +1,436 @@
+<!-- templates/employees/mobile/travail_checklist.html -->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#23456b">
+
+    <title>{{ intervention.titre }} - Travail</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'seyni-primary': '#a25946',
+                        'seyni-secondary': '#23456b',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        .safe-area {
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #23456b 0%, #a25946 100%);
+        }
+
+        /* Checkbox styling */
+        .checklist-item {
+            transition: all 0.3s ease;
+        }
+
+        .checklist-item.completed {
+            opacity: 0.6;
+            background: #f0fdf4;
+        }
+
+        .checklist-checkbox {
+            width: 32px;
+            height: 32px;
+            border: 3px solid #d1d5db;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .checklist-checkbox.checked {
+            background: #10b981;
+            border-color: #10b981;
+        }
+
+        .checklist-checkbox i {
+            color: white;
+            font-size: 18px;
+            display: none;
+        }
+
+        .checklist-checkbox.checked i {
+            display: block;
+        }
+
+        /* Big action buttons */
+        .action-btn {
+            min-height: 56px;
+            font-size: 18px;
+            font-weight: 600;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .status-en_cours { background: #FED7AA; color: #9A3412; }
+        .status-assigne { background: #DBEAFE; color: #1E40AF; }
+        .status-complete { background: #D1FAE5; color: #065F46; }
+    </style>
+</head>
+<body class="bg-gray-50 safe-area">
+
+    <!-- Header -->
+    <header class="gradient-bg text-white sticky top-0 z-50 shadow-lg">
+        <div class="px-4 py-4">
+            <div class="flex items-center justify-between mb-2">
+                <a href="{% url 'employees:mobile_interventions' %}" class="text-white hover:text-gray-200">
+                    <i class="fas fa-arrow-left text-xl"></i>
+                </a>
+                <h1 class="text-lg font-bold flex-1 text-center mx-4 truncate">Mon Travail</h1>
+                <div class="w-6"></div> <!-- Spacer for centering -->
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="pb-24">
+        <!-- Travail Info Card -->
+        <div class="bg-white shadow-md m-4 rounded-xl overflow-hidden">
+            <div class="p-4 border-b border-gray-200">
+                <div class="flex items-start justify-between mb-2">
+                    <h2 class="text-xl font-bold text-gray-900 flex-1">{{ intervention.titre }}</h2>
+                    <span class="status-badge status-{{ intervention.statut }}">
+                        {{ intervention.get_statut_display }}
+                    </span>
+                </div>
+
+                {% if intervention.description %}
+                <p class="text-gray-600 mt-2">{{ intervention.description }}</p>
+                {% endif %}
+
+                <div class="flex items-center gap-4 mt-4 text-sm text-gray-500">
+                    <div class="flex items-center gap-1">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>
+                            {% if intervention.appartement %}
+                                {{ intervention.appartement.residence.nom }} - {{ intervention.appartement.nom }}
+                            {% else %}
+                                Non spécifié
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Priority Banner -->
+            {% if intervention.priorite == 'urgente' %}
+            <div class="bg-red-100 border-l-4 border-red-600 p-3">
+                <div class="flex items-center">
+                    <i class="fas fa-exclamation-triangle text-red-600 text-xl mr-2"></i>
+                    <span class="text-red-800 font-semibold">URGENT - À faire en priorité</span>
+                </div>
+            </div>
+            {% elif intervention.priorite == 'haute' %}
+            <div class="bg-orange-100 border-l-4 border-orange-600 p-3">
+                <div class="flex items-center">
+                    <i class="fas fa-exclamation-circle text-orange-600 text-xl mr-2"></i>
+                    <span class="text-orange-800 font-semibold">Priorité haute</span>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Checklist Section -->
+        <div class="mx-4 mb-4">
+            <h3 class="text-lg font-bold text-gray-900 mb-3 flex items-center">
+                <i class="fas fa-tasks text-seyni-primary mr-2"></i>
+                Étapes à suivre
+            </h3>
+
+            <div class="space-y-3">
+                <!-- Step 1: Arrivée sur place -->
+                <div class="checklist-item bg-white rounded-xl p-4 shadow-sm" data-step="arrive">
+                    <div class="flex items-start gap-3">
+                        <div class="checklist-checkbox {% if intervention.date_debut %}checked{% endif %}"
+                             onclick="toggleStep('arrive', this)">
+                            <i class="fas fa-check"></i>
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="font-semibold text-gray-900 text-lg">1. Je suis arrivé sur place</h4>
+                            <p class="text-sm text-gray-500 mt-1">Cochez quand vous commencez le travail</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2: Diagnostic -->
+                <div class="checklist-item bg-white rounded-xl p-4 shadow-sm" data-step="diagnostic">
+                    <div class="flex items-start gap-3">
+                        <div class="checklist-checkbox" onclick="toggleStep('diagnostic', this)">
+                            <i class="fas fa-check"></i>
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="font-semibold text-gray-900 text-lg">2. J'ai vérifié le problème</h4>
+                            <p class="text-sm text-gray-500 mt-1">Cochez après avoir diagnostiqué</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 3: Matériel -->
+                <div class="checklist-item bg-white rounded-xl p-4 shadow-sm" data-step="materiel">
+                    <div class="flex items-start gap-3">
+                        <div class="checklist-checkbox" onclick="toggleStep('materiel', this)">
+                            <i class="fas fa-check"></i>
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="font-semibold text-gray-900 text-lg">3. J'ai le matériel nécessaire</h4>
+                            <p class="text-sm text-gray-500 mt-1">Cochez si vous avez tout le matériel</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 4: Réparation -->
+                <div class="checklist-item bg-white rounded-xl p-4 shadow-sm" data-step="reparation">
+                    <div class="flex items-start gap-3">
+                        <div class="checklist-checkbox" onclick="toggleStep('reparation', this)">
+                            <i class="fas fa-check"></i>
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="font-semibold text-gray-900 text-lg">4. J'ai fait la réparation</h4>
+                            <p class="text-sm text-gray-500 mt-1">Cochez quand le travail est terminé</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 5: Nettoyage -->
+                <div class="checklist-item bg-white rounded-xl p-4 shadow-sm" data-step="nettoyage">
+                    <div class="flex items-start gap-3">
+                        <div class="checklist-checkbox" onclick="toggleStep('nettoyage', this)">
+                            <i class="fas fa-check"></i>
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="font-semibold text-gray-900 text-lg">5. J'ai nettoyé</h4>
+                            <p class="text-sm text-gray-500 mt-1">Cochez après avoir nettoyé la zone</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 6: Vérification -->
+                <div class="checklist-item bg-white rounded-xl p-4 shadow-sm" data-step="verification">
+                    <div class="flex items-start gap-3">
+                        <div class="checklist-checkbox" onclick="toggleStep('verification', this)">
+                            <i class="fas fa-check"></i>
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="font-semibold text-gray-900 text-lg">6. J'ai vérifié que ça marche</h4>
+                            <p class="text-sm text-gray-500 mt-1">Cochez après avoir testé</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Photos Section -->
+        <div class="mx-4 mb-4">
+            <h3 class="text-lg font-bold text-gray-900 mb-3 flex items-center">
+                <i class="fas fa-camera text-seyni-primary mr-2"></i>
+                Photos
+            </h3>
+
+            <div class="bg-white rounded-xl p-4 shadow-sm">
+                <button type="button" onclick="openCamera()"
+                        class="w-full py-4 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-seyni-primary hover:text-seyni-primary transition-colors">
+                    <i class="fas fa-camera text-2xl mb-2"></i>
+                    <p class="font-semibold">Prendre une photo</p>
+                    <p class="text-sm text-gray-500">Avant / Pendant / Après</p>
+                </button>
+
+                {% if medias %}
+                <div class="grid grid-cols-3 gap-2 mt-4">
+                    {% for media in medias %}
+                    <div class="aspect-square rounded-lg overflow-hidden">
+                        <img src="{{ media.fichier.url }}" alt="Photo" class="w-full h-full object-cover">
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Notes Section -->
+        <div class="mx-4 mb-4">
+            <h3 class="text-lg font-bold text-gray-900 mb-3 flex items-center">
+                <i class="fas fa-comment text-seyni-primary mr-2"></i>
+                Notes
+            </h3>
+
+            <div class="bg-white rounded-xl p-4 shadow-sm">
+                <textarea id="notes" rows="4"
+                          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-seyni-primary"
+                          placeholder="Écrivez vos remarques ici... (optionnel)"></textarea>
+            </div>
+        </div>
+    </main>
+
+    <!-- Bottom Action Bar -->
+    <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 shadow-lg safe-area">
+        {% if intervention.statut == 'assigne' %}
+        <button onclick="startWork()"
+                class="action-btn w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white flex items-center justify-center gap-2 hover:from-blue-700 hover:to-blue-800">
+            <i class="fas fa-play text-xl"></i>
+            <span>Commencer le travail</span>
+        </button>
+        {% elif intervention.statut == 'en_cours' %}
+        <button onclick="completeWork()"
+                class="action-btn w-full bg-gradient-to-r from-green-600 to-green-700 text-white flex items-center justify-center gap-2 hover:from-green-700 hover:to-green-800">
+            <i class="fas fa-check-circle text-xl"></i>
+            <span>Terminer le travail</span>
+        </button>
+        {% elif intervention.statut == 'complete' %}
+        <div class="text-center">
+            <div class="inline-flex items-center gap-2 px-6 py-3 bg-green-100 text-green-800 rounded-full font-semibold">
+                <i class="fas fa-check-circle text-xl"></i>
+                <span>Travail terminé</span>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        // État des étapes (sauvegardé localement)
+        let completedSteps = new Set();
+
+        // Charger l'état sauvegardé
+        function loadState() {
+            const saved = localStorage.getItem('intervention_{{ intervention.id }}_steps');
+            if (saved) {
+                completedSteps = new Set(JSON.parse(saved));
+                completedSteps.forEach(step => {
+                    const item = document.querySelector(`[data-step="${step}"]`);
+                    if (item) {
+                        const checkbox = item.querySelector('.checklist-checkbox');
+                        checkbox.classList.add('checked');
+                        item.classList.add('completed');
+                    }
+                });
+            }
+        }
+
+        // Sauvegarder l'état
+        function saveState() {
+            localStorage.setItem(
+                'intervention_{{ intervention.id }}_steps',
+                JSON.stringify([...completedSteps])
+            );
+        }
+
+        // Toggle une étape
+        function toggleStep(step, checkbox) {
+            const item = checkbox.closest('.checklist-item');
+
+            if (completedSteps.has(step)) {
+                completedSteps.delete(step);
+                checkbox.classList.remove('checked');
+                item.classList.remove('completed');
+            } else {
+                completedSteps.add(step);
+                checkbox.classList.add('checked');
+                item.classList.add('completed');
+
+                // Vibration feedback
+                if (navigator.vibrate) {
+                    navigator.vibrate(50);
+                }
+            }
+
+            saveState();
+        }
+
+        // Commencer le travail
+        function startWork() {
+            if (confirm('Voulez-vous commencer ce travail maintenant ?')) {
+                fetch('{% url "maintenance:intervention_start" intervention.id %}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}',
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        window.location.reload();
+                    } else {
+                        alert('Erreur: ' + (data.error || 'Impossible de démarrer'));
+                    }
+                })
+                .catch(error => {
+                    alert('Erreur de connexion');
+                });
+            }
+        }
+
+        // Terminer le travail
+        function completeWork() {
+            const allStepsChecked = completedSteps.size >= 6;
+
+            if (!allStepsChecked) {
+                if (!confirm('Vous n\'avez pas coché toutes les étapes. Voulez-vous quand même terminer ?')) {
+                    return;
+                }
+            }
+
+            const notes = document.getElementById('notes').value;
+
+            // Aller à la page de complétion avec les notes
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '{% url "maintenance:intervention_complete" intervention.id %}';
+
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = 'csrfmiddlewaretoken';
+            csrfInput.value = '{{ csrf_token }}';
+            form.appendChild(csrfInput);
+
+            const commentaireInput = document.createElement('input');
+            commentaireInput.type = 'hidden';
+            commentaireInput.name = 'commentaire';
+            commentaireInput.value = notes || 'Travail terminé. Toutes les étapes ont été suivies.';
+            form.appendChild(commentaireInput);
+
+            document.body.appendChild(form);
+            form.submit();
+        }
+
+        // Ouvrir l'appareil photo
+        function openCamera() {
+            // Rediriger vers la page d'upload de photo
+            window.location.href = '{% url "maintenance:intervention_upload_media" intervention.id %}';
+        }
+
+        // Charger l'état au démarrage
+        loadState();
+    </script>
+</body>
+</html>

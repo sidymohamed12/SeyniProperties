@@ -1,0 +1,76 @@
+<!-- templates/dashboard/forms/nouvel_employe.html -->
+<form id="modal-form" method="post">
+    {% csrf_token %}
+    
+    <div class="space-y-4">
+        <!-- Informations personnelles -->
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Prénom <span class="text-red-500">*</span>
+                </label>
+                <input type="text" name="first_name" required class="form-control" 
+                       placeholder="Prénom">
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Nom <span class="text-red-500">*</span>
+                </label>
+                <input type="text" name="last_name" required class="form-control" 
+                       placeholder="Nom de famille">
+            </div>
+        </div>
+        
+        <!-- Contact -->
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Email <span class="text-red-500">*</span>
+                </label>
+                <input type="email" name="email" required class="form-control" 
+                       placeholder="email@exemple.com">
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Téléphone <span class="text-red-500">*</span>
+                </label>
+                <input type="tel" name="phone" required class="form-control" 
+                       placeholder="+221 XX XXX XX XX">
+            </div>
+        </div>
+        
+        <!-- Type d'employé -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+                Type d'employé <span class="text-red-500">*</span>
+            </label>
+            <select name="user_type" required class="form-control">
+                <option value="">-- Sélectionner un type --</option>
+                {% for value, label in type_employe_choices %}
+                    <option value="{{ value }}">{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <!-- Spécialité -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+                Spécialité
+            </label>
+            <input type="text" name="specialite" class="form-control" 
+                   placeholder="Ex: Plomberie, Électricité, Jardinage...">
+            <p class="text-xs text-gray-500 mt-1">
+                Domaine d'expertise de l'employé (optionnel)
+            </p>
+        </div>
+        
+        <div class="bg-teal-50 border-l-4 border-teal-500 p-3 mt-4">
+            <p class="text-sm text-teal-800">
+                <i class="fas fa-info-circle mr-2"></i>
+                Un compte sera créé automatiquement avec un mot de passe temporaire. L'employé pourra se connecter et accéder à son interface mobile.
+            </p>
+        </div>
+    </div>
+</form>

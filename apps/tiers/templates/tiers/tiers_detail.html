@@ -1,0 +1,497 @@
+{% extends "base_dashboard.html" %}
+{% load static %}
+
+{% block title %}{{ page_title }} - Imani{% endblock %}
+
+{% block page_title %}{{ tier.nom_complet }}{% endblock %}
+{% block page_subtitle %}{{ tier.get_type_tiers_display }}{% endblock %}
+
+{% block content %}
+    <!-- En-tête -->
+    <div class="flex justify-between items-center mb-6">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900">{{ tiers.nom_complet }}</h1>
+            <p class="text-gray-600 mt-2">{{ tiers.reference }} - {{ tiers.get_type_tiers_display }}</p>
+        </div>
+        <div class="space-x-2">
+            <a href="{% url 'tiers:tiers_modifier' tiers.pk %}"
+               class="bg-yellow-500 hover:bg-yellow-600 text-white font-semibold px-6 py-3 rounded-lg shadow-md transition">
+                <i class="fas fa-edit mr-2"></i>Modifier
+            </a>
+            <a href="{% url 'tiers:tiers_bien_ajouter' tiers.pk %}"
+               class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg shadow-md transition">
+                <i class="fas fa-link mr-2"></i>Lier à un bien
+            </a>
+            <a href="{% url 'tiers:tiers_liste' %}"
+               class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold px-6 py-3 rounded-lg shadow-md transition">
+                <i class="fas fa-arrow-left mr-2"></i>Retour
+            </a>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Informations principales -->
+        <div class="lg:col-span-2">
+            <div class="bg-white rounded-lg shadow p-6 mb-6">
+                <h2 class="text-xl font-bold text-gray-900 mb-4">
+                    <i class="fas fa-user mr-2"></i>Informations Générales
+                </h2>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500">Nom complet</p>
+                        <p class="text-gray-900 font-semibold">{{ tiers.nom_complet }}</p>
+                    </div>
+
+                    <div>
+                        <p class="text-sm font-medium text-gray-500">Type de tiers</p>
+                        <span class="px-3 py-1 inline-flex text-sm font-semibold rounded-full bg-indigo-100 text-indigo-800">
+                            {{ tiers.get_type_tiers_display }}
+                        </span>
+                    </div>
+
+                    <div>
+                        <p class="text-sm font-medium text-gray-500">Statut</p>
+                        {% if tiers.statut == 'actif' %}
+                            <span class="px-3 py-1 inline-flex text-sm font-semibold rounded-full bg-green-100 text-green-800">
+                                Actif
+                            </span>
+                        {% elif tiers.statut == 'inactif' %}
+                            <span class="px-3 py-1 inline-flex text-sm font-semibold rounded-full bg-red-100 text-red-800">
+                                Inactif
+                            </span>
+                        {% else %}
+                            <span class="px-3 py-1 inline-flex text-sm font-semibold rounded-full bg-gray-100 text-gray-800">
+                                {{ tiers.get_statut_display }}
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <p class="text-sm font-medium text-gray-500">Date d'ajout</p>
+                        <p class="text-gray-900">{{ tiers.date_ajout|date:"d/m/Y" }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Coordonnées -->
+            <div class="bg-white rounded-lg shadow p-6 mb-6">
+                <h2 class="text-xl font-bold text-gray-900 mb-4">
+                    <i class="fas fa-address-card mr-2"></i>Coordonnées
+                </h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500">Téléphone principal</p>
+                        <p class="text-gray-900">
+                            <i class="fas fa-phone mr-2"></i>{{ tiers.telephone }}
+                        </p>
+                    </div>
+
+                    {% if tiers.telephone_secondaire %}
+                    <div>
+                        <p class="text-sm font-medium text-gray-500">Téléphone secondaire</p>
+                        <p class="text-gray-900">
+                            <i class="fas fa-phone mr-2"></i>{{ tiers.telephone_secondaire }}
+                        </p>
+                    </div>
+                    {% endif %}
+
+                    <div>
+                        <p class="text-sm font-medium text-gray-500">Email</p>
+                        <p class="text-gray-900">
+                            <i class="fas fa-envelope mr-2"></i>
+                            <a href="mailto:{{ tiers.email }}" class="text-blue-600 hover:underline">
+                                {{ tiers.email }}
+                            </a>
+                        </p>
+                    </div>
+
+                    <div>
+                        <p class="text-sm font-medium text-gray-500">Ville</p>
+                        <p class="text-gray-900">
+                            <i class="fas fa-map-marker-alt mr-2"></i>{{ tiers.ville }}
+                        </p>
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <p class="text-sm font-medium text-gray-500">Adresse complète</p>
+                        <p class="text-gray-900">{{ tiers.adresse }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Identifiants de Connexion -->
+            {% if tiers.user %}
+            <div class="bg-gradient-to-r from-purple-50 to-indigo-50 border-l-4 border-purple-500 rounded-lg shadow-md p-6 mb-6">
+                <div class="flex items-start justify-between mb-4">
+                    <div class="flex items-center">
+                        <i class="fas fa-key text-purple-600 text-2xl mr-3"></i>
+                        <div>
+                            <h2 class="text-xl font-bold text-gray-900">Identifiants de Connexion</h2>
+                            <p class="text-sm text-gray-600 mt-1">
+                                {% if tiers.compte_active %}
+                                    <span class="px-2 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded-full">
+                                        <i class="fas fa-check-circle mr-1"></i>Compte activé
+                                    </span>
+                                {% else %}
+                                    <span class="px-2 py-1 bg-orange-100 text-orange-800 text-xs font-semibold rounded-full">
+                                        <i class="fas fa-clock mr-1"></i>En attente d'activation
+                                    </span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    <form method="post" action="{% url 'tiers:tiers_reinitialiser_mot_de_passe' tiers.pk %}"
+                          onsubmit="return confirm('Voulez-vous vraiment réinitialiser le mot de passe ?');">
+                        {% csrf_token %}
+                        <button type="submit"
+                                class="bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-4 py-2 rounded-lg shadow transition">
+                            <i class="fas fa-sync-alt mr-2"></i>Réinitialiser
+                        </button>
+                    </form>
+                </div>
+
+                <div class="bg-white rounded-lg p-4 space-y-4">
+                    <!-- Username -->
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                        <div class="flex-1">
+                            <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Nom d'utilisateur</p>
+                            <p class="text-lg font-mono font-semibold text-gray-900 mt-1" id="username-text">
+                                {{ tiers.user.username }}
+                            </p>
+                        </div>
+                        <button onclick="copierTexte('{{ tiers.user.username }}', 'username')"
+                                class="ml-4 bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-semibold transition">
+                            <i class="fas fa-copy mr-1"></i>
+                            <span id="username-copy-text">Copier</span>
+                        </button>
+                    </div>
+
+                    <!-- Email -->
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                        <div class="flex-1">
+                            <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Email de connexion</p>
+                            <p class="text-lg font-mono font-semibold text-gray-900 mt-1" id="email-text">
+                                {{ tiers.user.email }}
+                            </p>
+                        </div>
+                        <button onclick="copierTexte('{{ tiers.user.email }}', 'email')"
+                                class="ml-4 bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-semibold transition">
+                            <i class="fas fa-copy mr-1"></i>
+                            <span id="email-copy-text">Copier</span>
+                        </button>
+                    </div>
+
+                    <!-- Mot de passe temporaire -->
+                    {% if tiers.mot_de_passe_temporaire %}
+                    <div class="flex items-center justify-between p-3 bg-yellow-50 border border-yellow-200 rounded-lg hover:bg-yellow-100 transition">
+                        <div class="flex-1">
+                            <p class="text-xs font-medium text-yellow-700 uppercase tracking-wide">
+                                <i class="fas fa-exclamation-triangle mr-1"></i>Mot de passe temporaire
+                            </p>
+                            <div class="flex items-center mt-2">
+                                <p class="text-2xl font-mono font-bold text-gray-900 tracking-wider" id="password-text">
+                                    {{ tiers.mot_de_passe_temporaire }}
+                                </p>
+                                <button type="button" onclick="togglePasswordVisibility()"
+                                        class="ml-3 text-gray-500 hover:text-gray-700">
+                                    <i id="password-eye-icon" class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                            <p class="text-xs text-yellow-700 mt-2">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                Ce mot de passe sera supprimé après la première connexion
+                            </p>
+                        </div>
+                        <button onclick="copierTexte('{{ tiers.mot_de_passe_temporaire }}', 'password')"
+                                class="ml-4 bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-2 rounded-lg text-sm font-semibold transition">
+                            <i class="fas fa-copy mr-1"></i>
+                            <span id="password-copy-text">Copier</span>
+                        </button>
+                    </div>
+                    {% else %}
+                    <div class="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                        <p class="text-sm text-gray-600">
+                            <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                            Le mot de passe temporaire a été supprimé (compte activé)
+                        </p>
+                    </div>
+                    {% endif %}
+
+                    <!-- Date de création du compte -->
+                    {% if tiers.date_creation_compte %}
+                    <div class="pt-3 border-t border-gray-200">
+                        <p class="text-xs text-gray-500">
+                            <i class="fas fa-calendar-alt mr-1"></i>
+                            Compte créé le {{ tiers.date_creation_compte|date:"d/m/Y à H:i" }}
+                        </p>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Actions supplémentaires -->
+                <div class="mt-4 flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                    <p class="text-sm text-gray-700">
+                        <i class="fas fa-lightbulb text-yellow-500 mr-2"></i>
+                        <strong>Astuce :</strong> Vous pouvez copier ces identifiants et les envoyer manuellement au {{ tiers.get_type_tiers_display|lower }}.
+                    </p>
+                    <button onclick="copierTousIdentifiants()"
+                            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition whitespace-nowrap">
+                        <i class="fas fa-copy mr-2"></i>Tout copier
+                    </button>
+                </div>
+            </div>
+
+            <script>
+            function copierTexte(texte, type) {
+                navigator.clipboard.writeText(texte).then(function() {
+                    const copyButton = document.getElementById(type + '-copy-text');
+                    const originalText = copyButton.innerHTML;
+                    copyButton.innerHTML = '<i class="fas fa-check"></i> Copié !';
+                    copyButton.parentElement.classList.add('bg-green-500');
+                    copyButton.parentElement.classList.remove('bg-blue-500');
+
+                    setTimeout(function() {
+                        copyButton.innerHTML = originalText;
+                        copyButton.parentElement.classList.remove('bg-green-500');
+                        copyButton.parentElement.classList.add('bg-blue-500');
+                    }, 2000);
+                }).catch(function(err) {
+                    alert('Erreur lors de la copie : ' + err);
+                });
+            }
+
+            function copierTousIdentifiants() {
+                const username = '{{ tiers.user.username }}';
+                const email = '{{ tiers.user.email }}';
+                const password = '{{ tiers.mot_de_passe_temporaire }}';
+
+                let texte = `Identifiants de connexion - Seyni Properties\n\n`;
+                texte += `Nom d'utilisateur: ${username}\n`;
+                texte += `Email: ${email}\n`;
+                {% if tiers.mot_de_passe_temporaire %}
+                texte += `Mot de passe temporaire: ${password}\n\n`;
+                texte += `IMPORTANT: Ce mot de passe doit être changé lors de la première connexion.\n`;
+                {% endif %}
+                texte += `\nPour vous connecter, rendez-vous sur: {{ request.scheme }}://{{ request.get_host }}`;
+
+                navigator.clipboard.writeText(texte).then(function() {
+                    alert('Tous les identifiants ont été copiés dans le presse-papiers !');
+                }).catch(function(err) {
+                    alert('Erreur lors de la copie : ' + err);
+                });
+            }
+
+            function togglePasswordVisibility() {
+                const passwordText = document.getElementById('password-text');
+                const eyeIcon = document.getElementById('password-eye-icon');
+
+                if (passwordText.style.filter === 'blur(8px)') {
+                    passwordText.style.filter = 'none';
+                    eyeIcon.classList.remove('fa-eye');
+                    eyeIcon.classList.add('fa-eye-slash');
+                } else {
+                    passwordText.style.filter = 'blur(8px)';
+                    eyeIcon.classList.remove('fa-eye-slash');
+                    eyeIcon.classList.add('fa-eye');
+                }
+            }
+
+            // Masquer le mot de passe par défaut pour la sécurité
+            {% if tiers.mot_de_passe_temporaire %}
+            document.addEventListener('DOMContentLoaded', function() {
+                document.getElementById('password-text').style.filter = 'blur(8px)';
+            });
+            {% endif %}
+            </script>
+
+            {% else %}
+            <!-- Pas de compte -->
+            <div class="bg-yellow-50 border-l-4 border-yellow-500 rounded-lg shadow-md p-6 mb-6">
+                <div class="flex items-start">
+                    <i class="fas fa-user-slash text-yellow-600 text-2xl mr-4 mt-1"></i>
+                    <div class="flex-1">
+                        <h3 class="text-lg font-bold text-gray-900 mb-2">Aucun compte utilisateur</h3>
+                        <p class="text-gray-700 mb-4">
+                            Ce tiers n'a pas de compte utilisateur associé. Créez-en un pour lui donner accès
+                            au portail {{ tiers.get_type_tiers_display|lower }}.
+                        </p>
+                        <form method="post" action="{% url 'tiers:tiers_creer_compte' tiers.pk %}"
+                              onsubmit="return confirm('Créer un compte utilisateur pour {{ tiers.nom_complet }} ?');">
+                            {% csrf_token %}
+                            <button type="submit"
+                                    class="bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-3 rounded-lg shadow-md transition">
+                                <i class="fas fa-user-plus mr-2"></i>Créer un compte utilisateur
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Biens liés -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold text-gray-900">
+                        <i class="fas fa-building mr-2"></i>Biens Liés ({{ biens_lies.count }})
+                    </h2>
+                    <a href="{% url 'tiers:tiers_bien_ajouter' tiers.pk %}"
+                       class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-lg text-sm transition">
+                        <i class="fas fa-plus mr-2"></i>Ajouter
+                    </a>
+                </div>
+
+                {% if biens_lies %}
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Bien</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type de contrat</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Mandat</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Période</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Statut</th>
+                                <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for bien in biens_lies %}
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    {{ bien.bien_lie }}
+                                </td>
+                                <td class="px-4 py-4 whitespace-nowrap text-sm">
+                                    <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-semibold">
+                                        {{ bien.get_type_contrat_display }}
+                                    </span>
+                                </td>
+                                <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {{ bien.get_type_mandat_display }}
+                                </td>
+                                <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {{ bien.date_debut|date:"d/m/Y" }}
+                                    {% if bien.date_fin %}
+                                        <br>au {{ bien.date_fin|date:"d/m/Y" }}
+                                    {% endif %}
+                                </td>
+                                <td class="px-4 py-4 whitespace-nowrap text-sm">
+                                    {% if bien.statut == 'en_cours' %}
+                                        <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold">
+                                            {{ bien.get_statut_display }}
+                                        </span>
+                                    {% else %}
+                                        <span class="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-semibold">
+                                            {{ bien.get_statut_display }}
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-4 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <a href="{% url 'tiers:tiers_bien_modifier' bien.pk %}"
+                                       class="text-yellow-600 hover:text-yellow-900 mr-2">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <form method="post" action="{% url 'tiers:tiers_bien_supprimer' bien.pk %}" class="inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="text-red-600 hover:text-red-900"
+                                                onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette liaison ?')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-8 text-gray-500">
+                    <i class="fas fa-inbox text-4xl mb-4"></i>
+                    <p>Aucun bien lié à ce tiers</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="lg:col-span-1">
+            <!-- Documents -->
+            <div class="bg-white rounded-lg shadow p-6 mb-6">
+                <h2 class="text-xl font-bold text-gray-900 mb-4">
+                    <i class="fas fa-file-alt mr-2"></i>Documents
+                </h2>
+
+                {% if tiers.piece_identite %}
+                <div class="mb-3">
+                    <p class="text-sm font-medium text-gray-500 mb-1">Pièce d'identité</p>
+                    <a href="{{ tiers.piece_identite.url }}" target="_blank"
+                       class="text-blue-600 hover:underline text-sm">
+                        <i class="fas fa-download mr-1"></i>Télécharger
+                    </a>
+                </div>
+                {% endif %}
+
+                {% if tiers.autre_document %}
+                <div>
+                    <p class="text-sm font-medium text-gray-500 mb-1">Autre document</p>
+                    <a href="{{ tiers.autre_document.url }}" target="_blank"
+                       class="text-blue-600 hover:underline text-sm">
+                        <i class="fas fa-download mr-1"></i>Télécharger
+                    </a>
+                </div>
+                {% endif %}
+
+                {% if not tiers.piece_identite and not tiers.autre_document %}
+                <p class="text-gray-500 text-sm">Aucun document disponible</p>
+                {% endif %}
+            </div>
+
+            <!-- Notes -->
+            {% if tiers.notes %}
+            <div class="bg-white rounded-lg shadow p-6 mb-6">
+                <h2 class="text-xl font-bold text-gray-900 mb-4">
+                    <i class="fas fa-sticky-note mr-2"></i>Notes
+                </h2>
+                <p class="text-gray-700 text-sm whitespace-pre-line">{{ tiers.notes }}</p>
+            </div>
+            {% endif %}
+
+            <!-- Gestion -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <h2 class="text-xl font-bold text-gray-900 mb-4">
+                    <i class="fas fa-cog mr-2"></i>Gestion
+                </h2>
+
+                <div class="space-y-3">
+                    {% if tiers.cree_par %}
+                    <div>
+                        <p class="text-sm font-medium text-gray-500">Créé par</p>
+                        <p class="text-gray-900 text-sm">{{ tiers.cree_par.get_full_name }}</p>
+                        <p class="text-gray-500 text-xs">{{ tiers.created_at|date:"d/m/Y H:i" }}</p>
+                    </div>
+                    {% endif %}
+
+                    {% if tiers.modifie_par %}
+                    <div>
+                        <p class="text-sm font-medium text-gray-500">Modifié par</p>
+                        <p class="text-gray-900 text-sm">{{ tiers.modifie_par.get_full_name }}</p>
+                        <p class="text-gray-500 text-xs">{{ tiers.updated_at|date:"d/m/Y H:i" }}</p>
+                    </div>
+                    {% endif %}
+
+                    <div class="pt-3 border-t">
+                        <form method="post" action="{% url 'tiers:tiers_supprimer' tiers.pk %}"
+                              onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce tiers ?')">
+                            {% csrf_token %}
+                            <button type="submit"
+                                    class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-2 rounded-lg transition">
+                                <i class="fas fa-trash mr-2"></i>Supprimer
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

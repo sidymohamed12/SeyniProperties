@@ -1,0 +1,30 @@
+# seyni_properties/.railwayignore
+# Exclure les fichiers de développement
+*.log
+*.pot
+*.pyc
+__pycache__/
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Exclure les fichiers de traduction problématiques
+locale/
+*.po
+*.mo
+
+# Exclure les fichiers de configuration de développement
+.env
+.venv
+env/
+venv/
+
+# Exclure les dossiers settings modulaires si non utilisés
+seyni_properties/settings/
+
+# Exclure les médias de développement
+media/
+staticfiles/
+
+# Exclure les logs
+logs/

@@ -1,0 +1,559 @@
+<!-- templates/properties/appartement_detail.html -->
+{% extends 'base_dashboard.html' %}
+
+{% block title %}{{ appartement.nom }} - {{ block.super }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .hero-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    
+    .status-libre { background-color: #10b981; }
+    .status-occupe { background-color: #f59e0b; }
+    .status-maintenance { background-color: #ef4444; }
+    
+    .feature-icon {
+        width: 2.5rem;
+        height: 2.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 0.5rem;
+    }
+    
+    .media-gallery img {
+        transition: transform 0.3s ease;
+    }
+    
+    .media-gallery img:hover {
+        transform: scale(1.05);
+    }
+    
+    .info-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        border: 1px solid #e5e7eb;
+    }
+    
+    .action-button {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        transition: all 0.2s ease;
+        text-decoration: none;
+    }
+    
+    .action-button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <!-- Breadcrumb -->
+    <nav class="flex items-center space-x-2 text-sm mb-6">
+        <a href="{% url 'dashboard:index' %}" class="text-gray-500 hover:text-gray-700">Dashboard</a>
+        <i class="fas fa-chevron-right text-gray-400"></i>
+        <a href="{% url 'properties:residence_detail' appartement.residence.pk %}" class="text-gray-500 hover:text-gray-700">{{ appartement.residence.nom }}</a>
+        <i class="fas fa-chevron-right text-gray-400"></i>
+        <span class="text-gray-900">{{ appartement.nom }}</span>
+    </nav>
+
+    <!-- En-tête de l'appartement -->
+    <div class="hero-section rounded-xl p-8 text-white mb-8">
+        <div class="flex items-start justify-between">
+            <div>
+                <h1 class="text-4xl font-bold mb-2">
+                    <i class="fas fa-home mr-3"></i>
+                    {{ appartement.nom }}
+                </h1>
+                <p class="text-purple-100 text-lg mb-4">
+                    <i class="fas fa-building mr-2"></i>
+                    <a href="{% url 'properties:residence_detail' appartement.residence.pk %}" class="hover:underline">
+                        {{ appartement.residence.nom }}
+                    </a>
+                    - {{ appartement.residence.quartier }}, {{ appartement.residence.ville }}
+                </p>
+                
+                <div class="flex items-center space-x-4 mb-4">
+                    <span class="bg-white bg-opacity-20 px-4 py-2 rounded-full">
+                        {{ appartement.get_type_bien_display }}
+                    </span>
+                    <span class="bg-white bg-opacity-20 px-4 py-2 rounded-full">
+                        {% if appartement.etage == 0 %}RDC
+                        {% elif appartement.etage == -1 %}Sous-sol
+                        {% else %}{{ appartement.etage }}e étage{% endif %}
+                    </span>
+                    <span class="bg-white bg-opacity-20 px-4 py-2 rounded-full">
+                        {{ appartement.superficie|default:"--" }} m²
+                    </span>
+                </div>
+                
+                <!-- Statut -->
+                <div class="flex items-center">
+                    <span class="px-4 py-2 rounded-full text-white font-semibold
+                        {% if appartement.statut_occupation == 'libre' or appartement.statut_occupation == 'available' %}status-libre
+                        {% elif appartement.statut_occupation == 'occupe' or appartement.statut_occupation == 'occupied' %}status-occupe
+                        {% else %}status-maintenance{% endif %}">
+                        <i class="fas fa-circle mr-2"></i>
+                        {% if appartement.statut_occupation == 'libre' or appartement.statut_occupation == 'available' %}Disponible
+                        {% elif appartement.statut_occupation == 'occupe' or appartement.statut_occupation == 'occupied' %}Occupé
+                        {% else %}En maintenance{% endif %}
+                    </span>
+                </div>
+            </div>
+            
+            <div class="text-right">
+                <div class="text-sm text-purple-200 mb-1">Loyer mensuel</div>
+                <div class="text-3xl font-bold">{{ appartement.loyer_base|floatformat:0 }} FCFA</div>
+                {% if appartement.charges %}
+                <div class="text-purple-100">+ {{ appartement.charges|floatformat:0 }} FCFA charges</div>
+                {% endif %}
+                <div class="text-lg font-semibold mt-2 text-purple-100">
+                    Total: {{ appartement.loyer_total|floatformat:0 }} FCFA
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions rapides -->
+    <div class="flex items-center justify-between mb-8">
+        <div class="flex items-center space-x-3">
+            {% if can_edit %}
+            <a href="{% url 'properties:appartement_edit' appartement.pk %}" 
+               class="action-button bg-blue-600 text-white hover:bg-blue-700">
+                <i class="fas fa-edit mr-2"></i>
+                Modifier
+            </a>
+            {% endif %}
+            
+            {% if appartement.statut_occupation == 'libre' or appartement.statut_occupation == 'available' %}
+            <a href="{% url 'contracts:create' %}?appartement={{ appartement.pk }}" 
+               class="action-button bg-green-600 text-white hover:bg-green-700">
+                <i class="fas fa-file-signature mr-2"></i>
+                Nouveau contrat
+            </a>
+            {% endif %}
+            
+            <a href="{% url 'properties:upload_media' appartement.pk %}" 
+               class="action-button bg-purple-600 text-white hover:bg-purple-700">
+                <i class="fas fa-camera mr-2"></i>
+                Ajouter photos
+            </a>
+        </div>
+        
+        <div class="flex items-center space-x-2">
+            <button onclick="window.print()" class="action-button bg-gray-600 text-white hover:bg-gray-700">
+                <i class="fas fa-print mr-2"></i>
+                Imprimer
+            </button>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Colonne principale -->
+        <div class="lg:col-span-2 space-y-8">
+            <!-- Galerie photos -->
+            {% if medias %}
+            <div class="info-card">
+                <h3 class="text-xl font-semibold text-gray-900 mb-4">
+                    <i class="fas fa-images text-purple-600 mr-2"></i>
+                    Photos ({{ medias.count }})
+                </h3>
+                
+                <div class="media-gallery grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {% for media in medias %}
+                    <div class="aspect-w-16 aspect-h-12 rounded-lg overflow-hidden">
+                        <img src="{{ media.file.url }}" alt="{{ media.titre }}" 
+                             class="w-full h-full object-cover cursor-pointer"
+                             onclick="openModal('{{ media.file.url }}', '{{ media.titre }}')">
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Caractéristiques détaillées -->
+            <div class="info-card">
+                <h3 class="text-xl font-semibold text-gray-900 mb-6">
+                    <i class="fas fa-info-circle text-blue-600 mr-2"></i>
+                    Caractéristiques
+                </h3>
+                
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-6">
+                    <div class="flex items-center">
+                        <div class="feature-icon bg-blue-100 text-blue-600 mr-3">
+                            <i class="fas fa-door-open"></i>
+                        </div>
+                        <div>
+                            <div class="text-sm text-gray-600">Pièces</div>
+                            <div class="font-semibold">{{ appartement.nb_pieces }}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center">
+                        <div class="feature-icon bg-green-100 text-green-600 mr-3">
+                            <i class="fas fa-bed"></i>
+                        </div>
+                        <div>
+                            <div class="text-sm text-gray-600">Chambres</div>
+                            <div class="font-semibold">{{ appartement.nb_chambres }}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center">
+                        <div class="feature-icon bg-purple-100 text-purple-600 mr-3">
+                            <i class="fas fa-bath"></i>
+                        </div>
+                        <div>
+                            <div class="text-sm text-gray-600">Salles de bain</div>
+                            <div class="font-semibold">{{ appartement.nb_sdb }}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center">
+                        <div class="feature-icon bg-yellow-100 text-yellow-600 mr-3">
+                            <i class="fas fa-toilet"></i>
+                        </div>
+                        <div>
+                            <div class="text-sm text-gray-600">WC</div>
+                            <div class="font-semibold">{{ appartement.nb_wc }}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center">
+                        <div class="feature-icon bg-indigo-100 text-indigo-600 mr-3">
+                            <i class="fas fa-expand"></i>
+                        </div>
+                        <div>
+                            <div class="text-sm text-gray-600">Superficie</div>
+                            <div class="font-semibold">{{ appartement.superficie|default:"--" }} m²</div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center">
+                        <div class="feature-icon bg-red-100 text-red-600 mr-3">
+                            <i class="fas fa-layer-group"></i>
+                        </div>
+                        <div>
+                            <div class="text-sm text-gray-600">Étage</div>
+                            <div class="font-semibold">
+                                {% if appartement.etage == 0 %}RDC
+                                {% elif appartement.etage == -1 %}Sous-sol
+                                {% else %}{{ appartement.etage }}e{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Équipements et commodités -->
+            <div class="info-card">
+                <h3 class="text-xl font-semibold text-gray-900 mb-6">
+                    <i class="fas fa-check-circle text-green-600 mr-2"></i>
+                    Équipements et commodités
+                </h3>
+                
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    <div class="flex items-center {% if appartement.is_meuble %}text-green-600{% else %}text-gray-400{% endif %}">
+                        <i class="fas fa-couch mr-3"></i>
+                        <span>Meublé</span>
+                        {% if appartement.is_meuble %}<i class="fas fa-check ml-auto"></i>{% else %}<i class="fas fa-times ml-auto"></i>{% endif %}
+                    </div>
+                    
+                    <div class="flex items-center {% if appartement.has_balcon %}text-green-600{% else %}text-gray-400{% endif %}">
+                        <i class="fas fa-tree mr-3"></i>
+                        <span>Balcon</span>
+                        {% if appartement.has_balcon %}<i class="fas fa-check ml-auto"></i>{% else %}<i class="fas fa-times ml-auto"></i>{% endif %}
+                    </div>
+                    
+                    <div class="flex items-center {% if appartement.has_parking %}text-green-600{% else %}text-gray-400{% endif %}">
+                        <i class="fas fa-car mr-3"></i>
+                        <span>Parking</span>
+                        {% if appartement.has_parking %}<i class="fas fa-check ml-auto"></i>{% else %}<i class="fas fa-times ml-auto"></i>{% endif %}
+                    </div>
+                    
+                    <div class="flex items-center {% if appartement.has_climatisation %}text-green-600{% else %}text-gray-400{% endif %}">
+                        <i class="fas fa-snowflake mr-3"></i>
+                        <span>Climatisation</span>
+                        {% if appartement.has_climatisation %}<i class="fas fa-check ml-auto"></i>{% else %}<i class="fas fa-times ml-auto"></i>{% endif %}
+                    </div>
+                </div>
+                
+                {% if appartement.equipements_inclus %}
+                <div class="mt-6 pt-6 border-t border-gray-200">
+                    <h4 class="font-medium text-gray-900 mb-2">Équipements supplémentaires:</h4>
+                    <p class="text-gray-700">{{ appartement.equipements_inclus }}</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Description -->
+            {% if appartement.description %}
+            <div class="info-card">
+                <h3 class="text-xl font-semibold text-gray-900 mb-4">
+                    <i class="fas fa-align-left text-gray-600 mr-2"></i>
+                    Description
+                </h3>
+                <p class="text-gray-700 leading-relaxed">{{ appartement.description }}</p>
+            </div>
+            {% endif %}
+
+            <!-- Historique des contrats -->
+            {% if historique_contrats %}
+            <div class="info-card">
+                <h3 class="text-xl font-semibold text-gray-900 mb-6">
+                    <i class="fas fa-history text-orange-600 mr-2"></i>
+                    Historique des contrats
+                </h3>
+                
+                <div class="space-y-4">
+                    {% for contrat in historique_contrats %}
+                    <div class="border border-gray-200 rounded-lg p-4">
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <h4 class="font-medium text-gray-900">{{ contrat.locataire.nom_complet }}</h4>
+                                <p class="text-sm text-gray-600">{{ contrat.date_debut }} - {{ contrat.date_fin|default:"En cours" }}</p>
+                                <p class="text-sm text-blue-600">{{ contrat.loyer_mensuel|floatformat:0 }} FCFA/mois</p>
+                            </div>
+                            <span class="px-2 py-1 text-xs font-medium rounded-full
+                                {% if contrat.statut == 'actif' %}bg-green-100 text-green-800
+                                {% elif contrat.statut == 'expire' %}bg-red-100 text-red-800
+                                {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                {{ contrat.get_statut_display }}
+                            </span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <div class="mt-4 text-center">
+                    <a href="{% url 'contracts:list' %}?appartement={{ appartement.pk }}" 
+                       class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                        Voir tous les contrats →
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar droite -->
+        <div class="space-y-6">
+            <!-- Informations de la résidence -->
+            <div class="info-card">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                    <i class="fas fa-building text-purple-600 mr-2"></i>
+                    Résidence
+                </h3>
+                
+                <div class="space-y-3">
+                    <div>
+                        <h4 class="font-medium text-gray-900">{{ appartement.residence.nom }}</h4>
+                        <p class="text-sm text-gray-600">{{ appartement.residence.get_type_residence_display }}</p>
+                    </div>
+                    
+                    <div class="text-sm text-gray-600">
+                        <i class="fas fa-map-marker-alt mr-2"></i>
+                        {{ appartement.residence.adresse }}<br>
+                        {{ appartement.residence.quartier }}, {{ appartement.residence.ville }}
+                        {% if appartement.residence.code_postal %}<br>{{ appartement.residence.code_postal }}{% endif %}
+                    </div>
+                    
+                    <div class="pt-3 border-t border-gray-200">
+                        <div class="text-sm text-gray-600 mb-1">proprietaire</div>
+                        <div class="font-medium text-gray-900">{{ appartement.residence.proprietaire.nom_complet }}</div>
+                        <div class="text-sm text-gray-600">{{ appartement.residence.proprietaire.email }}</div>
+                        {% if appartement.residence.proprietaire.telephone %}
+                        <div class="text-sm text-gray-600">{{ appartement.residence.proprietaire.telephone }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="pt-3 border-t border-gray-200">
+                        <a href="{% url 'properties:residence_detail' appartement.residence.pk %}" 
+                           class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                            Voir la résidence →
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contrat actuel -->
+            {% if contrat_actuel %}
+            <div class="info-card">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                    <i class="fas fa-file-signature text-green-600 mr-2"></i>
+                    Contrat actuel
+                </h3>
+                
+                <div class="space-y-3">
+                    <div>
+                        <div class="text-sm text-gray-600">Locataire</div>
+                        <div class="font-medium text-gray-900">{{ contrat_actuel.locataire.nom_complet }}</div>
+                        <div class="text-sm text-gray-600">{{ contrat_actuel.locataire.email }}</div>
+                        {% if contrat_actuel.locataire.telephone %}
+                        <div class="text-sm text-gray-600">{{ contrat_actuel.locataire.telephone }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-3 text-sm">
+                        <div>
+                            <div class="text-gray-600">Début</div>
+                            <div class="font-medium">{{ contrat_actuel.date_debut }}</div>
+                        </div>
+                        <div>
+                            <div class="text-gray-600">Fin</div>
+                            <div class="font-medium">{{ contrat_actuel.date_fin|default:"Indéterminée" }}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="pt-3 border-t border-gray-200">
+                        <div class="text-sm text-gray-600">Loyer mensuel</div>
+                        <div class="text-lg font-bold text-green-600">{{ contrat_actuel.loyer_mensuel|floatformat:0 }} FCFA</div>
+                    </div>
+                    
+                    <div class="pt-3 border-t border-gray-200">
+                        <a href="{% url 'contracts:detail' contrat_actuel.pk %}" 
+                           class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                            Voir le contrat →
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Informations financières -->
+            <div class="info-card">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                    <i class="fas fa-euro-sign text-green-600 mr-2"></i>
+                    Informations financières
+                </h3>
+                
+                <div class="space-y-3">
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Loyer de base:</span>
+                        <span class="font-medium">{{ appartement.loyer_base|floatformat:0 }} FCFA</span>
+                    </div>
+                    
+                    {% if appartement.charges %}
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Charges:</span>
+                        <span class="font-medium">{{ appartement.charges|floatformat:0 }} FCFA</span>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="flex justify-between pt-2 border-t border-gray-200">
+                        <span class="font-medium text-gray-900">Total mensuel:</span>
+                        <span class="font-bold text-green-600">{{ appartement.loyer_total|floatformat:0 }} FCFA</span>
+                    </div>
+                    
+                    {% if appartement.depot_garantie %}
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Dépôt de garantie:</span>
+                        <span class="font-medium">{{ appartement.depot_garantie|floatformat:0 }} FCFA</span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if appartement.frais_agence %}
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Frais d'agence:</span>
+                        <span class="font-medium">{{ appartement.frais_agence|floatformat:0 }} FCFA</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Actions rapides -->
+            <div class="info-card">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                    <i class="fas fa-bolt text-yellow-600 mr-2"></i>
+                    Actions rapides
+                </h3>
+                
+                <div class="space-y-2">
+                    {% if appartement.statut_occupation == 'libre' or appartement.statut_occupation == 'available' %}
+                    <a href="{% url 'properties:set_occupied' appartement.pk %}" 
+                       class="block w-full text-center bg-yellow-100 text-yellow-800 py-2 px-3 rounded hover:bg-yellow-200 transition-colors">
+                        <i class="fas fa-user-check mr-2"></i>Marquer comme occupé
+                    </a>
+                    {% elif appartement.statut_occupation == 'occupe' or appartement.statut_occupation == 'occupied' %}
+                    <a href="{% url 'properties:set_available' appartement.pk %}" 
+                       class="block w-full text-center bg-green-100 text-green-800 py-2 px-3 rounded hover:bg-green-200 transition-colors">
+                        <i class="fas fa-check-circle mr-2"></i>Marquer comme libre
+                    </a>
+                    {% endif %}
+                    
+                    <a href="{% url 'properties:set_maintenance' appartement.pk %}" 
+                       class="block w-full text-center bg-red-100 text-red-800 py-2 px-3 rounded hover:bg-red-200 transition-colors">
+                        <i class="fas fa-tools mr-2"></i>Marquer en maintenance
+                    </a>
+                    
+                    <a href="{% url 'properties:appartement_medias' appartement.pk %}" 
+                       class="block w-full text-center bg-purple-100 text-purple-800 py-2 px-3 rounded hover:bg-purple-200 transition-colors">
+                        <i class="fas fa-images mr-2"></i>Gérer les photos
+                    </a>
+                </div>
+            </div>
+
+            <!-- Notes internes -->
+            {% if appartement.notes_internes %}
+            <div class="info-card">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                    <i class="fas fa-sticky-note text-orange-600 mr-2"></i>
+                    Notes internes
+                </h3>
+                <p class="text-gray-700 text-sm">{{ appartement.notes_internes }}</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal pour les images -->
+<div id="imageModal" class="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center hidden">
+    <div class="relative max-w-4xl max-h-full mx-4">
+        <button onclick="closeImageModal()" class="absolute top-4 right-4 text-white hover:text-gray-300 text-2xl z-10">
+            <i class="fas fa-times"></i>
+        </button>
+        <img id="modalImage" src="" alt="" class="max-w-full max-h-full object-contain">
+        <div id="modalCaption" class="absolute bottom-4 left-4 text-white bg-black bg-opacity-50 px-3 py-1 rounded"></div>
+    </div>
+</div>
+
+<script>
+function openModal(imageSrc, caption) {
+    const modal = document.getElementById('imageModal');
+    const modalImage = document.getElementById('modalImage');
+    const modalCaption = document.getElementById('modalCaption');
+    
+    modalImage.src = imageSrc;
+    modalCaption.textContent = caption;
+    modal.classList.remove('hidden');
+}
+
+function closeImageModal() {
+    const modal = document.getElementById('imageModal');
+    modal.classList.add('hidden');
+}
+
+// Fermer la modal en cliquant à l'extérieur
+document.getElementById('imageModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeImageModal();
+    }
+});
+
+// Fermer avec la touche Échap
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeImageModal();
+    }
+});
+</script>
+{% endblock %}

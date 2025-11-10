@@ -1,0 +1,332 @@
+<!-- templates/dashboard/forms/nouveau_travail.html -->
+
+<form id="travailForm" method="post">
+    {% csrf_token %}
+
+    <!-- Section 1: Nature du travail (Visual Radio Cards) -->
+    <div class="mb-6">
+        <label class="block text-sm font-medium text-gray-700 mb-3">
+            Nature du travail <span class="text-red-500">*</span>
+        </label>
+        <div class="grid grid-cols-2 gap-3">
+            <label class="nature-option cursor-pointer">
+                <input type="radio" name="nature" value="reactif" class="hidden nature-radio" required>
+                <div class="nature-card border-2 border-gray-200 rounded-lg p-4 text-center transition-all hover:border-red-500 hover:shadow-md">
+                    <i class="fas fa-exclamation-circle text-3xl text-red-500 mb-2"></i>
+                    <p class="text-sm font-semibold text-gray-800">Réactif</p>
+                    <p class="text-xs text-gray-500">Problème urgent</p>
+                </div>
+            </label>
+
+            <label class="nature-option cursor-pointer">
+                <input type="radio" name="nature" value="planifie" class="hidden nature-radio">
+                <div class="nature-card border-2 border-gray-200 rounded-lg p-4 text-center transition-all hover:border-blue-500 hover:shadow-md">
+                    <i class="fas fa-calendar-check text-3xl text-blue-500 mb-2"></i>
+                    <p class="text-sm font-semibold text-gray-800">Planifié</p>
+                    <p class="text-xs text-gray-500">Programmé</p>
+                </div>
+            </label>
+
+            <label class="nature-option cursor-pointer">
+                <input type="radio" name="nature" value="preventif" class="hidden nature-radio">
+                <div class="nature-card border-2 border-gray-200 rounded-lg p-4 text-center transition-all hover:border-green-500 hover:shadow-md">
+                    <i class="fas fa-shield-alt text-3xl text-green-500 mb-2"></i>
+                    <p class="text-sm font-semibold text-gray-800">Préventif</p>
+                    <p class="text-xs text-gray-500">Maintenance</p>
+                </div>
+            </label>
+
+            <label class="nature-option cursor-pointer">
+                <input type="radio" name="nature" value="projet" class="hidden nature-radio">
+                <div class="nature-card border-2 border-gray-200 rounded-lg p-4 text-center transition-all hover:border-purple-500 hover:shadow-md">
+                    <i class="fas fa-project-diagram text-3xl text-purple-500 mb-2"></i>
+                    <p class="text-sm font-semibold text-gray-800">Projet</p>
+                    <p class="text-xs text-gray-500">Amélioration</p>
+                </div>
+            </label>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Titre -->
+        <div class="mb-4 md:col-span-2">
+            <label for="titre" class="block text-sm font-medium text-gray-700 mb-2">
+                Titre du travail <span class="text-red-500">*</span>
+            </label>
+            <input type="text" id="titre" name="titre" required
+                   placeholder="Ex: Réparation fuite d'eau, Peinture appartement..."
+                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-imani-primary">
+        </div>
+
+        <!-- Description -->
+        <div class="mb-4 md:col-span-2">
+            <label for="description" class="block text-sm font-medium text-gray-700 mb-2">
+                Description
+            </label>
+            <textarea id="description" name="description" rows="3"
+                      placeholder="Décrivez le travail à effectuer..."
+                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-imani-primary"></textarea>
+        </div>
+
+        <!-- Type de travail -->
+        <div class="mb-4">
+            <label for="type_travail" class="block text-sm font-medium text-gray-700 mb-2">
+                Type de travail <span class="text-red-500">*</span>
+            </label>
+            <select id="type_travail" name="type_travail" required
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-imani-primary">
+                <option value="">Sélectionner un type</option>
+                <option value="plomberie">Plomberie</option>
+                <option value="electricite">Électricité</option>
+                <option value="peinture">Peinture</option>
+                <option value="menuiserie">Menuiserie</option>
+                <option value="climatisation">Climatisation</option>
+                <option value="maconnerie">Maçonnerie</option>
+                <option value="jardinage">Jardinage</option>
+                <option value="nettoyage">Nettoyage</option>
+                <option value="serrurerie">Serrurerie</option>
+                <option value="autre">Autre</option>
+            </select>
+        </div>
+
+        <!-- Priorité -->
+        <div class="mb-4">
+            <label for="priorite" class="block text-sm font-medium text-gray-700 mb-2">
+                Priorité
+            </label>
+            <select id="priorite" name="priorite"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-imani-primary">
+                <option value="basse">Basse</option>
+                <option value="normale" selected>Normale</option>
+                <option value="haute">Haute</option>
+                <option value="urgente">Urgente</option>
+            </select>
+        </div>
+
+        <!-- Localisation: Résidence -->
+        <div class="mb-4">
+            <label for="residence" class="block text-sm font-medium text-gray-700 mb-2">
+                Résidence
+            </label>
+            <select id="residence" name="residence"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-imani-primary">
+                <option value="">Sélectionner une résidence</option>
+                {% for residence in residences %}
+                    <option value="{{ residence.id }}">{{ residence.nom }}</option>
+                {% endfor %}
+            </select>
+            <p class="text-xs text-gray-500 mt-1">Pour travaux généraux sur la résidence</p>
+        </div>
+
+        <!-- Localisation: Appartement -->
+        <div class="mb-4">
+            <label for="appartement" class="block text-sm font-medium text-gray-700 mb-2">
+                Appartement
+            </label>
+            <select id="appartement" name="appartement"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-imani-primary">
+                <option value="">Sélectionner un appartement</option>
+                {% for appt in appartements %}
+                    <option value="{{ appt.id }}" data-residence="{{ appt.residence.id }}">
+                        {{ appt.residence.nom }} - {{ appt.nom }}
+                    </option>
+                {% endfor %}
+            </select>
+            <p class="text-xs text-gray-500 mt-1">Pour travaux spécifiques à un appartement</p>
+        </div>
+
+        <!-- Date prévue -->
+        <div class="mb-4">
+            <label for="date_prevue" class="block text-sm font-medium text-gray-700 mb-2">
+                Date prévue
+            </label>
+            <input type="date" id="date_prevue" name="date_prevue"
+                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-imani-primary">
+        </div>
+
+        <!-- Assigné à -->
+        <div class="mb-4">
+            <label for="assigne_a" class="block text-sm font-medium text-gray-700 mb-2">
+                Assigné à
+            </label>
+            <select id="assigne_a" name="assigne_a"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-imani-primary">
+                <option value="">Non assigné</option>
+                {% for employe in employes %}
+                    <option value="{{ employe.id }}">{{ employe.get_full_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Coût estimé -->
+        <div class="mb-4">
+            <label for="cout_estime" class="block text-sm font-medium text-gray-700 mb-2">
+                Coût estimé (FCFA)
+            </label>
+            <input type="number" id="cout_estime" name="cout_estime" min="0" step="0.01"
+                   placeholder="0"
+                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-imani-primary">
+        </div>
+
+        <!-- Besoin matériel -->
+        <div class="mb-4">
+            <label class="flex items-center">
+                <input type="checkbox" id="besoin_materiel" name="besoin_materiel"
+                       class="w-4 h-4 text-imani-primary border-gray-300 rounded focus:ring-imani-primary">
+                <span class="ml-2 text-sm font-medium text-gray-700">
+                    Besoin de matériel
+                </span>
+            </label>
+            <p class="text-xs text-gray-500 mt-1 ml-6">Une demande d'achat pourra être créée après</p>
+        </div>
+    </div>
+
+    <div class="flex justify-end space-x-3 mt-6 pt-4 border-t border-gray-200">
+        <button type="button" onclick="closeTravailModal()"
+                class="px-4 py-2 text-gray-600 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors">
+            Annuler
+        </button>
+        <button type="submit"
+                class="px-6 py-2 bg-gradient-to-r from-imani-primary to-imani-secondary text-white rounded-md hover:opacity-90 transition-all shadow-md hover:shadow-lg">
+            <i class="fas fa-save mr-2"></i>Créer le travail
+        </button>
+    </div>
+</form>
+
+<script>
+// Nature selection: Visual radio button behavior
+document.querySelectorAll('.nature-radio').forEach(radio => {
+    radio.addEventListener('change', function() {
+        // Remove active state from all cards
+        document.querySelectorAll('.nature-card').forEach(card => {
+            card.classList.remove('border-red-500', 'border-blue-500', 'border-green-500', 'border-purple-500', 'bg-opacity-10');
+            card.classList.add('border-gray-200');
+        });
+
+        // Add active state to selected card
+        if (this.checked) {
+            const card = this.parentElement.querySelector('.nature-card');
+            card.classList.remove('border-gray-200');
+
+            // Apply color based on nature
+            switch(this.value) {
+                case 'reactif':
+                    card.classList.add('border-red-500', 'bg-red-50');
+                    break;
+                case 'planifie':
+                    card.classList.add('border-blue-500', 'bg-blue-50');
+                    break;
+                case 'preventif':
+                    card.classList.add('border-green-500', 'bg-green-50');
+                    break;
+                case 'projet':
+                    card.classList.add('border-purple-500', 'bg-purple-50');
+                    break;
+            }
+        }
+    });
+});
+
+// Mutual exclusion: appartement vs residence
+const appartementSelect = document.getElementById('appartement');
+const residenceSelect = document.getElementById('residence');
+
+appartementSelect.addEventListener('change', function() {
+    if (this.value) {
+        residenceSelect.value = '';
+        residenceSelect.disabled = true;
+        residenceSelect.classList.add('bg-gray-100');
+    } else {
+        residenceSelect.disabled = false;
+        residenceSelect.classList.remove('bg-gray-100');
+    }
+});
+
+residenceSelect.addEventListener('change', function() {
+    if (this.value) {
+        appartementSelect.value = '';
+        appartementSelect.disabled = true;
+        appartementSelect.classList.add('bg-gray-100');
+    } else {
+        appartementSelect.disabled = false;
+        appartementSelect.classList.remove('bg-gray-100');
+    }
+});
+
+// Auto-set priorité based on nature
+document.querySelectorAll('.nature-radio').forEach(radio => {
+    radio.addEventListener('change', function() {
+        const prioriteSelect = document.getElementById('priorite');
+
+        if (this.value === 'reactif') {
+            prioriteSelect.value = 'haute';
+        } else if (this.value === 'preventif') {
+            prioriteSelect.value = 'normale';
+        } else if (this.value === 'projet') {
+            prioriteSelect.value = 'basse';
+        }
+    });
+});
+
+// Filter appartements by residence (optional enhancement)
+residenceSelect.addEventListener('change', function() {
+    const selectedResidenceId = this.value;
+    const appartementOptions = appartementSelect.querySelectorAll('option');
+
+    appartementOptions.forEach(option => {
+        if (option.value === '') return; // Keep empty option
+
+        const optionResidenceId = option.dataset.residence;
+        if (!selectedResidenceId || optionResidenceId === selectedResidenceId) {
+            option.style.display = '';
+        } else {
+            option.style.display = 'none';
+        }
+    });
+});
+
+// Form validation
+document.getElementById('travailForm').addEventListener('submit', function(e) {
+    const titre = document.getElementById('titre').value.trim();
+    const nature = document.querySelector('input[name="nature"]:checked');
+    const typeTravail = document.getElementById('type_travail').value;
+    const appartement = document.getElementById('appartement').value;
+    const residence = document.getElementById('residence').value;
+
+    if (!titre) {
+        e.preventDefault();
+        alert('Le titre du travail est obligatoire');
+        return;
+    }
+
+    if (!nature) {
+        e.preventDefault();
+        alert('Veuillez sélectionner la nature du travail');
+        return;
+    }
+
+    if (!typeTravail) {
+        e.preventDefault();
+        alert('Veuillez sélectionner le type de travail');
+        return;
+    }
+
+    if (!appartement && !residence) {
+        const confirm = window.confirm('Aucune localisation sélectionnée. Voulez-vous continuer ?');
+        if (!confirm) {
+            e.preventDefault();
+            return;
+        }
+    }
+});
+</script>
+
+<style>
+.nature-option .nature-card {
+    position: relative;
+}
+
+.nature-option input:checked + .nature-card {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+</style>

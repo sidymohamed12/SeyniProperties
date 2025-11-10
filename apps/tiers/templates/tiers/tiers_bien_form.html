@@ -1,0 +1,211 @@
+{% extends "base_dashboard.html" %}
+{% load static %}
+
+{% block title %}{{ page_title }} - Imani{% endblock %}
+
+{% block page_title %}{{ page_title }}{% endblock %}
+{% block page_subtitle %}{% if tiers %}Associer le tiers {{ tiers.nom_complet }} à un bien immobilier{% endif %}{% endblock %}
+
+{% block content %}
+
+    <!-- Formulaire -->
+    <form method="post" enctype="multipart/form-data" class="bg-white rounded-lg shadow p-6">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+        <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6" role="alert">
+            <p class="font-bold">Erreur</p>
+            {{ form.non_field_errors }}
+        </div>
+        {% endif %}
+
+        <!-- Liaison -->
+        <div class="mb-6">
+            <h2 class="text-xl font-bold text-gray-900 mb-4 border-b pb-2">
+                <i class="fas fa-link mr-2"></i>Liaison
+            </h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Tiers <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.tiers }}
+                    {% if form.tiers.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ form.tiers.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Appartement
+                    </label>
+                    {{ form.appartement }}
+                    {% if form.appartement.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ form.appartement.errors.0 }}</p>
+                    {% endif %}
+                    <p class="text-gray-500 text-xs mt-1">Laisser vide si vous liez une résidence</p>
+                </div>
+
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Résidence
+                    </label>
+                    {{ form.residence }}
+                    {% if form.residence.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ form.residence.errors.0 }}</p>
+                    {% endif %}
+                    <p class="text-gray-500 text-xs mt-1">Laisser vide si vous liez un appartement</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Informations contractuelles -->
+        <div class="mb-6">
+            <h2 class="text-xl font-bold text-gray-900 mb-4 border-b pb-2">
+                <i class="fas fa-file-contract mr-2"></i>Informations Contractuelles
+            </h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Type de contrat <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.type_contrat }}
+                    {% if form.type_contrat.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ form.type_contrat.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Type de mandat <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.type_mandat }}
+                    {% if form.type_mandat.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ form.type_mandat.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Date de début <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.date_debut }}
+                    {% if form.date_debut.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ form.date_debut.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Date de fin
+                    </label>
+                    {{ form.date_fin }}
+                    {% if form.date_fin.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ form.date_fin.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Statut <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.statut }}
+                    {% if form.statut.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ form.statut.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Commissions -->
+        <div class="mb-6">
+            <h2 class="text-xl font-bold text-gray-900 mb-4 border-b pb-2">
+                <i class="fas fa-money-bill-wave mr-2"></i>Commissions
+            </h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Montant de la commission (FCFA)
+                    </label>
+                    {{ form.montant_commission }}
+                    {% if form.montant_commission.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ form.montant_commission.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Pourcentage de commission (%)
+                    </label>
+                    {{ form.pourcentage_commission }}
+                    {% if form.pourcentage_commission.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ form.pourcentage_commission.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Documents -->
+        <div class="mb-6">
+            <h2 class="text-xl font-bold text-gray-900 mb-4 border-b pb-2">
+                <i class="fas fa-file-alt mr-2"></i>Documents
+            </h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Contrat signé
+                    </label>
+                    {{ form.contrat_signe }}
+                    {% if form.contrat_signe.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ form.contrat_signe.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Document de mandat
+                    </label>
+                    {{ form.mandat_document }}
+                    {% if form.mandat_document.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ form.mandat_document.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Notes -->
+        <div class="mb-6">
+            <h2 class="text-xl font-bold text-gray-900 mb-4 border-b pb-2">
+                <i class="fas fa-sticky-note mr-2"></i>Notes
+            </h2>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Notes et observations
+                </label>
+                {{ form.notes }}
+                {% if form.notes.errors %}
+                <p class="text-red-500 text-xs mt-1">{{ form.notes.errors.0 }}</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Boutons d'action -->
+        <div class="flex justify-end space-x-4 pt-6 border-t">
+            <a href="{% if tiers %}{% url 'tiers:tiers_detail' tiers.pk %}{% else %}{% url 'tiers:tiers_liste' %}{% endif %}"
+               class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold px-6 py-3 rounded-lg transition">
+                <i class="fas fa-times mr-2"></i>Annuler
+            </a>
+
+            <button type="submit"
+                    class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition">
+                <i class="fas fa-save mr-2"></i>{{ action }}
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

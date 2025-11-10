@@ -1,0 +1,223 @@
+<!-- templates/properties/etat_lieux_form.html -->
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - IMANY{% endblock %}
+
+{% block extra_css %}
+<style>
+    .detail-row {
+        display: grid;
+        grid-template-columns: 2fr 2fr 3fr 100px 50px;
+        gap: 1rem;
+        align-items: start;
+        padding: 1rem;
+        background: #f9fafb;
+        border-radius: 0.5rem;
+        margin-bottom: 0.75rem;
+    }
+    .detail-row:hover {
+        background: #f3f4f6;
+    }
+    .formset-container {
+        max-height: 600px;
+        overflow-y: auto;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 max-w-6xl">
+    
+    <!-- Breadcrumb -->
+    <nav class="mb-6 text-sm">
+        <ol class="flex items-center space-x-2 text-gray-600">
+            <li><a href="{% url 'dashboard:index' %}" class="hover:text-blue-600"><i class="fas fa-home"></i></a></li>
+            <li><i class="fas fa-chevron-right text-xs"></i></li>
+            <li><a href="{% url 'properties:etat_lieux_list' %}" class="hover:text-blue-600">États des lieux</a></li>
+            <li><i class="fas fa-chevron-right text-xs"></i></li>
+            <li class="text-gray-900 font-medium">{{ title }}</li>
+        </ol>
+    </nav>
+    
+    <!-- En-tête -->
+    <div class="bg-white rounded-lg shadow p-6 mb-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">
+                    <i class="fas fa-clipboard-check text-blue-600 mr-3"></i>
+                    {{ title }}
+                </h1>
+                <p class="text-gray-600">
+                    Remplissez les informations de l'état des lieux
+                </p>
+            </div>
+            <a href="{% url 'properties:etat_lieux_list' %}" 
+               class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">
+                <i class="fas fa-arrow-left mr-2"></i>Retour
+            </a>
+        </div>
+    </div>
+    
+    <!-- Formulaire -->
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <div class="space-y-6">
+            
+            <!-- Section 1: Informations générales -->
+            <div class="bg-white rounded-lg shadow overflow-hidden">
+                <div class="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4">
+                    <h2 class="text-xl font-semibold text-white">
+                        <i class="fas fa-info-circle mr-2"></i>Informations Générales
+                    </h2>
+                </div>
+                <div class="p-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Type d'état des lieux *</label>
+                            {{ form.type_etat }}
+                            {% if form.type_etat.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.type_etat.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Date *</label>
+                            {{ form.date_etat }}
+                            {% if form.date_etat.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.date_etat.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Contrat *</label>
+                            {{ form.contrat }}
+                            {% if form.contrat.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.contrat.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Appartement *</label>
+                            {{ form.appartement }}
+                            {% if form.appartement.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.appartement.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Locataire *</label>
+                            {{ form.locataire }}
+                            {% if form.locataire.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.locataire.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Commercial IMANY</label>
+                            {{ form.commercial_imany }}
+                            {% if form.commercial_imany.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.commercial_imany.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Section 2: Détails de l'état des lieux -->
+            <div class="bg-white rounded-lg shadow overflow-hidden">
+                <div class="bg-gradient-to-r from-green-600 to-teal-600 px-6 py-4">
+                    <h2 class="text-xl font-semibold text-white">
+                        <i class="fas fa-list mr-2"></i>Détails de l'État des Lieux
+                    </h2>
+                </div>
+                <div class="p-6">
+                    {{ formset.management_form }}
+                    
+                    <!-- En-têtes -->
+                    <div class="detail-row font-semibold text-sm text-gray-700 bg-gray-100">
+                        <div>Pièce</div>
+                        <div>Corps d'état</div>
+                        <div>Observations</div>
+                        <div>Ordre</div>
+                        <div></div>
+                    </div>
+                    
+                    <!-- Lignes du formset -->
+                    <div class="formset-container">
+                        {% for form in formset %}
+                            <div class="detail-row formset-form">
+                                {{ form.id }}
+                                <div>{{ form.piece }}</div>
+                                <div>{{ form.corps_etat }}</div>
+                                <div>{{ form.observations }}</div>
+                                <div>{{ form.ordre }}</div>
+                                <div class="flex items-center">
+                                    {{ form.DELETE }}
+                                    {% if form.DELETE %}
+                                        <label for="{{ form.DELETE.id_for_label }}" class="text-red-600 cursor-pointer">
+                                            <i class="fas fa-trash"></i>
+                                        </label>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Section 3: Observation globale -->
+            <div class="bg-white rounded-lg shadow overflow-hidden">
+                <div class="bg-gradient-to-r from-purple-600 to-pink-600 px-6 py-4">
+                    <h2 class="text-xl font-semibold text-white">
+                        <i class="fas fa-comment-alt mr-2"></i>Observation Globale
+                    </h2>
+                </div>
+                <div class="p-6">
+                    {{ form.observation_globale }}
+                    {% if form.observation_globale.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.observation_globale.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Section 4: Signatures -->
+            <div class="bg-white rounded-lg shadow overflow-hidden">
+                <div class="bg-gradient-to-r from-yellow-600 to-orange-600 px-6 py-4">
+                    <h2 class="text-xl font-semibold text-white">
+                        <i class="fas fa-signature mr-2"></i>Signatures
+                    </h2>
+                </div>
+                <div class="p-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div>
+                            <label class="flex items-center space-x-3">
+                                {{ form.signe_bailleur }}
+                                <span class="text-gray-700">Signé par le proprietaire</span>
+                            </label>
+                        </div>
+                        <div>
+                            <label class="flex items-center space-x-3">
+                                {{ form.signe_locataire }}
+                                <span class="text-gray-700">Signé par le locataire</span>
+                            </label>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Date de signature</label>
+                            {{ form.date_signature }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Boutons d'action -->
+            <div class="flex justify-end gap-4">
+                <a href="{% url 'properties:etat_lieux_list' %}" 
+                   class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">
+                    Annuler
+                </a>
+                <button type="submit" 
+                        class="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:opacity-90 transition">
+                    <i class="fas fa-save mr-2"></i>Enregistrer
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

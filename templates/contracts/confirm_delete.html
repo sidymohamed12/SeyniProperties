@@ -1,0 +1,145 @@
+<!-- templates/contracts/confirm_delete.html -->
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Supprimer le contrat {{ contract.numero_contrat }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6 max-w-2xl">
+    <!-- En-tête -->
+    <div class="mb-6">
+        <div class="flex items-center mb-4">
+            <a href="{% url 'contracts:detail' contract.pk %}" class="text-blue-600 hover:text-blue-700">
+                <i class="fas fa-arrow-left mr-2"></i>Retour au contrat
+            </a>
+        </div>
+        
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">
+            <i class="fas fa-exclamation-triangle text-red-600 mr-3"></i>
+            Confirmer la suppression
+        </h1>
+    </div>
+
+    <!-- Avertissement -->
+    <div class="bg-red-50 border-l-4 border-red-500 p-6 mb-6">
+        <div class="flex">
+            <div class="flex-shrink-0">
+                <i class="fas fa-exclamation-triangle text-red-500 text-2xl"></i>
+            </div>
+            <div class="ml-4">
+                <h3 class="text-lg font-medium text-red-800 mb-2">Attention : Action irréversible</h3>
+                <p class="text-sm text-red-700 mb-3">
+                    Vous êtes sur le point de supprimer définitivement ce contrat. 
+                    Cette action ne peut pas être annulée.
+                </p>
+                <ul class="list-disc list-inside text-sm text-red-700 space-y-1">
+                    <li>Toutes les données du contrat seront perdues</li>
+                    <li>Les factures et paiements liés resteront dans le système</li>
+                    <li>L'appartement sera automatiquement libéré</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Informations du contrat -->
+    <div class="bg-white rounded-lg shadow p-6 mb-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">
+            Contrat à supprimer
+        </h2>
+        
+        <div class="space-y-3">
+            <div class="flex justify-between border-b border-gray-200 pb-2">
+                <span class="text-gray-600">Numéro de contrat</span>
+                <span class="font-semibold text-gray-900">{{ contract.numero_contrat }}</span>
+            </div>
+            
+            <div class="flex justify-between border-b border-gray-200 pb-2">
+                <span class="text-gray-600">Appartement</span>
+                <span class="font-semibold text-gray-900">
+                    {{ contract.appartement.residence.nom }} - {{ contract.appartement.nom }}
+                </span>
+            </div>
+            
+            <div class="flex justify-between border-b border-gray-200 pb-2">
+                <span class="text-gray-600">Locataire</span>
+                <span class="font-semibold text-gray-900">
+                    {{ contract.locataire.nom_complet }}
+                </span>
+            </div>
+            
+            <div class="flex justify-between border-b border-gray-200 pb-2">
+                <span class="text-gray-600">Période</span>
+                <span class="font-semibold text-gray-900">
+                    {{ contract.date_debut|date:"d/m/Y" }} - {{ contract.date_fin|date:"d/m/Y" }}
+                </span>
+            </div>
+            
+            <div class="flex justify-between border-b border-gray-200 pb-2">
+                <span class="text-gray-600">Statut</span>
+                <span class="font-semibold 
+                    {% if contract.statut == 'actif' %}text-green-600
+                    {% elif contract.statut == 'expire' %}text-red-600
+                    {% elif contract.statut == 'brouillon' %}text-gray-600
+                    {% else %}text-yellow-600{% endif %}">
+                    {{ contract.get_statut_display }}
+                </span>
+            </div>
+            
+            <div class="flex justify-between pt-2">
+                <span class="text-gray-600">Loyer mensuel</span>
+                <span class="font-bold text-green-600">
+                    {{ contract.loyer_mensuel|floatformat:0 }} FCFA
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Formulaire de confirmation -->
+    <form method="post" class="space-y-6">
+        {% csrf_token %}
+        
+        <!-- Checkbox de confirmation -->
+        <div class="bg-gray-50 border border-gray-300 rounded-lg p-4">
+            <label class="flex items-start cursor-pointer">
+                <input type="checkbox" 
+                       id="confirm-delete" 
+                       class="mt-1 h-5 w-5 text-red-600 focus:ring-red-500 border-gray-300 rounded"
+                       required>
+                <span class="ml-3 text-sm text-gray-700">
+                    Je comprends que cette action est irréversible et je confirme vouloir supprimer 
+                    définitivement le contrat <strong>{{ contract.numero_contrat }}</strong>
+                </span>
+            </label>
+        </div>
+
+        <!-- Boutons d'action -->
+        <div class="flex gap-4 justify-end">
+            <a href="{% url 'contracts:detail' contract.pk %}" 
+               class="px-6 py-3 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition duration-200">
+                <i class="fas fa-times mr-2"></i>Annuler
+            </a>
+            
+            <button type="submit" 
+                    id="delete-button"
+                    disabled
+                    class="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
+                <i class="fas fa-trash mr-2"></i>Supprimer définitivement
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+// Activer le bouton de suppression uniquement si la checkbox est cochée
+document.addEventListener('DOMContentLoaded', function() {
+    const checkbox = document.getElementById('confirm-delete');
+    const deleteButton = document.getElementById('delete-button');
+    
+    if (checkbox && deleteButton) {
+        checkbox.addEventListener('change', function() {
+            deleteButton.disabled = !this.checked;
+        });
+    }
+});
+</script>
+{% endblock %}

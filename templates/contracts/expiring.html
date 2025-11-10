@@ -1,0 +1,244 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Contrats Expirant - Seyni Properties{% endblock %}
+
+{% block extra_css %}
+<style>
+    .urgent-card {
+        background: linear-gradient(145deg, #fef2f2, #fecaca);
+        border-left: 4px solid #ef4444;
+        animation: pulse-urgent 2s infinite;
+    }
+    
+    .soon-card {
+        background: linear-gradient(145deg, #fffbeb, #fef3c7);
+        border-left: 4px solid #f59e0b;
+    }
+    
+    @keyframes pulse-urgent {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.8; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-orange-50 via-white to-red-50">
+    <!-- Header -->
+    <div class="bg-white shadow-sm border-b border-gray-200 mb-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <nav class="flex items-center space-x-2 text-sm text-gray-500 mb-2">
+                        <a href="{% url 'dashboard:index' %}" class="hover:text-blue-600">Dashboard</a>
+                        <i class="fas fa-chevron-right text-xs"></i>
+                        <a href="{% url 'contracts:list' %}" class="hover:text-blue-600">Contrats</a>
+                        <i class="fas fa-chevron-right text-xs"></i>
+                        <span class="text-gray-900">Expirations</span>
+                    </nav>
+                    <h1 class="text-3xl font-bold text-gray-900">
+                        <i class="fas fa-exclamation-triangle text-orange-600 mr-2"></i>
+                        Contrats Expirant
+                    </h1>
+                    <p class="text-gray-600 mt-1">Suivi des contrats nécessitant une attention immédiate</p>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="{% url 'contracts:list' %}" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors duration-200">
+                        <i class="fas fa-arrow-left mr-2"></i>Retour aux contrats
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Statistiques d'alerte -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-red-100 text-sm">Urgent (≤ 7 jours)</p>
+                        <p class="text-3xl font-bold">{{ urgent_contracts|length }}</p>
+                        <p class="text-xs text-red-200 mt-1">Action immédiate</p>
+                    </div>
+                    <i class="fas fa-exclamation-triangle text-2xl opacity-80"></i>
+                </div>
+            </div>
+
+            <div class="bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-orange-100 text-sm">Bientôt (≤ 30 jours)</p>
+                        <p class="text-3xl font-bold">{{ soon_contracts|length }}</p>
+                        <p class="text-xs text-orange-200 mt-1">À planifier</p>
+                    </div>
+                    <i class="fas fa-clock text-2xl opacity-80"></i>
+                </div>
+            </div>
+
+            <div class="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white rounded-xl p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-yellow-100 text-sm">Total</p>
+                        <p class="text-3xl font-bold">{{ total_expiring }}</p>
+                        <p class="text-xs text-yellow-200 mt-1">Contrats concernés</p>
+                    </div>
+                    <i class="fas fa-list text-2xl opacity-80"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contrats urgents -->
+        {% if urgent_contracts %}
+        <div class="mb-8">
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-red-500 to-red-600">
+                    <h2 class="text-xl font-semibold text-white">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>
+                        Contrats urgents (≤ 7 jours)
+                    </h2>
+                </div>
+                <div class="p-6">
+                    <div class="space-y-4">
+                        {% for contract in urgent_contracts %}
+                        <div class="urgent-card rounded-lg p-6 cursor-pointer hover:scale-102 transition-transform"
+                             onclick="window.location.href='{% url 'contracts:detail' contract.pk %}'">
+                            <div class="flex flex-col md:flex-row md:items-center justify-between">
+                                <div class="flex-1">
+                                    <div class="flex items-center mb-2">
+                                        <h3 class="text-lg font-bold text-gray-900 mr-3">
+                                            {{ contract.numero_contrat }}
+                                        </h3>
+                                        <span class="px-3 py-1 bg-red-600 text-white text-xs font-semibold rounded-full">
+                                            {{ contract.jours_restants }} jours
+                                        </span>
+                                    </div>
+
+                                    <div class="space-y-1 text-sm">
+                                        <p class="text-gray-700">
+                                            <i class="fas fa-user mr-2"></i>
+                                            <strong>Locataire:</strong> {{ contract.locataire.nom_complet }}
+                                        </p>
+                                        <p class="text-gray-700">
+                                            <i class="fas fa-building mr-2"></i>
+                                            <strong>Bien:</strong> {{ contract.appartement.residence.nom }} - {{ contract.appartement.nom }}
+                                        </p>
+                                        <p class="text-gray-700">
+                                            <i class="fas fa-calendar mr-2"></i>
+                                            <strong>Date fin:</strong> {{ contract.date_fin|date:"d/m/Y" }}
+                                        </p>
+                                        <p class="text-gray-700">
+                                            <i class="fas fa-money-bill-wave mr-2"></i>
+                                            <strong>Loyer:</strong> {{ contract.loyer_mensuel|floatformat:0 }} FCFA/mois
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="mt-4 md:mt-0 md:ml-4 flex flex-col gap-2" onclick="event.stopPropagation();">
+                                    <a href="{% url 'contracts:detail' contract.pk %}"
+                                       class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm text-center transition-colors">
+                                        <i class="fas fa-eye mr-1"></i>Détails
+                                    </a>
+                                    <a href="{% url 'contracts:renew' contract.pk %}"
+                                       class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm text-center transition-colors">
+                                        <i class="fas fa-redo mr-1"></i>Renouveler
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <p class="text-center text-gray-500 py-8">Aucun contrat urgent</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Contrats expirant bientôt -->
+        {% if soon_contracts %}
+        <div class="mb-8">
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-orange-500 to-orange-600">
+                    <h2 class="text-xl font-semibold text-white">
+                        <i class="fas fa-clock mr-2"></i>
+                        Contrats expirant bientôt (8-30 jours)
+                    </h2>
+                </div>
+                <div class="p-6">
+                    <div class="space-y-4">
+                        {% for contract in soon_contracts %}
+                        <div class="soon-card rounded-lg p-6 cursor-pointer hover:scale-102 transition-transform"
+                             onclick="window.location.href='{% url 'contracts:detail' contract.pk %}'">
+                            <div class="flex flex-col md:flex-row md:items-center justify-between">
+                                <div class="flex-1">
+                                    <div class="flex items-center mb-2">
+                                        <h3 class="text-lg font-bold text-gray-900 mr-3">
+                                            {{ contract.numero_contrat }}
+                                        </h3>
+                                        <span class="px-3 py-1 bg-orange-600 text-white text-xs font-semibold rounded-full">
+                                            {{ contract.jours_restants }} jours
+                                        </span>
+                                    </div>
+
+                                    <div class="space-y-1 text-sm">
+                                        <p class="text-gray-700">
+                                            <i class="fas fa-user mr-2"></i>
+                                            <strong>Locataire:</strong> {{ contract.locataire.nom_complet }}
+                                        </p>
+                                        <p class="text-gray-700">
+                                            <i class="fas fa-building mr-2"></i>
+                                            <strong>Bien:</strong> {{ contract.appartement.residence.nom }} - {{ contract.appartement.nom }}
+                                        </p>
+                                        <p class="text-gray-700">
+                                            <i class="fas fa-calendar mr-2"></i>
+                                            <strong>Date fin:</strong> {{ contract.date_fin|date:"d/m/Y" }}
+                                        </p>
+                                        <p class="text-gray-700">
+                                            <i class="fas fa-money-bill-wave mr-2"></i>
+                                            <strong>Loyer:</strong> {{ contract.loyer_mensuel|floatformat:0 }} FCFA/mois
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="mt-4 md:mt-0 md:ml-4 flex flex-col gap-2" onclick="event.stopPropagation();">
+                                    <a href="{% url 'contracts:detail' contract.pk %}"
+                                       class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm text-center transition-colors">
+                                        <i class="fas fa-eye mr-1"></i>Détails
+                                    </a>
+                                    <a href="{% url 'contracts:renew' contract.pk %}"
+                                       class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm text-center transition-colors">
+                                        <i class="fas fa-redo mr-1"></i>Renouveler
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <p class="text-center text-gray-500 py-8">Aucun contrat expirant bientôt</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Message si aucun contrat -->
+        {% if not urgent_contracts and not soon_contracts %}
+        <div class="imani-card p-12 text-center">
+            <div class="imani-gradient-soft rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-check-circle text-4xl text-green-600"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-gray-900 mb-2">Aucun contrat proche de l'expiration</h3>
+            <p class="text-gray-600 mb-6">
+                Tous vos contrats sont valides pour au moins 30 jours.
+            </p>
+            <a href="{% url 'contracts:list' %}"
+               class="inline-block px-8 py-3 imani-gradient text-white rounded-lg font-medium hover:opacity-90 transition-all">
+                <i class="fas fa-arrow-left mr-2"></i>Retour aux contrats
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

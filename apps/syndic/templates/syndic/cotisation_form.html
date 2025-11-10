@@ -1,0 +1,118 @@
+{% extends 'base_dashboard.html' %}
+
+{% block page_title %}{% if action == 'create' %}Nouvelle cotisation{% else %}Modifier cotisation{% endif %}{% endblock %}
+{% block page_subtitle %}{% if action == 'create' %}Créer une nouvelle cotisation{% else %}Modifier la cotisation{% endif %}{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <nav class="text-sm text-gray-600">
+        <a href="{% url 'syndic:dashboard' %}" class="hover:text-imani-primary">Syndic</a>
+        <span class="mx-2">/</span>
+        <a href="{% url 'syndic:cotisation_list' %}" class="hover:text-imani-primary">Cotisations</a>
+        <span class="mx-2">/</span>
+        <span class="text-gray-900 font-medium">{% if action == 'create' %}Nouvelle{% else %}Modifier{% endif %}</span>
+    </nav>
+</div>
+
+<div class="max-w-4xl">
+    <div class="imani-card p-8">
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="md:col-span-2">
+                    <label for="{{ form.coproprietaire.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Copropriétaire <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.coproprietaire }}
+                    {% if form.coproprietaire.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.coproprietaire.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label for="{{ form.periode.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Période <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.periode }}
+                    {% if form.periode.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.periode.errors.0 }}</p>
+                    {% endif %}
+                    <p class="mt-1 text-xs text-gray-500">Ex: Q1, Q2, M01, M02...</p>
+                </div>
+
+                <div>
+                    <label for="{{ form.annee.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Année <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.annee }}
+                    {% if form.annee.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.annee.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label for="{{ form.montant_theorique.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Montant théorique (FCFA) <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.montant_theorique }}
+                    {% if form.montant_theorique.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.montant_theorique.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label for="{{ form.date_emission.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Date d'émission <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.date_emission }}
+                    {% if form.date_emission.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.date_emission.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label for="{{ form.date_echeance.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Date d'échéance <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.date_echeance }}
+                    {% if form.date_echeance.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.date_echeance.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label for="{{ form.statut.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Statut <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.statut }}
+                    {% if form.statut.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.statut.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div class="md:col-span-2">
+                    <label for="{{ form.notes.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Notes
+                    </label>
+                    {{ form.notes }}
+                    {% if form.notes.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.notes.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+                <a href="{% if action == 'update' %}{% url 'syndic:cotisation_detail' cotisation.pk %}{% else %}{% url 'syndic:cotisation_list' %}{% endif %}"
+                   class="px-6 py-2.5 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                    Annuler
+                </a>
+                <button type="submit" class="imani-gradient text-white px-6 py-2.5 rounded-lg hover:opacity-90 transition-opacity flex items-center space-x-2">
+                    <i class="fas fa-save"></i>
+                    <span>{% if action == 'create' %}Créer{% else %}Enregistrer{% endif %}</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,16 @@
+<!-- ⚠️ DEPRECATED - Utilisez nouveau_tiers.html à la place -->
+<!-- Ce fichier est conservé pour compatibilité, mais redirige vers le formulaire unifié -->
+
+{% include 'dashboard/forms/nouveau_tiers.html' %}
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Pré-sélectionner "proprietaire" dans le nouveau formulaire
+    const typeTiersSelect = document.getElementById('type-tiers-select');
+    if (typeTiersSelect) {
+        typeTiersSelect.value = 'proprietaire';
+        typeTiersSelect.dispatchEvent(new Event('change'));
+    }
+    console.log('Formulaire proprietaire (legacy) chargé - redirigé vers nouveau_tiers.html');
+});
+</script>

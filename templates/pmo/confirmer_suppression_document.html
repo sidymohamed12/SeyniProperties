@@ -1,0 +1,98 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Confirmer la suppression - Document{% endblock %}
+
+{% block page_title %}
+    <i class="fas fa-exclamation-triangle text-yellow-600 mr-2"></i>Confirmer la suppression du document
+{% endblock %}
+{% block page_subtitle %}Workflow PMO - {{ workflow.contrat.numero_contrat }}{% endblock %}
+
+{% block content %}
+<!-- Avertissement -->
+<div class="imani-card p-6 mb-6 border-l-4 border-yellow-500 bg-yellow-50">
+    <div class="flex items-start gap-4">
+        <div class="w-12 h-12 rounded-xl bg-yellow-500 flex items-center justify-center flex-shrink-0">
+            <i class="fas fa-exclamation-triangle text-white text-xl"></i>
+        </div>
+        <div class="flex-1">
+            <h3 class="font-bold text-yellow-900 mb-2">Attention : Suppression de fichier</h3>
+            <p class="text-sm text-yellow-800 mb-2">
+                Vous êtes sur le point de <strong>supprimer le fichier</strong> uploadé pour ce document.
+            </p>
+            <p class="text-sm text-yellow-800">
+                Le document sera remis à l'état "En attente" et devra être re-uploadé si nécessaire.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Informations du document à supprimer -->
+<div class="imani-card p-6 mb-6">
+    <h3 class="font-bold text-lg mb-4 text-imani-primary flex items-center">
+        <i class="fas fa-file mr-2"></i>Document concerné
+    </h3>
+    <div class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <p class="text-xs text-gray-500">Type de document</p>
+                <p class="font-semibold text-gray-900">{{ document.get_type_document_display }}</p>
+            </div>
+            <div>
+                <p class="text-xs text-gray-500">Statut actuel</p>
+                <p class="font-semibold">
+                    {% if document.statut == 'recu' %}
+                        <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">Reçu</span>
+                    {% elif document.statut == 'verifie' %}
+                        <span class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded">Vérifié</span>
+                    {% elif document.statut == 'refuse' %}
+                        <span class="px-2 py-1 bg-red-100 text-red-800 text-xs rounded">Refusé</span>
+                    {% else %}
+                        <span class="px-2 py-1 bg-gray-100 text-gray-800 text-xs rounded">En attente</span>
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+
+        {% if document.fichier %}
+        <div class="p-3 bg-gray-50 rounded-lg">
+            <p class="text-xs text-gray-500 mb-1">Fichier actuel</p>
+            <div class="flex items-center gap-2">
+                <i class="fas fa-file-pdf text-red-500"></i>
+                <p class="text-sm font-medium text-gray-900">{{ document.fichier.name|slice:"20:" }}</p>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if document.obligatoire %}
+        <div class="flex items-start gap-2 p-3 bg-orange-50 rounded-lg">
+            <i class="fas fa-info-circle text-orange-500 mt-1"></i>
+            <p class="text-sm text-orange-800">
+                <strong>Document obligatoire</strong> - Ce document devra être re-uploadé pour compléter le dossier.
+            </p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Confirmation -->
+<div class="imani-card p-6">
+    <h3 class="font-bold text-lg mb-4 text-gray-900">Confirmer la suppression</h3>
+    <p class="text-sm text-gray-600 mb-6">
+        Pour confirmer la suppression du fichier <strong>"{{ document.get_type_document_display }}"</strong>,
+        cliquez sur le bouton "Supprimer le fichier" ci-dessous.
+    </p>
+
+    <form method="post" class="flex gap-3">
+        {% csrf_token %}
+        <a href="{% url 'contracts:pmo_workflow_detail' workflow.id %}"
+           class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all font-medium">
+            <i class="fas fa-arrow-left mr-2"></i>Annuler
+        </a>
+        <button type="submit"
+                class="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all font-medium flex-1">
+            <i class="fas fa-trash mr-2"></i>Supprimer le fichier
+        </button>
+    </form>
+</div>
+{% endblock %}

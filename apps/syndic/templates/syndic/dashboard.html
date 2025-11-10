@@ -1,0 +1,178 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Tableau de bord Syndic - Imani{% endblock %}
+{% block page_title %}Tableau de bord Syndic{% endblock %}
+{% block page_subtitle %}Vue d'ensemble de la gestion syndic{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Période courante -->
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div class="flex items-center">
+            <i class="fas fa-calendar-alt text-blue-600 text-2xl mr-3"></i>
+            <div>
+                <p class="text-sm text-blue-800 font-medium">Période en cours</p>
+                <p class="text-lg font-bold text-blue-900">{{ periode_courante }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistiques principales -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <!-- Total copropriétés -->
+        <div class="imani-card p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-600 mb-1">Copropriétés actives</p>
+                    <p class="text-3xl font-bold text-gray-800">{{ total_coproprietes }}</p>
+                </div>
+                <div class="bg-blue-100 p-4 rounded-full">
+                    <i class="fas fa-building text-blue-600 text-2xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Montant théorique -->
+        <div class="imani-card p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-600 mb-1">Montant théorique</p>
+                    <p class="text-2xl font-bold text-gray-800">{{ total_theorique|floatformat:0 }}</p>
+                    <p class="text-xs text-gray-500">FCFA</p>
+                </div>
+                <div class="bg-purple-100 p-4 rounded-full">
+                    <i class="fas fa-coins text-purple-600 text-2xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Montant perçu -->
+        <div class="imani-card p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-600 mb-1">Montant perçu</p>
+                    <p class="text-2xl font-bold text-green-600">{{ total_percu|floatformat:0 }}</p>
+                    <p class="text-xs text-gray-500">{{ taux_recouvrement|floatformat:1 }}%</p>
+                </div>
+                <div class="bg-green-100 p-4 rounded-full">
+                    <i class="fas fa-check-circle text-green-600 text-2xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Impayés -->
+        <div class="imani-card p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-600 mb-1">Impayés</p>
+                    <p class="text-2xl font-bold text-red-600">{{ montant_impaye|floatformat:0 }}</p>
+                    <p class="text-xs text-gray-500">{{ nb_impayees }} cotisations</p>
+                </div>
+                <div class="bg-red-100 p-4 rounded-full">
+                    <i class="fas fa-exclamation-triangle text-red-600 text-2xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section principale -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Copropriétaires débiteurs -->
+        <div class="imani-card">
+            <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                <h2 class="text-lg font-semibold text-gray-800">Copropriétaires débiteurs</h2>
+                <span class="bg-red-100 text-red-800 text-xs font-bold px-3 py-1 rounded-full">{{ coproprietaires_debiteurs|length }}</span>
+            </div>
+            <div class="p-6">
+                {% if coproprietaires_debiteurs %}
+                    <div class="space-y-3">
+                        {% for debiteur in coproprietaires_debiteurs %}
+                        <div class="flex justify-between items-center border-b border-gray-100 pb-3">
+                            <div class="flex-1">
+                                <p class="font-medium text-gray-800">{{ debiteur.coproprietaire__tiers__nom }} {{ debiteur.coproprietaire__tiers__prenom }}</p>
+                                <p class="text-xs text-gray-500">{{ debiteur.coproprietaire__copropriete__residence__nom }}</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="font-bold text-red-600">{{ debiteur.total_impaye|floatformat:0 }} FCFA</p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-8">
+                        <i class="fas fa-check-circle text-green-500 text-4xl mb-3"></i>
+                        <p class="text-gray-500">Aucun impayé</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Copropriétés actives -->
+        <div class="imani-card">
+            <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                <h2 class="text-lg font-semibold text-gray-800">Copropriétés gérées</h2>
+                <a href="{% url 'syndic:copropriete_list' %}" class="text-blue-600 hover:text-blue-800 text-sm font-medium">Voir toutes →</a>
+            </div>
+            <div class="p-6">
+                {% if coproprietes_actives %}
+                    <div class="space-y-3">
+                        {% for copro in coproprietes_actives %}
+                        <a href="{% url 'syndic:copropriete_detail' copro.pk %}" class="flex justify-between items-center border-b border-gray-100 pb-3 hover:bg-gray-50 transition-colors rounded p-2 -m-2">
+                            <div class="flex-1">
+                                <p class="font-medium text-gray-800">{{ copro.residence.nom }}</p>
+                                <p class="text-xs text-gray-500">{{ copro.nombre_coproprietaires }} copropriétaires</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-sm text-gray-600 font-medium">{{ copro.budget_annuel|floatformat:0 }} FCFA</p>
+                                <p class="text-xs text-gray-500">{{ copro.get_periode_cotisation_display }}</p>
+                            </div>
+                        </a>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-8">
+                        <i class="fas fa-building text-gray-300 text-4xl mb-3"></i>
+                        <p class="text-gray-500 mb-4">Aucune copropriété active</p>
+                        <a href="{% url 'syndic:copropriete_create' %}" class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
+                            <i class="fas fa-plus mr-2"></i>
+                            Créer une copropriété
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions rapides -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <a href="{% url 'syndic:copropriete_create' %}" class="imani-card hover:shadow-lg transition-shadow p-6 text-center group">
+            <div class="bg-blue-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-blue-100 transition-colors">
+                <i class="fas fa-plus text-blue-600 text-2xl"></i>
+            </div>
+            <p class="font-medium text-gray-800">Nouvelle copropriété</p>
+        </a>
+
+        <a href="{% url 'syndic:coproprietaire_create' %}" class="imani-card hover:shadow-lg transition-shadow p-6 text-center group">
+            <div class="bg-green-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-green-100 transition-colors">
+                <i class="fas fa-user-plus text-green-600 text-2xl"></i>
+            </div>
+            <p class="font-medium text-gray-800">Ajouter copropriétaire</p>
+        </a>
+
+        <a href="{% url 'syndic:cotisation_create' %}" class="imani-card hover:shadow-lg transition-shadow p-6 text-center group">
+            <div class="bg-purple-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-purple-100 transition-colors">
+                <i class="fas fa-file-invoice text-purple-600 text-2xl"></i>
+            </div>
+            <p class="font-medium text-gray-800">Créer cotisation</p>
+        </a>
+
+        <a href="{% url 'syndic:budget_create' %}" class="imani-card hover:shadow-lg transition-shadow p-6 text-center group">
+            <div class="bg-orange-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-orange-100 transition-colors">
+                <i class="fas fa-calculator text-orange-600 text-2xl"></i>
+            </div>
+            <p class="font-medium text-gray-800">Nouveau budget</p>
+        </a>
+    </div>
+</div>
+{% endblock %}

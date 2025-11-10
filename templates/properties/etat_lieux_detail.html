@@ -1,0 +1,324 @@
+<!-- templates/properties/etat_lieux_detail.html -->
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}{{ etat.numero_etat }} - IMANY{% endblock %}
+
+{% block extra_css %}
+<style>
+    .info-card {
+        background: white;
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    
+    .detail-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+    
+    .detail-table thead {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+    
+    .detail-table th {
+        padding: 1rem;
+        text-align: left;
+        font-weight: 600;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    
+    .detail-table th:first-child {
+        border-top-left-radius: 0.5rem;
+    }
+    
+    .detail-table th:last-child {
+        border-top-right-radius: 0.5rem;
+    }
+    
+    .detail-table tbody tr {
+        border-bottom: 1px solid #e5e7eb;
+        transition: background-color 0.2s;
+    }
+    
+    .detail-table tbody tr:hover {
+        background-color: #f9fafb;
+    }
+    
+    .detail-table td {
+        padding: 1rem;
+        font-size: 0.875rem;
+    }
+    
+    .signature-box {
+        border: 2px dashed #e5e7eb;
+        border-radius: 0.5rem;
+        padding: 2rem;
+        text-align: center;
+        min-height: 150px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .signature-box.signed {
+        border-color: #10b981;
+        background-color: #f0fdf4;
+    }
+    
+    .signature-box.pending {
+        border-color: #f59e0b;
+        background-color: #fffbeb;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    
+    <!-- Breadcrumb -->
+    <nav class="mb-6 text-sm">
+        <ol class="flex items-center space-x-2 text-gray-600">
+            <li><a href="{% url 'dashboard:index' %}" class="hover:text-blue-600"><i class="fas fa-home"></i></a></li>
+            <li><i class="fas fa-chevron-right text-xs"></i></li>
+            <li><a href="{% url 'properties:etat_lieux_list' %}" class="hover:text-blue-600">États des lieux</a></li>
+            <li><i class="fas fa-chevron-right text-xs"></i></li>
+            <li class="text-gray-900 font-medium">{{ etat.numero_etat }}</li>
+        </ol>
+    </nav>
+    
+    <!-- Alert: Workflow next steps -->
+    {% if etat.contrat.workflow %}
+    <div class="bg-blue-50 border-l-4 border-blue-500 p-6 mb-6 rounded-lg">
+        <div class="flex items-start gap-4">
+            <div class="flex-shrink-0">
+                <i class="fas fa-info-circle text-blue-600 text-2xl"></i>
+            </div>
+            <div class="flex-1">
+                <h3 class="font-semibold text-blue-900 mb-2">Prochaines étapes pour le workflow PMO</h3>
+                <ol class="text-sm text-blue-800 space-y-1 list-decimal list-inside">
+                    <li>Téléchargez le PDF ci-dessous</li>
+                    <li>Faites signer le document lors de la visite d'entrée</li>
+                    <li>Scannez le document signé</li>
+                    <li>Uploadez-le dans le workflow PMO</li>
+                </ol>
+                <a href="{% url 'contracts:pmo_workflow_detail' etat.contrat.workflow.id %}"
+                   class="inline-block mt-3 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all font-medium text-sm">
+                    <i class="fas fa-arrow-right mr-2"></i>Retour au workflow PMO
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- En-tête -->
+    <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center">
+            <div>
+                <div class="flex items-center gap-3 mb-2">
+                    <h1 class="text-3xl font-bold text-gray-900">
+                        {{ etat.numero_etat }}
+                    </h1>
+                    <span class="px-3 py-1 rounded-full text-sm font-semibold
+                        {% if etat.type_etat == 'entree' %}
+                            bg-blue-100 text-blue-800
+                        {% else %}
+                            bg-yellow-100 text-yellow-800
+                        {% endif %}">
+                        {% if etat.type_etat == 'entree' %}
+                            <i class="fas fa-sign-in-alt mr-1"></i>ENTRÉE
+                        {% else %}
+                            <i class="fas fa-sign-out-alt mr-1"></i>SORTIE
+                        {% endif %}
+                    </span>
+                </div>
+                <p class="text-gray-600">
+                    <i class="fas fa-calendar mr-2"></i>
+                    {{ etat.date_etat|date:"d/m/Y" }}
+                </p>
+            </div>
+
+            <div class="flex gap-3 mt-4 md:mt-0">
+                <a href="{% url 'properties:etat_lieux_preview' etat.pk %}" target="_blank"
+                   class="px-6 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 shadow-md transition-all">
+                    <i class="fas fa-eye mr-2"></i>Aperçu PDF
+                </a>
+                <a href="{% url 'properties:etat_lieux_download' etat.pk %}"
+                   class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 shadow-md transition-all">
+                    <i class="fas fa-download mr-2"></i>Télécharger PDF
+                </a>
+
+                {% if request.user.user_type in 'manager,accountant' %}
+                <a href="{% url 'properties:etat_lieux_edit' etat.pk %}"
+                   class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow-md transition-all">
+                    <i class="fas fa-edit mr-2"></i>Modifier
+                </a>
+                {% endif %}
+
+                {% if etat.contrat.workflow %}
+                <a href="{% url 'contracts:pmo_workflow_detail' etat.contrat.workflow.id %}"
+                   class="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 shadow-md transition-all">
+                    <i class="fas fa-arrow-left mr-2"></i>Workflow PMO
+                </a>
+                {% else %}
+                <a href="{% url 'properties:etat_lieux_list' %}"
+                   class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 shadow-md transition-all">
+                    <i class="fas fa-arrow-left mr-2"></i>Retour
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Informations principales -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        
+        <!-- Bien immobilier -->
+        <div class="info-card">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <i class="fas fa-building text-purple-600 mr-2"></i>
+                Bien Immobilier
+            </h3>
+            <div class="space-y-3">
+                <div>
+                    <span class="text-sm text-gray-500">Résidence</span>
+                    <p class="font-medium text-gray-900">{{ etat.residence.nom }}</p>
+                </div>
+                <div>
+                    <span class="text-sm text-gray-500">Appartement</span>
+                    <p class="font-medium text-gray-900">{{ etat.appartement.nom }}</p>
+                </div>
+                <div>
+                    <span class="text-sm text-gray-500">Type</span>
+                    <p class="font-medium text-gray-900">{{ etat.appartement.get_type_bien_display }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Locataire -->
+        <div class="info-card">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <i class="fas fa-user text-blue-600 mr-2"></i>
+                Locataire
+            </h3>
+            <div class="space-y-3">
+                <div>
+                    <span class="text-sm text-gray-500">Nom</span>
+                    <p class="font-medium text-gray-900">{{ etat.locataire.nom_complet }}</p>
+                </div>
+                <div>
+                    <span class="text-sm text-gray-500">Email</span>
+                    <p class="font-medium text-gray-900">{{ etat.locataire.email }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Contrat -->
+        <div class="info-card">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <i class="fas fa-file-contract text-green-600 mr-2"></i>
+                Contrat
+            </h3>
+            <div class="space-y-3">
+                <div>
+                    <span class="text-sm text-gray-500">Numéro</span>
+                    <p class="font-medium text-gray-900">{{ etat.contrat.numero_contrat }}</p>
+                </div>
+                <div>
+                    <span class="text-sm text-gray-500">Statut</span>
+                    <p class="font-medium text-gray-900">{{ etat.contrat.get_statut_display }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Détails -->
+    <div class="bg-white rounded-lg shadow-lg overflow-hidden mb-6">
+        <div class="bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-4">
+            <h2 class="text-2xl font-bold text-white">
+                <i class="fas fa-list mr-3"></i>
+                Détails de l'État des Lieux
+            </h2>
+        </div>
+        
+        {% if details %}
+        <div class="overflow-x-auto">
+            <table class="detail-table">
+                <thead>
+                    <tr>
+                        <th>Pièce</th>
+                        <th>Corps d'état</th>
+                        <th>Observations</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for detail in details %}
+                    <tr>
+                        <td class="font-medium">{{ detail.piece }}</td>
+                        <td>{{ detail.corps_etat }}</td>
+                        <td>{{ detail.observations|default:"Aucune observation" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="p-8 text-center text-gray-500">
+            <i class="fas fa-inbox text-4xl mb-3"></i>
+            <p>Aucun détail enregistré</p>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Observation globale -->
+    {% if etat.observation_globale %}
+    <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">
+            <i class="fas fa-comment-alt text-yellow-600 mr-2"></i>
+            Observation Globale
+        </h2>
+        <div class="bg-gray-50 rounded-lg p-4 border-l-4 border-yellow-400">
+            <p class="whitespace-pre-line">{{ etat.observation_globale }}</p>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Signatures -->
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-6">
+            <i class="fas fa-signature text-blue-600 mr-2"></i>
+            Signatures
+        </h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- proprietaire -->
+            <div class="signature-box {% if etat.signe_bailleur %}signed{% else %}pending{% endif %}">
+                <i class="fas {% if etat.signe_bailleur %}fa-check-circle text-green-600{% else %}fa-clock text-yellow-600{% endif %} text-4xl mb-3"></i>
+                <h3 class="font-semibold text-gray-900 mb-2">proprietaire</h3>
+                {% if etat.signe_bailleur %}
+                    <p class="text-sm text-green-700 font-medium">✓ Signé</p>
+                {% else %}
+                    <p class="text-sm text-yellow-700 font-medium">En attente</p>
+                {% endif %}
+            </div>
+            
+            <!-- Locataire -->
+            <div class="signature-box {% if etat.signe_locataire %}signed{% else %}pending{% endif %}">
+                <i class="fas {% if etat.signe_locataire %}fa-check-circle text-green-600{% else %}fa-clock text-yellow-600{% endif %} text-4xl mb-3"></i>
+                <h3 class="font-semibold text-gray-900 mb-2">Locataire</h3>
+                {% if etat.signe_locataire %}
+                    <p class="text-sm text-green-700 font-medium">✓ Signé</p>
+                {% else %}
+                    <p class="text-sm text-yellow-700 font-medium">En attente</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,93 @@
+<!-- templates/dashboard/forms/nouveau_contrat.html -->
+<form id="modal-form" method="post">
+    {% csrf_token %}
+    
+    <div class="grid grid-cols-2 gap-4">
+        <!-- Appartement -->
+        <div class="col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+                Appartement <span class="text-red-500">*</span>
+            </label>
+            <select name="appartement_id" required class="form-control">
+                <option value="">-- Sélectionner un appartement libre --</option>
+                {% for appartement in appartements %}
+                    <option value="{{ appartement.id }}" data-loyer="{{ appartement.loyer_base }}">
+                        {{ appartement.residence.nom }} - {{ appartement.nom }} 
+                        ({{ appartement.loyer_base|floatformat:0 }} FCFA)
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <!-- Locataire -->
+        <div class="col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+                Locataire <span class="text-red-500">*</span>
+            </label>
+            <select name="locataire_id" required class="form-control">
+                <option value="">-- Sélectionner un locataire --</option>
+                {% for locataire in locataires %}
+                    <option value="{{ locataire.id }}">
+                        {{ locataire.nom_complet }} - {{ locataire.email }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <!-- Loyer mensuel -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+                Loyer mensuel (FCFA) <span class="text-red-500">*</span>
+            </label>
+            <input type="number" name="loyer_mensuel" id="loyer_mensuel" required class="form-control" min="0" placeholder="250000">
+        </div>
+        
+        <!-- Charges mensuelles -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+                Charges mensuelles (FCFA)
+            </label>
+            <input type="number" name="charges_mensuelles" class="form-control" min="0" value="0" placeholder="25000">
+        </div>
+        
+        <!-- Dépôt de garantie -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+                Dépôt de garantie (FCFA) <span class="text-red-500">*</span>
+            </label>
+            <input type="number" name="depot_garantie" id="depot_garantie" required class="form-control" min="0" placeholder="500000">
+        </div>
+        
+        <!-- Durée -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+                Durée (mois)
+            </label>
+            <select name="duree_mois" class="form-control">
+                <option value="6">6 mois</option>
+                <option value="12" selected>12 mois</option>
+                <option value="24">24 mois</option>
+                <option value="36">36 mois</option>
+            </select>
+        </div>
+        
+        <!-- Date de début -->
+        <div class="col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+                Date de début <span class="text-red-500">*</span>
+            </label>
+            <input type="date" name="date_debut" required class="form-control">
+        </div>
+    </div>
+</form>
+
+<script>
+// Auto-remplir le dépôt de garantie (2x le loyer par défaut)
+document.querySelector('select[name="appartement_id"]').addEventListener('change', function() {
+    const loyer = this.options[this.selectedIndex].dataset.loyer;
+    if (loyer) {
+        document.getElementById('loyer_mensuel').value = loyer;
+        document.getElementById('depot_garantie').value = loyer * 2;  // 2 mois de loyer
+    }
+});
+</script>

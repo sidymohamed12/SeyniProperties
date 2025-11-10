@@ -1,0 +1,273 @@
+<!-- apps/payments/templates/payments/list.html -->
+
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Paiements - Imani{% endblock %}
+
+{% block page_title %}Paiements{% endblock %}
+{% block page_subtitle %}Gestion des paiements et quittances{% endblock %}
+
+{% block content %}
+    <!-- Actions rapides -->
+    <div class="flex justify-end gap-3 mb-6">
+        <a href="{% url 'payments:create' %}"
+           class="px-6 py-3 imani-gradient text-white rounded-lg font-medium hover:opacity-90 transition-all shadow-lg flex items-center">
+            <i class="fas fa-plus-circle mr-2"></i>
+            Nouveau Paiement
+        </a>
+    </div>
+
+    <!-- Statistiques -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div class="imani-card p-6">
+            <div class="flex items-center justify-between">
+                <div class="flex-1">
+                    <p class="text-sm text-gray-600 font-medium mb-1">Total Paiements</p>
+                    <p class="text-3xl font-bold text-imani-primary">{{ stats.total }}</p>
+                </div>
+                <div class="w-14 h-14 rounded-xl bg-gray-500 flex items-center justify-center">
+                    <i class="fas fa-receipt text-white text-2xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="imani-card p-6 border-l-4 border-green-500">
+            <div class="flex items-center justify-between">
+                <div class="flex-1">
+                    <p class="text-sm text-gray-600 font-medium mb-1">Validés</p>
+                    <p class="text-3xl font-bold text-green-600">{{ stats.valide }}</p>
+                </div>
+                <div class="w-14 h-14 rounded-xl bg-green-500 flex items-center justify-center">
+                    <i class="fas fa-check-circle text-white text-2xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="imani-card p-6 border-l-4 border-yellow-500">
+            <div class="flex items-center justify-between">
+                <div class="flex-1">
+                    <p class="text-sm text-gray-600 font-medium mb-1">En Attente</p>
+                    <p class="text-3xl font-bold text-yellow-600">{{ stats.en_attente }}</p>
+                </div>
+                <div class="w-14 h-14 rounded-xl bg-yellow-500 flex items-center justify-center">
+                    <i class="fas fa-clock text-white text-2xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="imani-card p-6 border-l-4 border-purple-500">
+            <div class="flex items-center justify-between">
+                <div class="flex-1">
+                    <p class="text-sm text-gray-600 font-medium mb-1">Montant Total</p>
+                    <p class="text-2xl font-bold text-purple-600">{{ stats.total_amount|floatformat:0 }} FCFA</p>
+                </div>
+                <div class="w-14 h-14 rounded-xl bg-purple-500 flex items-center justify-center">
+                    <i class="fas fa-money-bill-wave text-white text-2xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Filtres -->
+    <div class="imani-card p-6 mb-6">
+        <form method="get" class="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Recherche</label>
+                <input type="text" name="search" value="{{ search }}"
+                       placeholder="N° paiement, facture..."
+                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-imani-primary">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Statut</label>
+                <select name="statut" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-imani-primary">
+                    <option value="">Tous</option>
+                    {% for value, label in statut_choices %}
+                    <option value="{{ value }}" {% if statut == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Moyen</label>
+                <select name="moyen_paiement" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-imani-primary">
+                    <option value="">Tous</option>
+                    {% for value, label in moyen_paiement_choices %}
+                    <option value="{{ value }}" {% if moyen_paiement == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Date début</label>
+                <input type="date" name="date_debut" value="{{ date_debut }}"
+                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-imani-primary">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Date fin</label>
+                <input type="date" name="date_fin" value="{{ date_fin }}"
+                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-imani-primary">
+            </div>
+
+            <div class="md:col-span-5 flex justify-end space-x-3">
+                <a href="{% url 'payments:list' %}"
+                   class="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all">
+                    <i class="fas fa-redo mr-2"></i>Réinitialiser
+                </a>
+                <button type="submit"
+                        class="px-6 py-2 imani-gradient text-white rounded-lg hover:opacity-90 transition-all">
+                    <i class="fas fa-search mr-2"></i>Filtrer
+                </button>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Tableau des paiements -->
+    <div class="imani-card overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h2 class="text-xl font-semibold text-imani-primary">
+                Liste des Paiements ({{ payments.paginator.count }})
+            </h2>
+        </div>
+        
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            N° Paiement
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Locataire
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Montant
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Date
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Moyen
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Statut
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Actions
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for payment in payments %}
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm font-medium text-gray-900">{{ payment.numero_paiement }}</div>
+                            <div class="text-xs text-gray-500">Facture: {{ payment.facture.numero_facture }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-gray-900">{{ payment.facture.contrat.locataire.nom_complet }}</div>
+                            <div class="text-xs text-gray-500">{{ payment.facture.contrat.appartement.nom }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm font-bold text-green-600">{{ payment.montant|floatformat:0 }} FCFA</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ payment.date_paiement|date:"d/m/Y" }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800">
+                                {{ payment.get_moyen_paiement_display }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            {% if payment.statut == 'valide' %}
+                            <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">
+                                <i class="fas fa-check-circle mr-1"></i>{{ payment.get_statut_display }}
+                            </span>
+                            {% elif payment.statut == 'en_attente' %}
+                            <span class="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">
+                                <i class="fas fa-clock mr-1"></i>{{ payment.get_statut_display }}
+                            </span>
+                            {% elif payment.statut == 'refuse' %}
+                            <span class="px-2 py-1 text-xs rounded-full bg-red-100 text-red-800">
+                                <i class="fas fa-times-circle mr-1"></i>{{ payment.get_statut_display }}
+                            </span>
+                            {% else %}
+                            <span class="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800">
+                                {{ payment.get_statut_display }}
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                            <div class="flex space-x-2">
+                                <a href="{% url 'payments:detail' payment.pk %}"
+                                   class="text-imani-primary hover:text-imani-secondary transition-colors" title="Voir détails">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                {% if payment.statut == 'valide' %}
+                                <a href="{% url 'payments:receipt_download' payment.pk %}"
+                                   class="text-green-600 hover:text-green-900 transition-colors" title="Télécharger quittance">
+                                    <i class="fas fa-download"></i>
+                                </a>
+                                <a href="{% url 'payments:receipt_preview' payment.pk %}"
+                                   target="_blank"
+                                   class="text-purple-600 hover:text-purple-900 transition-colors" title="Aperçu quittance">
+                                    <i class="fas fa-file-pdf"></i>
+                                </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="px-6 py-12 text-center">
+                            <div class="imani-gradient-soft rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-4">
+                                <i class="fas fa-inbox text-4xl text-imani-primary"></i>
+                            </div>
+                            <p class="text-gray-500 text-lg">Aucun paiement trouvé</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        {% if payments.has_other_pages %}
+        <div class="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+            <div class="text-sm text-gray-700">
+                <span class="px-6 py-2 imani-gradient text-white rounded-lg font-medium">
+                    Page {{ payments.number }} sur {{ payments.paginator.num_pages }}
+                </span>
+            </div>
+            <div class="flex space-x-2">
+                {% if payments.has_previous %}
+                <a href="?page=1{% if search %}&search={{ search }}{% endif %}{% if statut %}&statut={{ statut }}{% endif %}"
+                   class="px-3 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all">
+                    <i class="fas fa-angle-double-left"></i>
+                </a>
+                <a href="?page={{ payments.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if statut %}&statut={{ statut }}{% endif %}"
+                   class="px-3 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all">
+                    <i class="fas fa-angle-left"></i>
+                </a>
+                {% endif %}
+
+                <span class="px-4 py-2 imani-gradient text-white rounded-lg font-medium">{{ payments.number }}</span>
+
+                {% if payments.has_next %}
+                <a href="?page={{ payments.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if statut %}&statut={{ statut }}{% endif %}"
+                   class="px-3 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all">
+                    <i class="fas fa-angle-right"></i>
+                </a>
+                <a href="?page={{ payments.paginator.num_pages }}{% if search %}&search={{ search }}{% endif %}{% if statut %}&statut={{ statut }}{% endif %}"
+                   class="px-3 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all">
+                    <i class="fas fa-angle-double-right"></i>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+{% endblock %}

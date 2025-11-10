@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="theme-color" content="#23456b">
+    
+    <title>Dashboard - Seyni Employés</title>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/employees/mobile/manifest.json">
+    
+    <!-- Icons -->
+    <link rel="apple-touch-icon" href="/static/img/icon-192.png">
+    <link rel="icon" href="/static/img/favicon.ico">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'imani-primary': '#23456b',
+                        'imani-secondary': '#a25946',
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        body {
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+            -webkit-tap-highlight-color: transparent;
+            overscroll-behavior: none;
+        }
+        
+        .safe-area {
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        
+        .card-shadow {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .btn-ripple {
+            position: relative;
+            overflow: hidden;
+            transform: translate3d(0, 0, 0);
+        }
+        
+        .btn-ripple:active {
+            transform: scale(0.98);
+        }
+        
+        .priority-urgent, .priority-urgente { border-left: 4px solid #EF4444; }
+        .priority-haute { border-left: 4px solid #F59E0B; }
+        .priority-normale { border-left: 4px solid #3B82F6; }
+        .priority-basse { border-left: 4px solid #10B981; }
+        
+        .status-planifie, .status-assigne { background: #DBEAFE; color: #1E40AF; }
+        .status-en_cours { background: #FED7AA; color: #C2410C; }
+        .status-complete { background: #D1FAE5; color: #065F46; }
+        .status-signale { background: #FEE2E2; color: #991B1B; }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #23456b 0%, #a25946 100%);
+        }
+
+        .work-item-type {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        .type-travail { background: rgba(35, 69, 107, 0.1); color: #23456b; }
+        .type-task { background: rgba(162, 89, 70, 0.1); color: #a25946; }
+        .type-intervention { background: rgba(162, 89, 70, 0.1); color: #a25946; }
+    </style>
+</head>
+<body class="bg-gray-50 safe-area">
+    <!-- Header -->
+    <header class="gradient-bg text-white sticky top-0 z-50 shadow-lg">
+        <div class="px-4 py-3">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <i class="fas fa-user-hard-hat text-xl"></i>
+                    <div>
+                        <h1 class="font-bold text-lg">Imani Properties</h1>
+                        <p class="text-blue-200 text-sm">{{ user.get_full_name|default:user.username }}</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <div id="connection-status" class="w-3 h-3 rounded-full bg-green-400"></div>
+                    <button id="menu-toggle" class="p-2 rounded-lg hover:bg-black hover:bg-opacity-20 transition-colors">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Messages Django -->
+    {% if messages %}
+    <div class="px-4 pt-3 pb-1">
+        {% for message in messages %}
+        <div class="mb-2 p-3 rounded-lg shadow-sm {% if message.tags == 'success' %}bg-green-50 border-l-4 border-green-500 text-green-800{% elif message.tags == 'error' %}bg-red-50 border-l-4 border-red-500 text-red-800{% elif message.tags == 'warning' %}bg-yellow-50 border-l-4 border-yellow-500 text-yellow-800{% else %}bg-blue-50 border-l-4 border-blue-500 text-blue-800{% endif %}">
+            <div class="flex items-center">
+                <i class="fas {% if message.tags == 'success' %}fa-check-circle{% elif message.tags == 'error' %}fa-exclamation-circle{% elif message.tags == 'warning' %}fa-exclamation-triangle{% else %}fa-info-circle{% endif %} mr-2"></i>
+                <span class="text-sm">{{ message }}</span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Menu slide -->
+    <div id="slide-menu" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+        <div class="fixed right-0 top-0 h-full w-80 bg-white shadow-xl transform translate-x-full transition-transform duration-300">
+            <div class="p-4 gradient-bg text-white">
+                <div class="flex items-center justify-between">
+                    <h3 class="font-bold">Menu</h3>
+                    <button id="menu-close" class="p-2">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            <nav class="p-4">
+                <a href="/accounts/logout/" class="flex items-center space-x-3 p-3 hover:bg-gray-100 rounded-lg text-red-600">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Déconnexion</span>
+                </a>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Contenu principal -->
+    <main class="p-4 pb-20">
+        <!-- Statistiques globales -->
+        <div class="grid grid-cols-2 gap-4 mb-6">
+            <!-- Travaux en attente -->
+            <div class="bg-white rounded-xl p-4 card-shadow">
+                <div class="flex items-center space-x-3">
+                    <div class="w-12 h-12 rounded-lg flex items-center justify-center" style="background-color: rgba(162, 89, 70, 0.1);">
+                        <i class="fas fa-clock text-xl" style="color: #a25946;"></i>
+                    </div>
+                    <div>
+                        <p class="text-2xl font-bold text-gray-900">
+                            {{ total_pending|default:0 }}
+                        </p>
+                        <p class="text-sm text-gray-600">En attente</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Travaux en cours -->
+            <div class="bg-white rounded-xl p-4 card-shadow">
+                <div class="flex items-center space-x-3">
+                    <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-play text-orange-600 text-xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-2xl font-bold text-gray-900">
+                            {{ total_in_progress|default:0 }}
+                        </p>
+                        <p class="text-sm text-gray-600">En cours</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Terminés aujourd'hui -->
+            <div class="bg-white rounded-xl p-4 card-shadow">
+                <div class="flex items-center space-x-3">
+                    <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-2xl font-bold text-gray-900">
+                            {{ total_completed_today|default:0 }}
+                        </p>
+                        <p class="text-sm text-gray-600">Terminés</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- En retard -->
+            {% if total_overdue > 0 %}
+            <div class="bg-white rounded-xl p-4 card-shadow border-l-4 border-red-500">
+                <div class="flex items-center space-x-3">
+                    <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-2xl font-bold text-gray-900">{{ total_overdue }}</p>
+                        <p class="text-sm text-gray-600">En retard</p>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="bg-white rounded-xl p-4 card-shadow">
+                <div class="flex items-center space-x-3">
+                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-calendar text-blue-600 text-xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-2xl font-bold text-gray-900">
+                            {{ upcoming_count|default:0 }}
+                        </p>
+                        <p class="text-sm text-gray-600">À venir</p>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Actions rapides -->
+        <div class="mb-6">
+            <h2 class="text-lg font-bold text-gray-900 mb-3">Actions rapides</h2>
+            <div class="grid grid-cols-2 gap-3">
+                <a href="{% url 'employees_mobile:profil' %}"
+                   class="bg-white rounded-xl p-4 card-shadow flex flex-col items-center justify-center space-y-2 btn-ripple active:scale-95 transition-transform">
+                    <div class="w-14 h-14 rounded-full flex items-center justify-center" style="background-color: rgba(162, 89, 70, 0.1);">
+                        <i class="fas fa-user text-xl" style="color: #a25946;"></i>
+                    </div>
+                    <span class="text-sm font-medium text-gray-700">Mon profil</span>
+                </a>
+                
+                <button onclick="showWorkFilters()" 
+                        class="bg-white rounded-xl p-4 card-shadow flex flex-col items-center justify-center space-y-2 btn-ripple active:scale-95 transition-transform">
+                    <div class="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-filter text-blue-600 text-xl"></i>
+                    </div>
+                    <span class="text-sm font-medium text-gray-700">Filtrer</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mes travaux d'aujourd'hui -->
+        {% if today_work %}
+        <div class="mb-6">
+            <div class="flex items-center justify-between mb-3">
+                <h2 class="text-lg font-bold text-gray-900">Mes travaux d'aujourd'hui</h2>
+                <span class="text-sm font-medium" style="color: #a25946;">
+                    {{ today_work|length }} travail(s)
+                </span>
+            </div>
+            
+            <div class="space-y-3">
+                {% for work in today_work|slice:":4" %}
+                <a href="{{ work.detail_url }}" class="block">
+                    <div class="bg-white rounded-xl p-4 card-shadow priority-{{ work.priorite }} hover:shadow-lg transition-shadow">
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="flex-1">
+                                <div class="flex items-center space-x-2 mb-1">
+                                    <span class="work-item-type type-travail">
+                                        <i class="fas fa-wrench mr-1"></i>TRAVAIL
+                                    </span>
+                                    <span class="status-{{ work.statut }} px-2 py-1 rounded-full text-xs font-medium">
+                                        {{ work.statut_display }}
+                                    </span>
+                                </div>
+
+                                <h3 class="font-medium text-gray-900 mb-1">{{ work.titre }}</h3>
+                                <p class="text-sm text-gray-600 mb-2">{{ work.description|truncatechars:60 }}</p>
+
+                                <div class="flex items-center space-x-4 text-xs text-gray-500">
+                                    <span class="flex items-center">
+                                        <i class="fas fa-clock mr-1"></i>
+                                        {{ work.heure_affichage }}
+                                    </span>
+                                    {% if work.bien_nom %}
+                                    <span class="flex items-center">
+                                        <i class="fas fa-map-marker-alt mr-1"></i>
+                                        {{ work.bien_nom|truncatechars:20 }}
+                                    </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="flex flex-col items-end space-y-2" onclick="event.stopPropagation()">
+                                <a href="{{ work.detail_url }}"
+                                   class="bg-blue-600 text-white px-3 py-1 rounded-lg text-xs font-medium inline-block">
+                                    <i class="fas fa-eye mr-1"></i>Détails
+                                </a>
+                                {% if work.statut == 'signale' or work.statut == 'assigne' %}
+                                <a href="{% url 'employees_mobile:travail_start' work.id %}"
+                                   class="text-white px-3 py-1 rounded-lg text-xs font-medium inline-block btn-ripple"
+                                   style="background-color: #a25946;">
+                                    <i class="fas fa-play mr-1"></i>Démarrer
+                                </a>
+                                {% elif work.statut == 'en_cours' %}
+                                <a href="{% url 'employees_mobile:travail_complete' work.id %}"
+                                   class="bg-green-600 text-white px-3 py-1 rounded-lg text-xs font-medium inline-block">
+                                    <i class="fas fa-check mr-1"></i>Terminer
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Travaux à venir -->
+        {% if upcoming_work %}
+        <div class="mb-6">
+            <h2 class="text-lg font-bold text-gray-900 mb-3">Prochains travaux</h2>
+            <div class="bg-white rounded-xl card-shadow">
+                {% for work in upcoming_work %}
+                <a href="{{ work.detail_url }}" class="block p-4 {% if not forloop.last %}border-b border-gray-100{% endif %} hover:bg-gray-50 transition-colors">
+                    <div class="flex items-center justify-between">
+                        <div class="flex-1">
+                            <div class="flex items-center space-x-2 mb-1">
+                                <span class="work-item-type type-travail">
+                                    <i class="fas fa-wrench mr-1"></i>TRAVAIL
+                                </span>
+                            </div>
+                            <h4 class="font-medium text-gray-900">{{ work.titre }}</h4>
+                            <p class="text-sm text-gray-600">{{ work.date_affichage }}</p>
+                        </div>
+                        <span class="px-2 py-1 rounded text-xs"
+                              style="background-color: rgba(162, 89, 70, 0.1); color: #a25946;">
+                            {{ work.priorite_display }}
+                        </span>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Message si aucun travail -->
+        {% if not today_work and not upcoming_work %}
+        <div class="text-center py-12">
+            <div class="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4" 
+                 style="background-color: rgba(162, 89, 70, 0.1);">
+                <i class="fas fa-check-circle text-3xl" style="color: #a25946;"></i>
+            </div>
+            <h3 class="text-lg font-bold text-gray-900 mb-2">Aucun travail assigné</h3>
+            <p class="text-gray-600">Vous êtes à jour dans vos missions !</p>
+        </div>
+        {% endif %}
+    </main>
+
+    <!-- Navigation bottom -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 safe-area">
+        <div class="grid grid-cols-3 py-2">
+            <a href="{% url 'employees_mobile:dashboard' %}" 
+               class="flex flex-col items-center justify-center py-2" style="color: #a25946;">
+                <i class="fas fa-home text-xl mb-1"></i>
+                <span class="text-xs">Accueil</span>
+            </a>
+            
+            <a href="#" onclick="showAllWork(); return false;" 
+               class="flex flex-col items-center justify-center py-2 text-gray-500">
+                <i class="fas fa-list text-xl mb-1"></i>
+                <span class="text-xs">Mes travaux</span>
+            </a>
+            
+            <a href="{% url 'employees_mobile:profil' %}"
+               class="flex flex-col items-center justify-center py-2 text-gray-500 hover:text-imani-primary">
+                <i class="fas fa-user text-xl mb-1"></i>
+                <span class="text-xs">Mon profil</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Toast notifications -->
+    <div id="toast-container" class="fixed top-20 left-4 right-4 z-50"></div>
+
+    <!-- Loading overlay -->
+    <div id="loading-overlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl p-6 flex flex-col items-center">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-3"></div>
+            <p class="text-gray-700">Chargement...</p>
+        </div>
+    </div>
+
+    <script>
+        // Actions unifiées pour les travaux
+        async function startWork(type, id) {
+            const url = type === 'task' 
+                ? `/employees/mobile/tasks/${id}/start/`
+                : `/employees/mobile/interventions/${id}/start/`;
+            
+            try {
+                showLoading(true);
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken'),
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showToast(data.message, 'success');
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    showToast(data.error, 'error');
+                }
+            } catch (error) {
+                showToast('Erreur de connexion', 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Afficher tous les travaux (redirection)
+        function showAllWork() {
+            // Créer une page unifiée ou rediriger vers les tâches
+            window.location.href = '{% url "employees_mobile:tasks" %}';
+        }
+
+        // Filtres des travaux
+        function showWorkFilters() {
+            showToast('Filtres bientôt disponibles', 'info');
+        }
+        
+        // Menu mobile
+        const menuToggle = document.getElementById('menu-toggle');
+        const menuClose = document.getElementById('menu-close');
+        const slideMenu = document.getElementById('slide-menu');
+        const menuContent = slideMenu.querySelector('div:last-child');
+        
+        menuToggle.addEventListener('click', () => {
+            slideMenu.classList.remove('hidden');
+            setTimeout(() => {
+                menuContent.classList.remove('translate-x-full');
+            }, 10);
+        });
+        
+        function closeMenu() {
+            menuContent.classList.add('translate-x-full');
+            setTimeout(() => {
+                slideMenu.classList.add('hidden');
+            }, 300);
+        }
+        
+        menuClose.addEventListener('click', closeMenu);
+        slideMenu.addEventListener('click', (e) => {
+            if (e.target === slideMenu) closeMenu();
+        });
+        
+        // Fonctions utilitaires
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            const colors = {
+                success: 'bg-green-600',
+                error: 'bg-red-600',
+                info: '#23456b',
+                warning: '#a25946'
+            };
+            
+            const bgColor = colors[type].startsWith('bg-') ? colors[type] : '';
+            const customColor = !colors[type].startsWith('bg-') ? colors[type] : null;
+            
+            toast.className = `${bgColor} text-white p-4 rounded-xl shadow-lg mb-3 transform translate-x-full transition-transform duration-300`;
+            if (customColor) {
+                toast.style.backgroundColor = customColor;
+            }
+            toast.textContent = message;
+            
+            document.getElementById('toast-container').appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.remove('translate-x-full');
+            }, 100);
+            
+            setTimeout(() => {
+                toast.classList.add('translate-x-full');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+        
+        function showLoading(show) {
+            const overlay = document.getElementById('loading-overlay');
+            if (show) {
+                overlay.classList.remove('hidden');
+            } else {
+                overlay.classList.add('hidden');
+            }
+        }
+        
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        
+        // Actualisation des données
+        async function refreshData() {
+            try {
+                showLoading(true);
+                showToast('Actualisation...', 'info');
+                
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                location.reload();
+            } catch (error) {
+                showToast('Erreur lors de l\'actualisation', 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+        
+        // Gestion de la connexion
+        function updateConnectionStatus() {
+            const statusIndicator = document.getElementById('connection-status');
+            if (navigator.onLine) {
+                statusIndicator.className = 'w-3 h-3 rounded-full bg-green-400';
+            } else {
+                statusIndicator.className = 'w-3 h-3 rounded-full bg-red-400';
+            }
+        }
+        
+        window.addEventListener('online', updateConnectionStatus);
+        window.addEventListener('offline', updateConnectionStatus);
+        
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', () => {
+            updateConnectionStatus();
+        });
+    </script>
+</body>
+</html>

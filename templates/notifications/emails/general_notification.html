@@ -1,0 +1,30 @@
+<!-- templates/notifications/emails/general_notification.html -->
+{% extends 'notifications/emails/base_email.html' %}
+
+{% block title %}{{ title }} - IMANY{% endblock %}
+
+{% block content %}
+<div class="greeting">
+    Bonjour {{ recipient_name }},
+</div>
+
+<div class="content">
+    <h2 style="color: #23456b; margin: 20px 0;">{{ title }}</h2>
+    <p style="font-size: 15px; line-height: 1.8;">{{ message|linebreaks }}</p>
+</div>
+
+{% if link_url %}
+<div style="text-align: center; margin: 30px 0;">
+    <a href="{{ link_url }}" class="button">
+        📱 Voir les détails
+    </a>
+</div>
+{% endif %}
+
+{% if additional_info %}
+<div class="info-box">
+    <h3>ℹ️ Informations complémentaires</h3>
+    {{ additional_info|linebreaks }}
+</div>
+{% endif %}
+{% endblock %}

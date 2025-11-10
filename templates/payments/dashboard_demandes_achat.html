@@ -1,0 +1,326 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Tableau de Bord - Demandes d'Achat{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- En-tête -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">
+            <i class="fas fa-chart-line text-blue-600 mr-3"></i>
+            Tableau de Bord - Demandes d'Achat
+        </h1>
+        <p class="text-gray-600">
+            Vue d'ensemble et suivi des demandes d'achat
+        </p>
+    </div>
+
+    <!-- Statistiques principales -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <!-- Total demandes -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-600 mb-1">Total Demandes</p>
+                    <p class="text-3xl font-bold text-gray-900">{{ stats.total|default:0 }}</p>
+                    {% if stats.mois_dernier %}
+                    <p class="text-xs text-gray-500 mt-2">
+                        <i class="fas fa-calendar mr-1"></i>{{ stats.mois_dernier }} le mois dernier
+                    </p>
+                    {% endif %}
+                </div>
+                <div class="h-12 w-12 bg-blue-100 rounded-full flex items-center justify-center">
+                    <i class="fas fa-shopping-cart text-blue-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- En attente -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-600 mb-1">En Attente</p>
+                    <p class="text-3xl font-bold text-yellow-600">{{ stats.en_attente|default:0 }}</p>
+                    <a href="{% url 'payments:demande_achat_list' %}?etape=en_attente" class="text-xs text-yellow-700 hover:underline mt-2 inline-block">
+                        <i class="fas fa-eye mr-1"></i>Voir les demandes
+                    </a>
+                </div>
+                <div class="h-12 w-12 bg-yellow-100 rounded-full flex items-center justify-center">
+                    <i class="fas fa-clock text-yellow-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Approuvées -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-600 mb-1">Approuvées</p>
+                    <p class="text-3xl font-bold text-green-600">{{ stats.approuvees|default:0 }}</p>
+                    <a href="{% url 'payments:demande_achat_list' %}?etape=approuve" class="text-xs text-green-700 hover:underline mt-2 inline-block">
+                        <i class="fas fa-eye mr-1"></i>Voir les demandes
+                    </a>
+                </div>
+                <div class="h-12 w-12 bg-green-100 rounded-full flex items-center justify-center">
+                    <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Montant total -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-600 mb-1">Montant Total</p>
+                    <p class="text-2xl font-bold text-purple-600">
+                        {{ stats.montant_total|default:0|floatformat:0 }}
+                    </p>
+                    <p class="text-xs text-gray-600">FCFA (ce mois)</p>
+                </div>
+                <div class="h-12 w-12 bg-purple-100 rounded-full flex items-center justify-center">
+                    <i class="fas fa-money-bill-wave text-purple-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Graphiques et détails -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <!-- Statuts workflow -->
+        <div class="lg:col-span-2 bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">
+                Répartition par Statut
+            </h2>
+
+            <div class="space-y-3">
+                {% for statut in stats.par_statut %}
+                <div>
+                    <div class="flex justify-between text-sm mb-1">
+                        <span class="text-gray-700">{{ statut.label }}</span>
+                        <span class="font-semibold text-gray-900">{{ statut.count }} ({{ statut.percentage|floatformat:0 }}%)</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-{{ statut.color }}-600 h-2 rounded-full" style="width: {{ statut.percentage }}%"></div>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-center text-gray-500 py-4">Aucune donnée disponible</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Actions rapides -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">
+                Actions Rapides
+            </h2>
+
+            <div class="space-y-3">
+                {% if request.user.user_type == 'employe' or request.user.user_type == 'manager' %}
+                <a href="{% url 'payments:demande_achat_create' %}"
+                   class="w-full flex items-center px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                    <i class="fas fa-plus mr-3"></i>
+                    Nouvelle demande
+                </a>
+                {% endif %}
+
+                <a href="{% url 'payments:demande_achat_list' %}"
+                   class="w-full flex items-center px-4 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
+                    <i class="fas fa-list mr-3"></i>
+                    Toutes les demandes
+                </a>
+
+                {% if request.user.user_type == 'manager' %}
+                <a href="{% url 'payments:demande_achat_list' %}?etape=en_attente"
+                   class="w-full flex items-center px-4 py-3 bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200 transition-colors">
+                    <i class="fas fa-clipboard-check mr-3"></i>
+                    À valider ({{ stats.a_valider_manager|default:0 }})
+                </a>
+                {% endif %}
+
+                {% if request.user.user_type == 'accountant' %}
+                <a href="{% url 'payments:demande_achat_list' %}?etape=comptable"
+                   class="w-full flex items-center px-4 py-3 bg-indigo-100 text-indigo-700 rounded-lg hover:bg-indigo-200 transition-colors">
+                    <i class="fas fa-calculator mr-3"></i>
+                    À traiter ({{ stats.a_traiter_comptable|default:0 }})
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Demandes récentes nécessitant une action -->
+    {% if demandes_action %}
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-semibold text-gray-900">
+                <i class="fas fa-bell text-orange-600 mr-2"></i>
+                Demandes nécessitant votre attention
+            </h2>
+            <span class="px-3 py-1 bg-orange-100 text-orange-800 text-sm font-semibold rounded-full">
+                {{ demandes_action|length }}
+            </span>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Numéro</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Demandeur</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Montant</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Statut</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for demande in demandes_action %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-3 text-sm font-medium text-gray-900">
+                            {{ demande.numero_facture }}
+                        </td>
+                        <td class="px-4 py-3 text-sm text-gray-900">
+                            {{ demande.demandeur.get_full_name }}
+                        </td>
+                        <td class="px-4 py-3 text-sm font-semibold text-gray-900">
+                            {{ demande.montant_ttc|floatformat:0 }} F
+                        </td>
+                        <td class="px-4 py-3">
+                            {% if demande.etape_workflow == 'en_attente' %}
+                            <span class="px-3 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                <i class="fas fa-clock mr-1"></i>En attente validation
+                            </span>
+                            {% elif demande.etape_workflow == 'comptable' %}
+                            <span class="px-3 py-1 text-xs font-semibold rounded-full bg-indigo-100 text-indigo-800">
+                                <i class="fas fa-calculator mr-1"></i>Traitement comptable
+                            </span>
+                            {% elif demande.etape_workflow == 'validation_dg' %}
+                            <span class="px-3 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800">
+                                <i class="fas fa-user-tie mr-1"></i>Validation DG
+                            </span>
+                            {% elif demande.etape_workflow == 'approuve' %}
+                            <span class="px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                <i class="fas fa-box-open mr-1"></i>À réceptionner
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-4 py-3 text-sm">
+                            <a href="{% url 'payments:demande_achat_detail' demande.pk %}"
+                               class="text-blue-600 hover:text-blue-900 mr-3">
+                                <i class="fas fa-eye mr-1"></i>Voir
+                            </a>
+
+                            {% if demande.etape_workflow == 'en_attente' and request.user.user_type == 'manager' %}
+                            <a href="{% url 'payments:demande_achat_validation_responsable' demande.pk %}"
+                               class="text-green-600 hover:text-green-900">
+                                <i class="fas fa-check mr-1"></i>Valider
+                            </a>
+                            {% elif demande.etape_workflow == 'comptable' and request.user.user_type == 'accountant' %}
+                            <a href="{% url 'payments:demande_achat_traitement_comptable' demande.pk %}"
+                               class="text-indigo-600 hover:text-indigo-900">
+                                <i class="fas fa-calculator mr-1"></i>Traiter
+                            </a>
+                            {% elif demande.etape_workflow == 'validation_dg' and request.user.user_type == 'manager' %}
+                            <a href="{% url 'payments:demande_achat_validation_dg' demande.pk %}"
+                               class="text-purple-600 hover:text-purple-900">
+                                <i class="fas fa-user-tie mr-1"></i>Approuver
+                            </a>
+                            {% elif demande.etape_workflow == 'approuve' %}
+                            <a href="{% url 'payments:demande_achat_reception' demande.pk %}"
+                               class="text-teal-600 hover:text-teal-900">
+                                <i class="fas fa-box-open mr-1"></i>Réceptionner
+                            </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Demandes récentes -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-semibold text-gray-900">
+                Demandes Récentes
+            </h2>
+            <a href="{% url 'payments:demande_achat_list' %}" class="text-blue-600 hover:text-blue-800 text-sm">
+                Voir tout <i class="fas fa-arrow-right ml-1"></i>
+            </a>
+        </div>
+
+        {% if demandes_recentes %}
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Numéro</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Demandeur</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Motif</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Montant</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Statut</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for demande in demandes_recentes %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-3 text-sm">
+                            <a href="{% url 'payments:demande_achat_detail' demande.pk %}"
+                               class="font-medium text-blue-600 hover:text-blue-900">
+                                {{ demande.numero_facture }}
+                            </a>
+                        </td>
+                        <td class="px-4 py-3 text-sm text-gray-600">
+                            {{ demande.date_demande|date:"d/m/Y" }}
+                        </td>
+                        <td class="px-4 py-3 text-sm text-gray-900">
+                            {{ demande.demandeur.get_full_name }}
+                        </td>
+                        <td class="px-4 py-3 text-sm text-gray-900 max-w-xs truncate">
+                            {{ demande.motif_principal|truncatewords:8 }}
+                        </td>
+                        <td class="px-4 py-3 text-sm font-semibold text-gray-900">
+                            {{ demande.montant_ttc|floatformat:0 }} F
+                        </td>
+                        <td class="px-4 py-3">
+                            {% if demande.etape_workflow == 'brouillon' %}
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">Brouillon</span>
+                            {% elif demande.etape_workflow == 'en_attente' %}
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">En attente</span>
+                            {% elif demande.etape_workflow == 'approuve' %}
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Approuvé</span>
+                            {% elif demande.etape_workflow == 'recue' %}
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-teal-100 text-teal-800">Réceptionné</span>
+                            {% elif demande.etape_workflow == 'paye' %}
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-emerald-100 text-emerald-800">Payé</span>
+                            {% elif demande.etape_workflow == 'refuse' %}
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">Refusé</span>
+                            {% else %}
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">{{ demande.get_etape_workflow_display }}</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-8">
+            <i class="fas fa-inbox text-gray-400 text-5xl mb-3"></i>
+            <p class="text-gray-500 mb-4">Aucune demande d'achat pour le moment</p>
+            {% if request.user.user_type == 'employe' or request.user.user_type == 'manager' %}
+            <a href="{% url 'payments:demande_achat_create' %}"
+               class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">
+                <i class="fas fa-plus mr-2"></i>
+                Créer la première demande
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

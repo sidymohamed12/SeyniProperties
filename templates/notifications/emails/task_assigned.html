@@ -1,0 +1,70 @@
+<!-- templates/notifications/emails/task_assigned.html -->
+{% extends 'notifications/emails/base_email.html' %}
+
+{% block title %}Nouvelle Tâche Assignée - IMANY{% endblock %}
+
+{% block content %}
+<div class="greeting">
+    Bonjour {{ technicien }},
+</div>
+
+<div class="content">
+    <p>Une nouvelle tâche vous a été assignée sur la plateforme IMANY.</p>
+</div>
+
+<div class="info-box">
+    <h3>✅ Détails de la tâche</h3>
+    
+    <div class="info-row">
+        <span class="info-label">Titre :</span>
+        <span class="info-value"><strong>{{ task.titre }}</strong></span>
+    </div>
+    
+    {% if task.date_limite %}
+    <div class="info-row">
+        <span class="info-label">Échéance :</span>
+        <span class="info-value">{{ task.date_limite|date:"d/m/Y" }}</span>
+    </div>
+    {% endif %}
+    
+    {% if task.priorite %}
+    <div class="info-row">
+        <span class="info-label">Priorité :</span>
+        <span class="info-value">
+            <span class="priority-badge priority-{{ task.priorite }}">
+                {{ task.get_priorite_display }}
+            </span>
+        </span>
+    </div>
+    {% endif %}
+    
+    {% if task.property %}
+    <div class="info-row">
+        <span class="info-label">Bien concerné :</span>
+        <span class="info-value">{{ task.property }}</span>
+    </div>
+    {% endif %}
+    
+    {% if task.description %}
+    <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e5e7eb;">
+        <span class="info-label" style="display: block; margin-bottom: 8px;">Description :</span>
+        <span class="info-value" style="display: block;">{{ task.description }}</span>
+    </div>
+    {% endif %}
+</div>
+
+<div style="text-align: center;">
+    <a href="{{ link_url }}" class="button">
+        📋 Voir la tâche
+    </a>
+</div>
+
+<div class="content" style="margin-top: 30px; font-size: 14px; color: #6b7280;">
+    <p><strong>À faire :</strong></p>
+    <ul style="margin: 10px 0; padding-left: 20px;">
+        <li>Consultez les détails de la tâche sur la plateforme</li>
+        <li>Planifiez son exécution selon la priorité</li>
+        <li>Mettez à jour le statut au fur et à mesure</li>
+    </ul>
+</div>
+{% endblock %}

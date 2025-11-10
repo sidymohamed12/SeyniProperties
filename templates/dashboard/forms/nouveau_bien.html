@@ -1,0 +1,151 @@
+<!-- templates/dashboard/forms/nouveau_bien.html -->
+
+<form id="bienForm" method="post">
+    {% csrf_token %}
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Nom de l'appartement -->
+        <div class="mb-4">
+            <label for="nom" class="block text-sm font-medium text-gray-700 mb-2">
+                Nom/Numéro <span class="text-red-500">*</span>
+            </label>
+            <input type="text" id="nom" name="nom" required
+                   placeholder="Ex: Appartement 3A, Studio Rose"
+                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        
+        <!-- Résidence -->
+        <div class="mb-4">
+            <label for="residence_id" class="block text-sm font-medium text-gray-700 mb-2">
+                Résidence <span class="text-red-500">*</span>
+            </label>
+            <select id="residence_id" name="residence_id" required
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">Sélectionner une résidence</option>
+                {% for residence in residences %}
+                    <option value="{{ residence.id }}">{{ residence.nom }} - {{ residence.quartier }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <!-- Type de bien -->
+        <div class="mb-4">
+            <label for="type_bien" class="block text-sm font-medium text-gray-700 mb-2">
+                Type de bien
+            </label>
+            <select id="type_bien" name="type_bien"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                {% for value, label in type_bien_choices %}
+                    <option value="{{ value }}">{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <!-- Étage -->
+        <div class="mb-4">
+            <label for="etage" class="block text-sm font-medium text-gray-700 mb-2">
+                Étage
+            </label>
+            <input type="number" id="etage" name="etage" min="-1" max="50" value="0"
+                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <p class="text-xs text-gray-500 mt-1">0 pour RDC, -1 pour sous-sol</p>
+        </div>
+        
+        <!-- Superficie -->
+        <div class="mb-4">
+            <label for="superficie" class="block text-sm font-medium text-gray-700 mb-2">
+                Superficie (m²)
+            </label>
+            <input type="number" id="superficie" name="superficie" min="0" step="0.01"
+                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        
+        <!-- Nombre de pièces -->
+        <div class="mb-4">
+            <label for="nb_pieces" class="block text-sm font-medium text-gray-700 mb-2">
+                Nombre de pièces
+            </label>
+            <input type="number" id="nb_pieces" name="nb_pieces" min="1" max="20" value="1"
+                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        
+        <!-- Nombre de chambres -->
+        <div class="mb-4">
+            <label for="nb_chambres" class="block text-sm font-medium text-gray-700 mb-2">
+                Nombre de chambres
+            </label>
+            <input type="number" id="nb_chambres" name="nb_chambres" min="0" max="10" value="1"
+                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        
+        <!-- Loyer de base -->
+        <div class="mb-4">
+            <label for="loyer_base" class="block text-sm font-medium text-gray-700 mb-2">
+                Loyer de base (FCFA)
+            </label>
+            <input type="number" id="loyer_base" name="loyer_base" min="0" step="0.01"
+                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        
+        <!-- Charges -->
+        <div class="mb-4">
+            <label for="charges" class="block text-sm font-medium text-gray-700 mb-2">
+                Charges mensuelles (FCFA)
+            </label>
+            <input type="number" id="charges" name="charges" min="0" step="0.01" value="0"
+                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        
+        <!-- ✅ AJOUT DU CHAMP DEPOT_GARANTIE -->
+        <div class="mb-4">
+            <label for="depot_garantie" class="block text-sm font-medium text-gray-700 mb-2">
+                Dépôt de garantie (FCFA)
+            </label>
+            <input type="number" id="depot_garantie" name="depot_garantie" min="0" step="0.01" value="0"
+                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <p class="text-xs text-gray-500 mt-1">Généralement équivalent à 1-2 mois de loyer</p>
+        </div>
+    </div>
+    
+    <div class="flex justify-end space-x-3 mt-6">
+        <button type="button" onclick="closeBienModal()" 
+                class="px-4 py-2 text-gray-600 bg-gray-200 rounded-md hover:bg-gray-300">
+            Annuler
+        </button>
+        <button type="submit" 
+                class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+            Créer l'appartement
+        </button>
+    </div>
+</form>
+
+<script>
+// Auto-calcul du dépôt de garantie basé sur le loyer
+document.getElementById('loyer_base').addEventListener('input', function() {
+    const loyer = parseFloat(this.value) || 0;
+    const depotField = document.getElementById('depot_garantie');
+    
+    // Si le dépôt est vide, suggérer 2 mois de loyer
+    if (!depotField.value || depotField.value == 0) {
+        depotField.value = loyer * 2;
+    }
+});
+
+// Validation avant soumission
+document.getElementById('bienForm').addEventListener('submit', function(e) {
+    const nom = document.getElementById('nom').value.trim();
+    const residence = document.getElementById('residence_id').value;
+    
+    if (!nom) {
+        e.preventDefault();
+        alert('Le nom de l\'appartement est obligatoire');
+        return;
+    }
+    
+    if (!residence) {
+        e.preventDefault();
+        alert('Veuillez sélectionner une résidence');
+        return;
+    }
+});
+</script>

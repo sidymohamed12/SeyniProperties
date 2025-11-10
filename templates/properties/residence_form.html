@@ -1,0 +1,479 @@
+<!-- templates/properties/residence_form.html -->
+{% extends 'base_dashboard.html' %}
+
+{% block title %}
+{% if object %}Modifier {{ object.nom }}{% else %}Nouvelle résidence{% endif %} - {{ block.super }}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-section {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        border: 1px solid #e5e7eb;
+        margin-bottom: 2rem;
+    }
+    
+    .form-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 12px;
+        padding: 2rem;
+        color: white;
+        margin-bottom: 2rem;
+    }
+    
+    .section-title {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #e5e7eb;
+    }
+    
+    .section-title i {
+        margin-right: 0.75rem;
+        width: 1.5rem;
+        text-align: center;
+    }
+    
+    .help-text {
+        font-size: 0.875rem;
+        color: #6b7280;
+        margin-top: 0.25rem;
+    }
+    
+    .required-field {
+        color: #ef4444;
+    }
+    
+    .form-actions {
+        background: #f9fafb;
+        border-radius: 12px;
+        padding: 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <!-- Breadcrumb -->
+    <nav class="flex items-center space-x-2 text-sm mb-6">
+        <a href="{% url 'dashboard:index' %}" class="text-gray-500 hover:text-gray-700">Dashboard</a>
+        <i class="fas fa-chevron-right text-gray-400"></i>
+        <a href="{% url 'properties:residences_list' %}" class="text-gray-500 hover:text-gray-700">Résidences</a>
+        <i class="fas fa-chevron-right text-gray-400"></i>
+        <span class="text-gray-900">
+            {% if object %}Modifier {{ object.nom }}{% else %}Nouvelle résidence{% endif %}
+        </span>
+    </nav>
+
+    <!-- En-tête -->
+    <div class="form-header">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold mb-2">
+                    <i class="fas fa-building mr-3"></i>
+                    {% if object %}Modifier la résidence{% else %}Créer une nouvelle résidence{% endif %}
+                </h1>
+                <p class="text-purple-100">
+                    {% if object %}
+                        Modification des informations de la résidence "{{ object.nom }}"
+                    {% else %}
+                        Ajoutez une nouvelle résidence à votre portefeuille immobilier
+                    {% endif %}
+                </p>
+            </div>
+            {% if object %}
+            <div class="text-right">
+                <div class="text-sm text-purple-200">Créée le</div>
+                <div class="font-medium">{{ object.created_at|date:"d/m/Y" }}</div>
+                <div class="text-sm text-purple-200 mt-1">{{ object.appartements.count }} appartement{{ object.appartements.count|pluralize }}</div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="space-y-0">
+        {% csrf_token %}
+        
+        <!-- Informations générales -->
+        <div class="form-section">
+            <div class="section-title">
+                <i class="fas fa-info-circle text-blue-600"></i>
+                <h2 class="text-xl font-semibold text-gray-900">Informations générales</h2>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="{{ form.nom.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Nom de la résidence <span class="required-field">*</span>
+                    </label>
+                    {{ form.nom }}
+                    {% if form.nom.errors %}
+                        <div class="text-red-600 text-sm mt-1">{{ form.nom.errors.0 }}</div>
+                    {% endif %}
+                    <div class="help-text">Le nom commercial de votre résidence</div>
+                </div>
+                
+                <div>
+                    <label for="{{ form.type_residence.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Type de résidence <span class="required-field">*</span>
+                    </label>
+                    {{ form.type_residence }}
+                    {% if form.type_residence.errors %}
+                        <div class="text-red-600 text-sm mt-1">{{ form.type_residence.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label for="{{ form.type_gestion.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Type de gestion <span class="required-field">*</span>
+                    </label>
+                    {{ form.type_gestion }}
+                    {% if form.type_gestion.errors %}
+                        <div class="text-red-600 text-sm mt-1">{{ form.type_gestion.errors.0 }}</div>
+                    {% endif %}
+                    <div class="help-text">
+                        <i class="fas fa-info-circle text-blue-500 mr-1"></i>
+                        Sélectionnez "Syndic" si Imany gère cette résidence en tant que syndic de copropriété
+                    </div>
+                </div>
+
+                <div>
+                    <label for="{{ form.proprietaire.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Propriétaire <span class="required-field">*</span>
+                    </label>
+                    {{ form.proprietaire }}
+                    {% if form.proprietaire.errors %}
+                        <div class="text-red-600 text-sm mt-1">{{ form.proprietaire.errors.0 }}</div>
+                    {% endif %}
+                    <div class="help-text">Le propriétaire de cette résidence</div>
+                </div>
+                
+                <div>
+                    <label for="{{ form.statut.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Statut
+                    </label>
+                    {{ form.statut }}
+                    {% if form.statut.errors %}
+                        <div class="text-red-600 text-sm mt-1">{{ form.statut.errors.0 }}</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Localisation -->
+        <div class="form-section">
+            <div class="section-title">
+                <i class="fas fa-map-marker-alt text-green-600"></i>
+                <h2 class="text-xl font-semibold text-gray-900">Localisation</h2>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="md:col-span-2">
+                    <label for="{{ form.adresse.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Adresse complète <span class="required-field">*</span>
+                    </label>
+                    {{ form.adresse }}
+                    {% if form.adresse.errors %}
+                        <div class="text-red-600 text-sm mt-1">{{ form.adresse.errors.0 }}</div>
+                    {% endif %}
+                    <div class="help-text">Adresse physique de la résidence</div>
+                </div>
+                
+                <div>
+                    <label for="{{ form.quartier.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Quartier <span class="required-field">*</span>
+                    </label>
+                    {{ form.quartier }}
+                    {% if form.quartier.errors %}
+                        <div class="text-red-600 text-sm mt-1">{{ form.quartier.errors.0 }}</div>
+                    {% endif %}
+                    <div class="help-text">Ex: Almadies, Plateau, Mermoz</div>
+                </div>
+                
+                <div>
+                    <label for="{{ form.ville.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Ville <span class="required-field">*</span>
+                    </label>
+                    {{ form.ville }}
+                    {% if form.ville.errors %}
+                        <div class="text-red-600 text-sm mt-1">{{ form.ville.errors.0 }}</div>
+                    {% endif %}
+                    <div class="help-text">Ex: Dakar, Thiès, Saint-Louis</div>
+                </div>
+                
+                <div>
+                    <label for="{{ form.code_postal.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Code postal
+                    </label>
+                    {{ form.code_postal }}
+                    {% if form.code_postal.errors %}
+                        <div class="text-red-600 text-sm mt-1">{{ form.code_postal.errors.0 }}</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Caractéristiques techniques -->
+        <div class="form-section">
+            <div class="section-title">
+                <i class="fas fa-building text-purple-600"></i>
+                <h2 class="text-xl font-semibold text-gray-900">Caractéristiques techniques</h2>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                    <label for="{{ form.nb_etages.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Nombre d'étages
+                    </label>
+                    {{ form.nb_etages }}
+                    {% if form.nb_etages.errors %}
+                        <div class="text-red-600 text-sm mt-1">{{ form.nb_etages.errors.0 }}</div>
+                    {% endif %}
+                    <div class="help-text">0 pour uniquement RDC</div>
+                </div>
+                
+                <div>
+                    <label for="{{ form.nb_appartements_total.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Nombre d'appartements total
+                    </label>
+                    {{ form.nb_appartements_total }}
+                    {% if form.nb_appartements_total.errors %}
+                        <div class="text-red-600 text-sm mt-1">{{ form.nb_appartements_total.errors.0 }}</div>
+                    {% endif %}
+                    <div class="help-text">Capacité maximale prévue</div>
+                </div>
+                
+                <div>
+                    <label for="{{ form.annee_construction.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Année de construction
+                    </label>
+                    {{ form.annee_construction }}
+                    {% if form.annee_construction.errors %}
+                        <div class="text-red-600 text-sm mt-1">{{ form.annee_construction.errors.0 }}</div>
+                    {% endif %}
+                    <div class="help-text">Année d'achèvement</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Description et équipements -->
+        <div class="form-section">
+            <div class="section-title">
+                <i class="fas fa-align-left text-orange-600"></i>
+                <h2 class="text-xl font-semibold text-gray-900">Description et équipements</h2>
+            </div>
+            
+            <div class="space-y-6">
+                <div>
+                    <label for="{{ form.description.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Description de la résidence
+                    </label>
+                    {{ form.description }}
+                    {% if form.description.errors %}
+                        <div class="text-red-600 text-sm mt-1">{{ form.description.errors.0 }}</div>
+                    {% endif %}
+                    <div class="help-text">Description générale, avantages, localisation privilégiée, etc.</div>
+                </div>
+                
+                <div>
+                    <label for="{{ form.equipements.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Équipements de la résidence
+                    </label>
+                    {{ form.equipements }}
+                    {% if form.equipements.errors %}
+                        <div class="text-red-600 text-sm mt-1">{{ form.equipements.errors.0 }}</div>
+                    {% endif %}
+                    <div class="help-text">Sécurité, piscine, parking, jardins, salle de sport, etc.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="form-actions">
+            <div class="flex items-center space-x-4">
+                <a href="{% if object %}{% url 'properties:residence_detail' object.pk %}{% else %}{% url 'properties:residences_list' %}{% endif %}" 
+                   class="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600 transition-colors flex items-center">
+                    <i class="fas fa-times mr-2"></i>
+                    Annuler
+                </a>
+                
+                {% if object %}
+                <a href="{% url 'properties:residence_delete' object.pk %}" 
+                   class="bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-600 transition-colors flex items-center"
+                   onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette résidence ?')">
+                    <i class="fas fa-trash mr-2"></i>
+                    Supprimer
+                </a>
+                {% endif %}
+            </div>
+            
+            <div class="flex items-center space-x-3">
+                <button type="submit" name="action" value="save_continue" 
+                        class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center">
+                    <i class="fas fa-save mr-2"></i>
+                    {% if object %}Enregistrer et continuer{% else %}Créer et ajouter appartements{% endif %}
+                </button>
+                
+                <button type="submit" 
+                        class="bg-purple-600 text-white px-8 py-2 rounded-lg hover:bg-purple-700 transition-colors flex items-center font-medium">
+                    <i class="fas fa-check mr-2"></i>
+                    {% if object %}Enregistrer les modifications{% else %}Créer la résidence{% endif %}
+                </button>
+            </div>
+        </div>
+    </form>
+    
+    <!-- Aide contextuelle -->
+    <div class="mt-8 bg-blue-50 border border-blue-200 rounded-xl p-6">
+        <h3 class="text-lg font-semibold text-blue-900 mb-3">
+            <i class="fas fa-lightbulb text-blue-600 mr-2"></i>
+            Conseils pour créer une résidence
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-blue-800">
+            <div>
+                <h4 class="font-medium mb-2">Informations essentielles :</h4>
+                <ul class="space-y-1 list-disc list-inside">
+                    <li>Choisissez un nom distinctif et facile à retenir</li>
+                    <li><strong>Type de gestion :</strong> "Syndic" pour les copropriétés, "Gestion locative" pour la location</li>
+                    <li>Vérifiez que le propriétaire est correct</li>
+                    <li>Soyez précis dans l'adresse pour la géolocalisation</li>
+                    <li>Le nombre d'étages compte le RDC comme étage 0</li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="font-medium mb-2">Prochaines étapes :</h4>
+                <ul class="space-y-1 list-disc list-inside">
+                    <li>Après création, ajoutez les appartements un par un</li>
+                    <li>Uploadez des photos de la résidence</li>
+                    <li>Configurez les équipements communs</li>
+                    <li>Invitez le propriétaire à valider les informations</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Validation côté client
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const nbEtagesField = document.getElementById('{{ form.nb_etages.id_for_label }}');
+    const nbAppartementsField = document.getElementById('{{ form.nb_appartements_total.id_for_label }}');
+    const typeGestionField = document.getElementById('{{ form.type_gestion.id_for_label }}');
+    const proprietaireField = document.getElementById('{{ form.proprietaire.id_for_label }}');
+
+    // Gestion dynamique du champ propriétaire selon le type de gestion
+    function toggleProprietaireField() {
+        if (!typeGestionField || !proprietaireField) return;
+
+        const typeGestion = typeGestionField.value;
+        const proprietaireContainer = proprietaireField.closest('div');
+
+        if (typeGestion === 'syndic') {
+            // Désactiver et griser le champ pour les résidences syndic
+            proprietaireField.disabled = true;
+            proprietaireField.required = false;
+            proprietaireField.style.backgroundColor = '#f3f4f6';
+            proprietaireField.style.cursor = 'not-allowed';
+
+            // Ajouter un message d'info
+            let infoMsg = document.getElementById('proprietaire-info');
+            if (!infoMsg) {
+                infoMsg = document.createElement('div');
+                infoMsg.id = 'proprietaire-info';
+                infoMsg.className = 'text-sm text-blue-600 mt-2 flex items-center';
+                infoMsg.innerHTML = '<i class="fas fa-info-circle mr-2"></i>Non applicable pour une copropriété (plusieurs copropriétaires)';
+                proprietaireContainer.appendChild(infoMsg);
+            }
+
+            // Vider la sélection
+            proprietaireField.value = '';
+        } else {
+            // Activer le champ pour gestion locative ou mixte
+            proprietaireField.disabled = false;
+            proprietaireField.required = true;
+            proprietaireField.style.backgroundColor = '';
+            proprietaireField.style.cursor = '';
+
+            // Retirer le message d'info
+            const infoMsg = document.getElementById('proprietaire-info');
+            if (infoMsg) {
+                infoMsg.remove();
+            }
+        }
+    }
+
+    // Appliquer au chargement et à chaque changement
+    if (typeGestionField) {
+        toggleProprietaireField();
+        typeGestionField.addEventListener('change', toggleProprietaireField);
+    }
+    
+    // Validation du nombre d'appartements vs étages
+    function validateApartments() {
+        const etages = parseInt(nbEtagesField.value) || 0;
+        const appartements = parseInt(nbAppartementsField.value) || 0;
+        const maxRecommended = (etages + 1) * 10; // +1 pour inclure le RDC
+        
+        if (appartements > maxRecommended) {
+            nbAppartementsField.style.borderColor = '#f59e0b';
+            showWarning(`Attention: ${appartements} appartements pour ${etages + 1} niveau(x) semble élevé.`);
+        } else {
+            nbAppartementsField.style.borderColor = '#d1d5db';
+            hideWarning();
+        }
+    }
+    
+    function showWarning(message) {
+        let warning = document.getElementById('apartment-warning');
+        if (!warning) {
+            warning = document.createElement('div');
+            warning.id = 'apartment-warning';
+            warning.className = 'text-yellow-600 text-sm mt-1';
+            nbAppartementsField.parentNode.appendChild(warning);
+        }
+        warning.textContent = message;
+    }
+    
+    function hideWarning() {
+        const warning = document.getElementById('apartment-warning');
+        if (warning) {
+            warning.remove();
+        }
+    }
+    
+    if (nbEtagesField && nbAppartementsField) {
+        nbEtagesField.addEventListener('change', validateApartments);
+        nbAppartementsField.addEventListener('change', validateApartments);
+    }
+    
+    // Validation avant soumission
+    form.addEventListener('submit', function(e) {
+        const requiredFields = form.querySelectorAll('input[required], select[required], textarea[required]');
+        let isValid = true;
+        
+        requiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                isValid = false;
+                field.style.borderColor = '#ef4444';
+            } else {
+                field.style.borderColor = '#d1d5db';
+            }
+        });
+        
+        if (!isValid) {
+            e.preventDefault();
+            alert('Veuillez remplir tous les champs obligatoires.');
+            return false;
+        }
+    });
+});
+</script>
+{% endblock %}

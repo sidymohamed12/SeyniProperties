@@ -1,0 +1,357 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Demandes d'Achat{% endblock %}
+{% block extra_css %}
+<style>
+    /* Remplacer bleu par Imani gradient */
+    .bg-blue-600 { background: linear-gradient(135deg, #23456b 0%, #a25946 100%) !important; }
+    .hover\:bg-blue-700:hover { opacity: 0.9 !important; }
+    .text-blue-600 { color: #23456b !important; }
+    .border-blue-500 { border-color: #a25946 !important; }
+    .focus\:ring-blue-500:focus { --tw-ring-color: #23456b !important; }
+    
+    /* Stats cards avec Imani */
+    .bg-blue-50 { background: linear-gradient(135deg, rgba(35, 69, 107, 0.05) 0%, rgba(162, 89, 70, 0.05) 100%) !important; }
+   
+    /* Tabs avec Imani */
+    .tab-button.active, .view-tab.active { 
+        border-color: #a25946 !important;
+        color: white !important;
+        background: linear-gradient(135deg, #23456b 0%, #a25946 100%) !important;
+    }
+    
+    /* Badges et avatars */
+    .bg-blue-100 { background: linear-gradient(135deg, rgba(35, 69, 107, 0.1) 0%, rgba(162, 89, 70, 0.1) 100%) !important; }
+</style>
+{% endblock %}
+
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- En-tête -->
+    <div class="mb-8 flex justify-between items-center">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">
+                <i class="fas fa-shopping-cart text-blue-600 mr-3"></i>
+                Demandes d'Achat
+            </h1>
+            <p class="text-gray-600">
+                Gestion des demandes de matériel et fournitures
+            </p>
+        </div>
+
+        {% if request.user.user_type == 'employe' or request.user.user_type == 'manager' %}
+        <a href="{% url 'payments:demande_achat_create' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+            <i class="fas fa-plus mr-2"></i>
+            Nouvelle demande
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- Filtres -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <!-- Recherche -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    <i class="fas fa-search mr-1"></i>Recherche
+                </label>
+                <input type="text" name="search" value="{{ request.GET.search }}"
+                       placeholder="Numéro, demandeur, motif..."
+                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+            </div>
+
+            <!-- Statut -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    <i class="fas fa-filter mr-1"></i>Statut
+                </label>
+                <select name="etape" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    <option value="">Tous les statuts</option>
+                    <option value="brouillon" {% if request.GET.etape == 'brouillon' %}selected{% endif %}>Brouillon</option>
+                    <option value="en_attente" {% if request.GET.etape == 'en_attente' %}selected{% endif %}>En attente</option>
+                    <option value="valide_responsable" {% if request.GET.etape == 'valide_responsable' %}selected{% endif %}>Validé responsable</option>
+                    <option value="comptable" {% if request.GET.etape == 'comptable' %}selected{% endif %}>Chez comptable</option>
+                    <option value="validation_dg" {% if request.GET.etape == 'validation_dg' %}selected{% endif %}>Validation DG</option>
+                    <option value="approuve" {% if request.GET.etape == 'approuve' %}selected{% endif %}>Approuvé</option>
+                    <option value="recue" {% if request.GET.etape == 'recue' %}selected{% endif %}>Réceptionné</option>
+                    <option value="paye" {% if request.GET.etape == 'paye' %}selected{% endif %}>Payé</option>
+                    <option value="refuse" {% if request.GET.etape == 'refuse' %}selected{% endif %}>Refusé</option>
+                </select>
+            </div>
+
+            <!-- Date de -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    <i class="fas fa-calendar mr-1"></i>Du
+                </label>
+                <input type="date" name="date_debut" value="{{ request.GET.date_debut }}"
+                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+            </div>
+
+            <!-- Date à -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    <i class="fas fa-calendar mr-1"></i>Au
+                </label>
+                <input type="date" name="date_fin" value="{{ request.GET.date_fin }}"
+                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+            </div>
+
+            <!-- Boutons -->
+            <div class="md:col-span-4 flex justify-end space-x-3">
+                <a href="{% url 'payments:demande_achat_list' %}" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+                    <i class="fas fa-redo mr-2"></i>Réinitialiser
+                </a>
+                <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                    <i class="fas fa-search mr-2"></i>Rechercher
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Statistiques rapides -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+        <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded-lg">
+            <div class="flex items-center">
+                <i class="fas fa-clock text-yellow-600 text-2xl mr-3"></i>
+                <div>
+                    <p class="text-sm text-gray-600">En attente</p>
+                    <p class="text-2xl font-bold text-yellow-600">{{ stats.en_attente|default:0 }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-lg">
+            <div class="flex items-center">
+                <i class="fas fa-clipboard-check text-blue-600 text-2xl mr-3"></i>
+                <div>
+                    <p class="text-sm text-gray-600">En traitement</p>
+                    <p class="text-2xl font-bold text-blue-600">{{ stats.en_traitement|default:0 }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-green-50 border-l-4 border-green-500 p-4 rounded-lg">
+            <div class="flex items-center">
+                <i class="fas fa-check-circle text-green-600 text-2xl mr-3"></i>
+                <div>
+                    <p class="text-sm text-gray-600">Approuvées</p>
+                    <p class="text-2xl font-bold text-green-600">{{ stats.approuve|default:0 }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
+            <div class="flex items-center">
+                <i class="fas fa-times-circle text-red-600 text-2xl mr-3"></i>
+                <div>
+                    <p class="text-sm text-gray-600">Refusées</p>
+                    <p class="text-2xl font-bold text-red-600">{{ stats.refuse|default:0 }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Liste des demandes -->
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        {% if demandes %}
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Numéro
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Demandeur
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Date
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Motif principal
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Montant
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Statut
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Actions
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for demande in demandes %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm font-medium text-gray-900">
+                                {{ demande.numero_facture }}
+                            </div>
+                            {% if demande.travail_lie %}
+                            <div class="text-xs text-gray-500">
+                                <i class="fas fa-link mr-1"></i>{{ demande.travail_lie.numero_travail }}
+                            </div>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-gray-900">
+                                {{ demande.demandeur.get_full_name }}
+                            </div>
+                            <div class="text-xs text-gray-500">
+                                {{ demande.service_fonction }}
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-gray-900">
+                                {{ demande.date_demande|date:"d/m/Y" }}
+                            </div>
+                            {% if demande.date_echeance %}
+                            <div class="text-xs text-gray-500">
+                                Échéance: {{ demande.date_echeance|date:"d/m/Y" }}
+                            </div>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="text-sm text-gray-900 max-w-xs truncate">
+                                {{ demande.motif_principal }}
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm font-semibold text-gray-900">
+                                {{ demande.montant_ttc|floatformat:0 }} FCFA
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            {% if demande.etape_workflow == 'brouillon' %}
+                            <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                                <i class="fas fa-file mr-1"></i>Brouillon
+                            </span>
+                            {% elif demande.etape_workflow == 'en_attente' %}
+                            <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                <i class="fas fa-clock mr-1"></i>En attente
+                            </span>
+                            {% elif demande.etape_workflow == 'valide_responsable' %}
+                            <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                <i class="fas fa-check mr-1"></i>Validé responsable
+                            </span>
+                            {% elif demande.etape_workflow == 'comptable' %}
+                            <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-indigo-100 text-indigo-800">
+                                <i class="fas fa-calculator mr-1"></i>Chez comptable
+                            </span>
+                            {% elif demande.etape_workflow == 'validation_dg' %}
+                            <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">
+                                <i class="fas fa-user-tie mr-1"></i>Validation DG
+                            </span>
+                            {% elif demande.etape_workflow == 'approuve' %}
+                            <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                <i class="fas fa-check-circle mr-1"></i>Approuvé
+                            </span>
+                            {% elif demande.etape_workflow == 'recue' %}
+                            <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-teal-100 text-teal-800">
+                                <i class="fas fa-box-open mr-1"></i>Réceptionné
+                            </span>
+                            {% elif demande.etape_workflow == 'paye' %}
+                            <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-emerald-100 text-emerald-800">
+                                <i class="fas fa-money-check mr-1"></i>Payé
+                            </span>
+                            {% elif demande.etape_workflow == 'refuse' %}
+                            <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                <i class="fas fa-times-circle mr-1"></i>Refusé
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <a href="{% url 'payments:demande_achat_detail' demande.pk %}"
+                               class="text-blue-600 hover:text-blue-900 mr-3">
+                                <i class="fas fa-eye mr-1"></i>Voir
+                            </a>
+
+                            {% if demande.etape_workflow == 'brouillon' and demande.demandeur == request.user %}
+                            <a href="{% url 'payments:demande_achat_soumettre' demande.pk %}"
+                               class="text-green-600 hover:text-green-900">
+                                <i class="fas fa-paper-plane mr-1"></i>Soumettre
+                            </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if is_paginated %}
+        <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+            <div class="flex-1 flex justify-between sm:hidden">
+                {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}"
+                   class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                    Précédent
+                </a>
+                {% endif %}
+                {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}"
+                   class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                    Suivant
+                </a>
+                {% endif %}
+            </div>
+            <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                <div>
+                    <p class="text-sm text-gray-700">
+                        Affichage de
+                        <span class="font-medium">{{ page_obj.start_index }}</span>
+                        à
+                        <span class="font-medium">{{ page_obj.end_index }}</span>
+                        sur
+                        <span class="font-medium">{{ page_obj.paginator.count }}</span>
+                        résultats
+                    </p>
+                </div>
+                <div>
+                    <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+                        {% if page_obj.has_previous %}
+                        <a href="?page={{ page_obj.previous_page_number }}"
+                           class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                        {% endif %}
+                        {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}"
+                           class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                        {% endif %}
+                    </nav>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% else %}
+        <!-- Message vide -->
+        <div class="text-center py-12">
+            <i class="fas fa-inbox text-gray-400 text-6xl mb-4"></i>
+            <h3 class="text-lg font-medium text-gray-900 mb-2">Aucune demande d'achat</h3>
+            <p class="text-gray-500 mb-4">
+                {% if request.GET.search or request.GET.etape %}
+                Aucune demande ne correspond à vos critères de recherche.
+                {% else %}
+                Créez votre première demande d'achat pour commencer.
+                {% endif %}
+            </p>
+            {% if request.user.user_type == 'employe' or request.user.user_type == 'manager' %}
+            <a href="{% url 'payments:demande_achat_create' %}"
+               class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">
+                <i class="fas fa-plus mr-2"></i>
+                Créer une demande
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

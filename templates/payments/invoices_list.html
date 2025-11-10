@@ -1,0 +1,439 @@
+<!-- templates/payments/invoices_list.html -->
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Gestion des Factures - Imani{% endblock %}
+
+{% block page_title %}Gestion des Factures{% endblock %}
+{% block page_subtitle %}Suivez toutes les factures émises{% endblock %}
+
+{% block extra_css %}
+<style>
+    .invoice-card {
+        transition: all 0.3s ease;
+        border-left: 4px solid #e5e7eb;
+    }
+    .invoice-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(35, 69, 107, 0.15);
+    }
+    .invoice-card.payee {
+        border-left-color: #10b981;
+    }
+    .invoice-card.emise {
+        border-left-color: #3b82f6;
+    }
+    .invoice-card.en_retard {
+        border-left-color: #ef4444;
+    }
+    .invoice-card.annulee {
+        border-left-color: #6b7280;
+    }
+
+    .status-badge {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.375rem;
+        font-weight: 600;
+    }
+    .status-emise { background-color: #dbeafe; color: #1e40af; }
+    .status-payee { background-color: #d1fae5; color: #065f46; }
+    .status-partiellement_payee { background-color: #fef3c7; color: #92400e; }
+    .status-en_retard { background-color: #fee2e2; color: #991b1b; }
+    .status-annulee { background-color: #f3f4f6; color: #374151; }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Actions rapides -->
+<div class="flex justify-end gap-3 mb-6">
+    {% if user.is_staff %}
+    <a href="{% url 'payments:invoice_create_menu' %}"
+       class="px-6 py-3 imani-gradient text-white rounded-lg font-medium hover:opacity-90 transition-all shadow-lg flex items-center">
+        <i class="fas fa-plus mr-2"></i>
+        Créer une Facture
+    </a>
+    {% endif %}
+
+    <a href="{% url 'payments:list' %}"
+       class="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-all shadow-lg flex items-center">
+        <i class="fas fa-money-bill-wave mr-2"></i>
+        Paiements
+    </a>
+</div>
+
+<!-- Statistiques -->
+<div class="grid grid-cols-2 md:grid-cols-5 gap-6 mb-8">
+    <div class="imani-card p-6">
+        <div class="flex items-center justify-between">
+            <div class="flex-1">
+                <p class="text-sm text-gray-600 font-medium mb-1">Total</p>
+                <p class="text-3xl font-bold text-imani-primary">{{ stats.total }}</p>
+            </div>
+            <div class="w-14 h-14 rounded-xl bg-gray-500 flex items-center justify-center">
+                <i class="fas fa-file-invoice text-white text-2xl"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="imani-card p-6 border-l-4 border-blue-500">
+        <div class="flex items-center justify-between">
+            <div class="flex-1">
+                <p class="text-sm text-gray-600 font-medium mb-1">Émises</p>
+                <p class="text-3xl font-bold text-blue-600">{{ stats.emise }}</p>
+            </div>
+            <div class="w-14 h-14 rounded-xl bg-blue-500 flex items-center justify-center">
+                <i class="fas fa-file-alt text-white text-2xl"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="imani-card p-6 border-l-4 border-green-500">
+        <div class="flex items-center justify-between">
+            <div class="flex-1">
+                <p class="text-sm text-gray-600 font-medium mb-1">Payées</p>
+                <p class="text-3xl font-bold text-green-600">{{ stats.payee }}</p>
+            </div>
+            <div class="w-14 h-14 rounded-xl bg-green-500 flex items-center justify-center">
+                <i class="fas fa-check-circle text-white text-2xl"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="imani-card p-6 border-l-4 border-red-500">
+        <div class="flex items-center justify-between">
+            <div class="flex-1">
+                <p class="text-sm text-gray-600 font-medium mb-1">En retard</p>
+                <p class="text-3xl font-bold text-red-600">{{ stats.en_retard }}</p>
+            </div>
+            <div class="w-14 h-14 rounded-xl bg-red-500 flex items-center justify-center">
+                <i class="fas fa-exclamation-triangle text-white text-2xl"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="imani-card p-6 border-l-4 border-purple-500">
+        <div class="flex items-center justify-between">
+            <div class="flex-1">
+                <p class="text-sm text-gray-600 font-medium mb-1">Montant total</p>
+                <p class="text-xl font-bold text-purple-600">{{ stats.total_amount|floatformat:0 }} F</p>
+            </div>
+            <div class="w-14 h-14 rounded-xl bg-purple-500 flex items-center justify-center">
+                <i class="fas fa-coins text-white text-2xl"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filtres -->
+<div class="imani-card p-6 mb-6">
+    <form method="get" class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- Recherche -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Recherche</label>
+                <input type="text"
+                       name="search"
+                       value="{{ search }}"
+                       placeholder="Numéro, contrat, client..."
+                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-imani-primary">
+            </div>
+
+            <!-- Statut -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Statut</label>
+                <select name="statut" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-imani-primary">
+                    <option value="">Tous les statuts</option>
+                    {% for value, label in statut_choices %}
+                        <option value="{{ value }}" {% if statut == value %}selected{% endif %}>
+                            {{ label }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Type de facture -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Type de facture</label>
+                <select name="type_facture" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-imani-primary">
+                    <option value="">Tous les types</option>
+                    {% for value, label in type_facture_choices %}
+                        <option value="{{ value }}" {% if type_facture == value %}selected{% endif %}>
+                            {{ label }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div class="flex gap-2 justify-end">
+            <a href="{% url 'payments:invoices_list' %}" class="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all">
+                <i class="fas fa-times mr-2"></i>Réinitialiser
+            </a>
+            <button type="submit" class="px-6 py-2 imani-gradient text-white rounded-lg hover:opacity-90 transition-all">
+                <i class="fas fa-search mr-2"></i>Rechercher
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Liste des factures -->
+<div class="space-y-4">
+    {% for invoice in invoices %}
+        <div class="invoice-card {{ invoice.statut }} imani-card p-6 cursor-pointer"
+             onclick="window.location.href='{% url 'payments:invoice_detail' invoice.pk %}'">
+
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+                <!-- Informations principales -->
+                <div class="flex-1">
+                    <div class="flex items-start justify-between mb-2">
+                        <div>
+                            <h3 class="text-lg font-semibold text-imani-primary mb-1">
+                                {{ invoice.fichier_pdf_nom }}
+                                {% if invoice.is_manual %}
+                                    <span class="text-xs px-2 py-1 bg-purple-100 text-purple-800 rounded-full ml-2">Manuel</span>
+                                {% endif %}
+                            </h3>
+
+                            {% if invoice.contrat %}
+                            <p class="text-sm text-gray-600 mb-1">
+                                <i class="fas fa-file-contract mr-1"></i>
+                                Contrat : {{ invoice.contrat.numero_contrat }}
+                            </p>
+                            <p class="text-sm text-gray-600">
+                                <i class="fas fa-user mr-1"></i>
+                                {{ invoice.contrat.locataire.nom_complet }}
+                            </p>
+                            {% else %}
+                            <p class="text-sm text-gray-600 mb-1">
+                                <i class="fas fa-user mr-1"></i>
+                                {{ invoice.destinataire_nom }}
+                            </p>
+                            {% if invoice.fournisseur_nom %}
+                            <p class="text-sm text-gray-600">
+                                <i class="fas fa-building mr-1"></i>
+                                {{ invoice.fournisseur_nom }}
+                            </p>
+                            {% endif %}
+                            {% endif %}
+                        </div>
+
+                        <div class="flex flex-col items-end gap-2">
+                            <span class="status-badge status-{{ invoice.statut }}">
+                                {{ invoice.get_statut_display }}
+                            </span>
+                            <span class="text-xs px-2 py-1 rounded-full font-medium
+                                {% if invoice.type_facture == 'loyer' %}bg-blue-100 text-blue-800
+                                {% elif invoice.type_facture == 'syndic' %}bg-purple-100 text-purple-800
+                                {% elif invoice.type_facture == 'demande_achat' %}bg-green-100 text-green-800
+                                {% elif invoice.type_facture == 'prestataire' %}bg-orange-100 text-orange-800
+                                {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                {{ invoice.get_type_facture_display }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4 text-sm">
+                        {% if invoice.periode_debut and invoice.periode_fin %}
+                        <div>
+                            <p class="text-gray-500 mb-1">Période</p>
+                            <p class="font-medium text-gray-900">
+                                {{ invoice.periode_debut|date:"d/m/Y" }} - {{ invoice.periode_fin|date:"d/m/Y" }}
+                            </p>
+                        </div>
+                        {% endif %}
+
+                        <div>
+                            <p class="text-gray-500 mb-1">Montant TTC</p>
+                            <p class="font-bold text-blue-600">{{ invoice.montant_ttc|floatformat:0 }} FCFA</p>
+                        </div>
+
+                        <div>
+                            <p class="text-gray-500 mb-1">Date d'échéance</p>
+                            <p class="font-medium {% if invoice.is_overdue %}text-red-600{% else %}text-gray-900{% endif %}">
+                                {{ invoice.date_echeance|date:"d/m/Y" }}
+                                {% if invoice.is_overdue %}
+                                    <i class="fas fa-exclamation-circle ml-1"></i>
+                                {% endif %}
+                            </p>
+                        </div>
+
+                        <div>
+                            <p class="text-gray-500 mb-1">Solde</p>
+                            <p class="font-medium text-gray-900">
+                                {{ invoice.solde_restant|floatformat:0 }} FCFA
+                            </p>
+                        </div>
+                    </div>
+
+                    {% if invoice.is_overdue and invoice.statut != 'payee' %}
+                        <div class="mt-3">
+                            <p class="text-sm text-red-600 font-medium">
+                                <i class="fas fa-exclamation-triangle mr-1"></i>
+                                Facture en retard
+                            </p>
+                        </div>
+                    {% endif %}
+
+                    <!-- Actions rapides -->
+                    <div class="flex gap-2 mt-4" onclick="event.stopPropagation();">
+                        <a href="{% url 'payments:invoice_detail' invoice.pk %}"
+                           class="bg-imani-primary hover:opacity-90 text-white px-3 py-1 rounded text-xs transition duration-200">
+                            <i class="fas fa-eye mr-1"></i>Voir
+                        </a>
+
+                        <a href="{% url 'payments:invoice_pdf_custom' invoice.pk %}"
+                           class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs transition duration-200">
+                            <i class="fas fa-download mr-1"></i>PDF
+                        </a>
+
+                        {% if invoice.paiements.exists %}
+                            <span class="bg-green-100 text-green-800 px-3 py-1 rounded text-xs font-medium">
+                                {{ invoice.paiements.count }} paiement{{ invoice.paiements.count|pluralize }}
+                            </span>
+                        {% endif %}
+
+                        <!-- 🆕 MODULE 8 : Actions automatiques pour factures -->
+                        {% if invoice.statut == 'payee' and invoice.type_facture == 'loyer' and invoice.contrat %}
+                            {% if not invoice.etat_loyer_genere %}
+                                <a href="{% url 'payments:generer_etat_loyer' invoice.pk %}"
+                                   class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded text-xs transition duration-200">
+                                    <i class="fas fa-file-alt mr-1"></i>État Loyer
+                                </a>
+                            {% else %}
+                                <span class="bg-indigo-100 text-indigo-800 px-3 py-1 rounded text-xs font-medium">
+                                    <i class="fas fa-check mr-1"></i>État généré
+                                </span>
+                            {% endif %}
+
+                            {% if not invoice.quittance_generee %}
+                                <a href="{% url 'payments:generer_quittance' invoice.pk %}"
+                                   class="bg-teal-600 hover:bg-teal-700 text-white px-3 py-1 rounded text-xs transition duration-200">
+                                    <i class="fas fa-receipt mr-1"></i>Quittance
+                                </a>
+                            {% else %}
+                                <span class="bg-teal-100 text-teal-800 px-3 py-1 rounded text-xs font-medium">
+                                    <i class="fas fa-check mr-1"></i>Quittance générée
+                                </span>
+                            {% endif %}
+                        {% endif %}
+
+                        {% if invoice.statut == 'en_retard' and invoice.type_facture == 'loyer' and invoice.contrat %}
+                            <button onclick="envoyerRappel({{ invoice.pk }})"
+                                    class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs transition duration-200">
+                                <i class="fas fa-bell mr-1"></i>Rappel
+                                {% if invoice.nombre_relances > 0 %}({{ invoice.nombre_relances }}){% endif %}
+                            </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <div class="imani-card p-12 text-center">
+            <div class="imani-gradient-soft rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-file-invoice text-4xl text-imani-primary"></i>
+            </div>
+            <h3 class="text-xl font-bold text-gray-900 mb-2">Aucune facture trouvée</h3>
+            <p class="text-gray-500 mb-4">
+                {% if search or statut or type_facture %}
+                    Aucune facture ne correspond à vos critères de recherche.
+                {% else %}
+                    Commencez par créer une facture.
+                {% endif %}
+            </p>
+            {% if user.is_staff %}
+            <a href="{% url 'payments:invoice_create_menu' %}"
+               class="inline-block px-6 py-3 imani-gradient text-white rounded-lg hover:opacity-90 transition-all">
+                <i class="fas fa-plus mr-2"></i>
+                Créer une Facture
+            </a>
+            {% endif %}
+        </div>
+    {% endfor %}
+</div>
+
+<!-- Pagination -->
+{% if invoices.has_other_pages %}
+    <div class="mt-6 flex justify-between items-center">
+        <span class="px-6 py-2 imani-gradient text-white rounded-lg font-medium">
+            Page {{ invoices.number }} sur {{ invoices.paginator.num_pages }}
+        </span>
+
+        <nav class="flex items-center gap-2">
+            {% if invoices.has_previous %}
+                <a href="?page={{ invoices.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if statut %}&statut={{ statut }}{% endif %}{% if type_facture %}&type_facture={{ type_facture }}{% endif %}"
+                   class="px-3 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all">
+                    <i class="fas fa-chevron-left"></i>
+                </a>
+            {% endif %}
+
+            <span class="px-4 py-2 imani-gradient text-white rounded-lg font-medium">
+                {{ invoices.number }}
+            </span>
+
+            {% if invoices.has_next %}
+                <a href="?page={{ invoices.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if statut %}&statut={{ statut }}{% endif %}{% if type_facture %}&type_facture={{ type_facture }}{% endif %}"
+                   class="px-3 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all">
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+            {% endif %}
+        </nav>
+    </div>
+{% endif %}
+
+<script>
+// 🆕 MODULE 8 : Fonction pour envoyer un rappel de paiement
+function envoyerRappel(invoiceId) {
+    if (!confirm('Êtes-vous sûr de vouloir envoyer un rappel de paiement pour cette facture ?')) {
+        return;
+    }
+
+    // Afficher un toast de chargement
+    showToast('Envoi du rappel en cours...', 'info');
+
+    fetch(`/payments/api/factures/${invoiceId}/envoyer-rappel/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast(data.message || 'Rappel envoyé avec succès !', 'success');
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            showToast(data.error || 'Erreur lors de l\'envoi du rappel', 'error');
+        }
+    })
+    .catch(error => {
+        showToast('Erreur de connexion', 'error');
+        console.error('Error:', error);
+    });
+}
+
+function showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg transition-all duration-300 ${
+        type === 'success' ? 'bg-green-500 text-white' :
+        type === 'error' ? 'bg-red-500 text-white' :
+        'bg-blue-500 text-white'
+    }`;
+
+    const icon = type === 'success' ? '✓' :
+                 type === 'error' ? '✕' :
+                 'ℹ';
+
+    toast.innerHTML = `<strong>${icon}</strong> ${message}`;
+
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+</script>
+{% endblock %}

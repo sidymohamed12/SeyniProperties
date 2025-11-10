@@ -1,0 +1,106 @@
+{% comment %}
+Composant réutilisable : Timeline du workflow PMO
+Usage: {% include 'pmo/components/timeline.html' with workflow=workflow %}
+{% endcomment %}
+
+<div class="workflow-timeline">
+    {% with etapes=workflow.get_all_stages %}
+    <div class="relative">
+        {% for etape in etapes %}
+        <div class="flex items-start mb-8 last:mb-0">
+            <!-- Icône de l'étape -->
+            <div class="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center
+                {% if etape.completed %}bg-green-500
+                {% elif etape.current %}imani-gradient
+                {% else %}bg-gray-300{% endif %}">
+                <i class="fas {{ etape.icon|default:'fa-circle' }} text-white"></i>
+            </div>
+
+            <!-- Connecteur vertical -->
+            {% if not forloop.last %}
+            <div class="absolute left-6 top-12 w-0.5 h-8
+                {% if etape.completed %}bg-green-500
+                {% else %}bg-gray-300{% endif %}"
+                style="margin-top: 0;"></div>
+            {% endif %}
+
+            <!-- Contenu de l'étape -->
+            <div class="ml-4 flex-1">
+                <div class="flex items-center justify-between mb-1">
+                    <h4 class="font-bold text-lg
+                        {% if etape.current %}text-imani-primary
+                        {% elif etape.completed %}text-green-600
+                        {% else %}text-gray-400{% endif %}">
+                        {{ etape.label }}
+                    </h4>
+
+                    {% if etape.current %}
+                    <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                        <i class="fas fa-spinner fa-spin mr-1"></i>En cours
+                    </span>
+                    {% elif etape.completed %}
+                    <span class="text-green-500">
+                        <i class="fas fa-check-circle text-2xl"></i>
+                    </span>
+                    {% endif %}
+                </div>
+
+                <!-- Description de l'étape -->
+                {% if etape.description %}
+                <p class="text-sm text-gray-600 mb-2">{{ etape.description }}</p>
+                {% endif %}
+
+                <!-- Informations additionnelles -->
+                {% if etape.completed and etape.completed_at %}
+                <p class="text-xs text-gray-500">
+                    <i class="fas fa-check mr-1"></i>
+                    Complété le {{ etape.completed_at|date:"d/m/Y à H:i" }}
+                </p>
+                {% endif %}
+
+                <!-- Documents requis pour cette étape -->
+                {% if etape.required_documents %}
+                <div class="mt-2 flex flex-wrap gap-2">
+                    {% for doc in etape.required_documents %}
+                    <span class="text-xs px-2 py-1 rounded
+                        {% if doc.verified %}bg-green-100 text-green-800
+                        {% elif doc.uploaded %}bg-blue-100 text-blue-800
+                        {% else %}bg-gray-100 text-gray-600{% endif %}">
+                        <i class="fas fa-file mr-1"></i>{{ doc.name }}
+                    </span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- Actions disponibles pour cette étape -->
+                {% if etape.current and etape.actions %}
+                <div class="mt-3 flex gap-2">
+                    {% for action in etape.actions %}
+                    <a href="{{ action.url }}"
+                       class="px-3 py-1 {{ action.css_class|default:'bg-blue-600' }} text-white rounded text-sm hover:opacity-90">
+                        <i class="fas {{ action.icon }} mr-1"></i>{{ action.label }}
+                    </a>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endwith %}
+</div>
+
+<style>
+    .workflow-timeline {
+        position: relative;
+    }
+
+    .workflow-timeline .absolute {
+        z-index: 0;
+    }
+
+    .workflow-timeline > div > div {
+        position: relative;
+        z-index: 1;
+    }
+</style>

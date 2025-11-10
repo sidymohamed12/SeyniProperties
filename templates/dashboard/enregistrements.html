@@ -1,0 +1,525 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Enregistrements - Seyni Properties{% endblock %}
+
+{% block page_title %}Enregistrements{% endblock %}
+{% block page_subtitle %}Création rapide d'entités{% endblock %}
+
+{% block extra_css %}
+<style>
+    .action-card {
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+
+    .action-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(35, 69, 107, 0.12);
+    }
+
+    .section-divider {
+        height: 1px;
+        background: linear-gradient(to right, transparent, #ddd, transparent);
+        margin: 2rem 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <!-- Navigation rapide par section -->
+    <div class="imani-card p-6 mb-8">
+        <h3 class="text-lg font-bold text-imani-primary mb-4 flex items-center">
+            <i class="fas fa-compass mr-2"></i>
+            Navigation Rapide
+        </h3>
+        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+            <a href="#section-tiers" class="flex items-center justify-center px-4 py-3 bg-gray-50 text-gray-700 rounded-lg hover:bg-imani-primary hover:text-white transition-colors">
+                <i class="fas fa-users mr-2"></i>
+                <span class="text-sm font-medium">Tiers</span>
+            </a>
+            <a href="#section-biens" class="flex items-center justify-center px-4 py-3 bg-gray-50 text-gray-700 rounded-lg hover:bg-imani-primary hover:text-white transition-colors">
+                <i class="fas fa-building mr-2"></i>
+                <span class="text-sm font-medium">Biens</span>
+            </a>
+            <a href="#section-contrats" class="flex items-center justify-center px-4 py-3 bg-gray-50 text-gray-700 rounded-lg hover:bg-imani-primary hover:text-white transition-colors">
+                <i class="fas fa-file-contract mr-2"></i>
+                <span class="text-sm font-medium">Contrats</span>
+            </a>
+            <a href="#section-travaux" class="flex items-center justify-center px-4 py-3 bg-gray-50 text-gray-700 rounded-lg hover:bg-imani-primary hover:text-white transition-colors">
+                <i class="fas fa-wrench mr-2"></i>
+                <span class="text-sm font-medium">Travaux</span>
+            </a>
+            <a href="#section-achats" class="flex items-center justify-center px-4 py-3 bg-gray-50 text-gray-700 rounded-lg hover:bg-imani-primary hover:text-white transition-colors">
+                <i class="fas fa-shopping-cart mr-2"></i>
+                <span class="text-sm font-medium">Achats</span>
+            </a>
+            <a href="#section-paiements" class="flex items-center justify-center px-4 py-3 bg-gray-50 text-gray-700 rounded-lg hover:bg-imani-primary hover:text-white transition-colors">
+                <i class="fas fa-money-bill-wave mr-2"></i>
+                <span class="text-sm font-medium">Paiements</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- ====================== SECTION TIERS ====================== -->
+    <div id="section-tiers" class="mb-12 scroll-mt-20">
+        <div class="flex items-center mb-6">
+            <div class="w-12 h-12 rounded-xl imani-gradient flex items-center justify-center mr-4 shadow-lg">
+                <i class="fas fa-users text-white text-xl"></i>
+            </div>
+            <div>
+                <h2 class="text-2xl font-bold text-imani-primary">Tiers</h2>
+                <p class="text-sm text-gray-600">Propriétaires, locataires, prestataires</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Nouveau Tiers -->
+            <a href="{% url 'tiers:tiers_ajouter' %}" class="action-card imani-card p-6 block">
+                <div class="flex items-center mb-4">
+                    <div class="w-14 h-14 imani-gradient rounded-xl flex items-center justify-center shadow-md">
+                        <i class="fas fa-user-plus text-2xl text-white"></i>
+                    </div>
+                    <div class="ml-4 flex-1">
+                        <h3 class="text-lg font-bold text-gray-900">Nouveau Tiers</h3>
+                        <p class="text-sm text-gray-600">Créer une fiche tiers</p>
+                    </div>
+                </div>
+                <div class="mt-4 pt-4 border-t border-gray-200">
+                    <div class="text-xs text-gray-600 space-y-1">
+                        <div class="flex items-center">
+                            <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                            <span>Peut être propriétaire, locataire ou prestataire</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                            <span>Compte utilisateur optionnel</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between text-sm text-imani-primary font-medium mt-3">
+                    <span>Créer tiers</span>
+                    <i class="fas fa-arrow-right"></i>
+                </div>
+            </a>
+
+            <!-- Liste des Tiers -->
+            <a href="{% url 'tiers:tiers_liste' %}" class="action-card imani-card p-6 block">
+                <div class="flex items-center mb-4">
+                    <div class="w-14 h-14 bg-gray-600 rounded-xl flex items-center justify-center shadow-md">
+                        <i class="fas fa-list text-2xl text-white"></i>
+                    </div>
+                    <div class="ml-4 flex-1">
+                        <h3 class="text-lg font-bold text-gray-900">Liste des Tiers</h3>
+                        <p class="text-sm text-gray-600">Consulter tous les tiers</p>
+                    </div>
+                </div>
+                <div class="mt-4 pt-4 border-t border-gray-200">
+                    <div class="grid grid-cols-3 gap-2 text-xs text-center">
+                        <div>
+                            <div class="text-lg font-bold text-imani-primary">{{ stats.proprietaires|default:0 }}</div>
+                            <div class="text-gray-600">Propriétaires</div>
+                        </div>
+                        <div>
+                            <div class="text-lg font-bold text-imani-primary">{{ stats.locataires|default:0 }}</div>
+                            <div class="text-gray-600">Locataires</div>
+                        </div>
+                        <div>
+                            <div class="text-lg font-bold text-imani-primary">{{ stats.prestataires|default:0 }}</div>
+                            <div class="text-gray-600">Prestataires</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between text-sm text-gray-600 font-medium mt-3">
+                    <span>Voir la liste</span>
+                    <i class="fas fa-arrow-right"></i>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <div class="section-divider"></div>
+
+    <!-- ====================== SECTION BIENS ====================== -->
+    <div id="section-biens" class="mb-12 scroll-mt-20">
+        <div class="flex items-center mb-6">
+            <div class="w-12 h-12 rounded-xl imani-gradient flex items-center justify-center mr-4 shadow-lg">
+                <i class="fas fa-building text-white text-xl"></i>
+            </div>
+            <div>
+                <h2 class="text-2xl font-bold text-imani-primary">Biens Immobiliers</h2>
+                <p class="text-sm text-gray-600">Résidences et appartements</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Nouvelle Résidence -->
+            <a href="{% url 'properties:residence_create' %}" class="action-card imani-card p-6 block">
+                <div class="flex items-center mb-4">
+                    <div class="w-14 h-14 imani-gradient rounded-xl flex items-center justify-center shadow-md">
+                        <i class="fas fa-building text-2xl text-white"></i>
+                    </div>
+                    <div class="ml-4 flex-1">
+                        <h3 class="text-lg font-bold text-gray-900">Nouvelle Résidence</h3>
+                        <p class="text-sm text-gray-600">Créer un immeuble/résidence</p>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between text-sm text-imani-primary font-medium mt-3">
+                    <span>Créer résidence</span>
+                    <i class="fas fa-arrow-right"></i>
+                </div>
+            </a>
+
+            <!-- Nouvel Appartement -->
+            <a href="{% url 'properties:appartement_create' %}" class="action-card imani-card p-6 block">
+                <div class="flex items-center mb-4">
+                    <div class="w-14 h-14 imani-gradient rounded-xl flex items-center justify-center shadow-md">
+                        <i class="fas fa-door-open text-2xl text-white"></i>
+                    </div>
+                    <div class="ml-4 flex-1">
+                        <h3 class="text-lg font-bold text-gray-900">Nouvel Appartement</h3>
+                        <p class="text-sm text-gray-600">Créer un logement</p>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between text-sm text-imani-primary font-medium mt-3">
+                    <span>Créer appartement</span>
+                    <i class="fas fa-arrow-right"></i>
+                </div>
+            </a>
+
+            <!-- Liste des Biens -->
+            <a href="{% url 'properties:appartements_list' %}" class="action-card imani-card p-6 block">
+                <div class="flex items-center mb-4">
+                    <div class="w-14 h-14 bg-gray-600 rounded-xl flex items-center justify-center shadow-md">
+                        <i class="fas fa-list text-2xl text-white"></i>
+                    </div>
+                    <div class="ml-4 flex-1">
+                        <h3 class="text-lg font-bold text-gray-900">Liste des Biens</h3>
+                        <p class="text-sm text-gray-600">Voir tous les appartements</p>
+                    </div>
+                </div>
+                <div class="mt-4 pt-4 border-t border-gray-200">
+                    <div class="grid grid-cols-2 gap-2 text-xs text-center">
+                        <div>
+                            <div class="text-lg font-bold text-green-600">{{ stats.appartements_libres|default:0 }}</div>
+                            <div class="text-gray-600">Libres</div>
+                        </div>
+                        <div>
+                            <div class="text-lg font-bold text-red-600">{{ stats.appartements_occupes|default:0 }}</div>
+                            <div class="text-gray-600">Occupés</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between text-sm text-gray-600 font-medium mt-3">
+                    <span>Voir la liste</span>
+                    <i class="fas fa-arrow-right"></i>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <div class="section-divider"></div>
+
+    <!-- ====================== SECTION CONTRATS ====================== -->
+    <div id="section-contrats" class="mb-12 scroll-mt-20">
+        <div class="flex items-center mb-6">
+            <div class="w-12 h-12 rounded-xl imani-gradient flex items-center justify-center mr-4 shadow-lg">
+                <i class="fas fa-file-contract text-white text-xl"></i>
+            </div>
+            <div>
+                <h2 class="text-2xl font-bold text-imani-primary">Contrats de Location</h2>
+                <p class="text-sm text-gray-600">Gestion des baux via workflow PMO</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Nouveau Contrat via Workflow PMO -->
+            <a href="{% url 'contracts:pmo_workflow_create' %}" class="action-card imani-card p-6 block border-2 border-imani-primary">
+                <div class="flex items-center mb-4">
+                    <div class="w-14 h-14 imani-gradient rounded-xl flex items-center justify-center shadow-md">
+                        <i class="fas fa-file-signature text-2xl text-white"></i>
+                    </div>
+                    <div class="ml-4 flex-1">
+                        <h3 class="text-lg font-bold text-gray-900">Nouveau Contrat (PMO)</h3>
+                        <p class="text-sm text-gray-600">Créer via le workflow complet</p>
+                    </div>
+                </div>
+                <div class="mt-4 pt-4 border-t border-gray-200">
+                    <div class="text-xs text-gray-600 space-y-1">
+                        <div class="flex items-center">
+                            <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                            <span>Workflow: Dossier → Facture → Contrat → Visite → Clés</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                            <span>Suivi complet de la mise en location</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between text-sm text-imani-primary font-medium mt-3">
+                    <span>Démarrer workflow PMO</span>
+                    <i class="fas fa-arrow-right"></i>
+                </div>
+            </a>
+
+            <!-- Liste des Contrats -->
+            <a href="{% url 'contracts:list' %}" class="action-card imani-card p-6 block">
+                <div class="flex items-center mb-4">
+                    <div class="w-14 h-14 bg-gray-600 rounded-xl flex items-center justify-center shadow-md">
+                        <i class="fas fa-list text-2xl text-white"></i>
+                    </div>
+                    <div class="ml-4 flex-1">
+                        <h3 class="text-lg font-bold text-gray-900">Liste des Contrats</h3>
+                        <p class="text-sm text-gray-600">Voir tous les contrats</p>
+                    </div>
+                </div>
+                <div class="mt-4 pt-4 border-t border-gray-200">
+                    <div class="grid grid-cols-2 gap-2 text-xs text-center">
+                        <div>
+                            <div class="text-lg font-bold text-green-600">{{ stats.contrats_actifs|default:0 }}</div>
+                            <div class="text-gray-600">Actifs</div>
+                        </div>
+                        <div>
+                            <div class="text-lg font-bold text-yellow-600">{{ stats.contrats_expirent_soon|default:0 }}</div>
+                            <div class="text-gray-600">Expireront</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between text-sm text-gray-600 font-medium mt-3">
+                    <span>Voir la liste</span>
+                    <i class="fas fa-arrow-right"></i>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <div class="section-divider"></div>
+
+    <!-- ====================== SECTION TRAVAUX ====================== -->
+    <div id="section-travaux" class="mb-12 scroll-mt-20">
+        <div class="flex items-center mb-6">
+            <div class="w-12 h-12 rounded-xl imani-gradient flex items-center justify-center mr-4 shadow-lg">
+                <i class="fas fa-wrench text-white text-xl"></i>
+            </div>
+            <div>
+                <h2 class="text-2xl font-bold text-imani-primary">Travaux & Maintenance</h2>
+                <p class="text-sm text-gray-600">Interventions, tâches, projets</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Nouveau Travail -->
+            <a href="{% url 'maintenance:travail_create' %}" class="action-card imani-card p-6 block">
+                <div class="flex items-center mb-4">
+                    <div class="w-14 h-14 imani-gradient rounded-xl flex items-center justify-center shadow-md">
+                        <i class="fas fa-tools text-2xl text-white"></i>
+                    </div>
+                    <div class="ml-4 flex-1">
+                        <h3 class="text-lg font-bold text-gray-900">Nouveau Travail</h3>
+                        <p class="text-sm text-gray-600">Créer une intervention</p>
+                    </div>
+                </div>
+                <div class="mt-4 pt-4 border-t border-gray-200">
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <span class="px-2 py-1 bg-gray-100 text-gray-700 rounded text-center">Réactif</span>
+                        <span class="px-2 py-1 bg-gray-100 text-gray-700 rounded text-center">Planifié</span>
+                        <span class="px-2 py-1 bg-gray-100 text-gray-700 rounded text-center">Préventif</span>
+                        <span class="px-2 py-1 bg-gray-100 text-gray-700 rounded text-center">Projet</span>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between text-sm text-imani-primary font-medium mt-3">
+                    <span>Créer travail</span>
+                    <i class="fas fa-arrow-right"></i>
+                </div>
+            </a>
+
+            <!-- Liste des Travaux -->
+            <a href="{% url 'maintenance:travail_list' %}" class="action-card imani-card p-6 block">
+                <div class="flex items-center mb-4">
+                    <div class="w-14 h-14 bg-gray-600 rounded-xl flex items-center justify-center shadow-md">
+                        <i class="fas fa-list text-2xl text-white"></i>
+                    </div>
+                    <div class="ml-4 flex-1">
+                        <h3 class="text-lg font-bold text-gray-900">Liste des Travaux</h3>
+                        <p class="text-sm text-gray-600">Voir tous les travaux</p>
+                    </div>
+                </div>
+                <div class="mt-4 pt-4 border-t border-gray-200">
+                    <div class="grid grid-cols-2 gap-2 text-xs text-center">
+                        <div>
+                            <div class="text-lg font-bold text-yellow-600">{{ stats.travaux_urgents|default:0 }}</div>
+                            <div class="text-gray-600">Urgents</div>
+                        </div>
+                        <div>
+                            <div class="text-lg font-bold text-blue-600">{{ stats.travaux_en_cours|default:0 }}</div>
+                            <div class="text-gray-600">En cours</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between text-sm text-gray-600 font-medium mt-3">
+                    <span>Voir la liste</span>
+                    <i class="fas fa-arrow-right"></i>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <div class="section-divider"></div>
+
+    <!-- ====================== SECTION ACHATS ====================== -->
+    <div id="section-achats" class="mb-12 scroll-mt-20">
+        <div class="flex items-center mb-6">
+            <div class="w-12 h-12 rounded-xl imani-gradient flex items-center justify-center mr-4 shadow-lg">
+                <i class="fas fa-shopping-cart text-white text-xl"></i>
+            </div>
+            <div>
+                <h2 class="text-2xl font-bold text-imani-primary">Demandes d'Achat</h2>
+                <p class="text-sm text-gray-600">Achat de matériel pour travaux</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Nouvelle Demande d'Achat -->
+            <a href="{% url 'payments:demande_achat_create' %}" class="action-card imani-card p-6 block">
+                <div class="flex items-center mb-4">
+                    <div class="w-14 h-14 imani-gradient rounded-xl flex items-center justify-center shadow-md">
+                        <i class="fas fa-cart-plus text-2xl text-white"></i>
+                    </div>
+                    <div class="ml-4 flex-1">
+                        <h3 class="text-lg font-bold text-gray-900">Nouvelle Demande</h3>
+                        <p class="text-sm text-gray-600">Créer une demande d'achat</p>
+                    </div>
+                </div>
+                <div class="mt-4 pt-4 border-t border-gray-200">
+                    <div class="text-xs text-gray-600 space-y-1">
+                        <div class="flex items-center">
+                            <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                            <span>Peut être liée à un travail</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                            <span>Workflow de validation intégré</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between text-sm text-imani-primary font-medium mt-3">
+                    <span>Créer demande</span>
+                    <i class="fas fa-arrow-right"></i>
+                </div>
+            </a>
+
+            <!-- Liste des Demandes -->
+            <a href="{% url 'payments:demande_achat_list' %}" class="action-card imani-card p-6 block">
+                <div class="flex items-center mb-4">
+                    <div class="w-14 h-14 bg-gray-600 rounded-xl flex items-center justify-center shadow-md">
+                        <i class="fas fa-list text-2xl text-white"></i>
+                    </div>
+                    <div class="ml-4 flex-1">
+                        <h3 class="text-lg font-bold text-gray-900">Liste des Demandes</h3>
+                        <p class="text-sm text-gray-600">Voir toutes les demandes</p>
+                    </div>
+                </div>
+                <div class="mt-4 pt-4 border-t border-gray-200">
+                    <div class="grid grid-cols-2 gap-2 text-xs text-center">
+                        <div>
+                            <div class="text-lg font-bold text-yellow-600">{{ stats.demandes_en_attente|default:0 }}</div>
+                            <div class="text-gray-600">En attente</div>
+                        </div>
+                        <div>
+                            <div class="text-lg font-bold text-green-600">{{ stats.demandes_validees|default:0 }}</div>
+                            <div class="text-gray-600">Validées</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between text-sm text-gray-600 font-medium mt-3">
+                    <span>Voir la liste</span>
+                    <i class="fas fa-arrow-right"></i>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <div class="section-divider"></div>
+
+    <!-- ====================== SECTION PAIEMENTS ====================== -->
+    <div id="section-paiements" class="mb-12 scroll-mt-20">
+        <div class="flex items-center mb-6">
+            <div class="w-12 h-12 rounded-xl imani-gradient flex items-center justify-center mr-4 shadow-lg">
+                <i class="fas fa-money-bill-wave text-white text-xl"></i>
+            </div>
+            <div>
+                <h2 class="text-2xl font-bold text-imani-primary">Paiements</h2>
+                <p class="text-sm text-gray-600">Enregistrement des règlements</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Nouveau Paiement -->
+            <a href="{% url 'payments:create' %}" class="action-card imani-card p-6 block">
+                <div class="flex items-center mb-4">
+                    <div class="w-14 h-14 imani-gradient rounded-xl flex items-center justify-center shadow-md">
+                        <i class="fas fa-hand-holding-usd text-2xl text-white"></i>
+                    </div>
+                    <div class="ml-4 flex-1">
+                        <h3 class="text-lg font-bold text-gray-900">Nouveau Paiement</h3>
+                        <p class="text-sm text-gray-600">Enregistrer un règlement</p>
+                    </div>
+                </div>
+                <div class="mt-4 pt-4 border-t border-gray-200">
+                    <div class="grid grid-cols-3 gap-2 text-xs">
+                        <span class="px-2 py-1 bg-gray-100 text-gray-700 rounded text-center">Cash</span>
+                        <span class="px-2 py-1 bg-gray-100 text-gray-700 rounded text-center">Mobile</span>
+                        <span class="px-2 py-1 bg-gray-100 text-gray-700 rounded text-center">Virement</span>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between text-sm text-imani-primary font-medium mt-3">
+                    <span>Enregistrer paiement</span>
+                    <i class="fas fa-arrow-right"></i>
+                </div>
+            </a>
+
+            <!-- Liste des Paiements -->
+            <a href="{% url 'payments:list' %}" class="action-card imani-card p-6 block">
+                <div class="flex items-center mb-4">
+                    <div class="w-14 h-14 bg-gray-600 rounded-xl flex items-center justify-center shadow-md">
+                        <i class="fas fa-list text-2xl text-white"></i>
+                    </div>
+                    <div class="ml-4 flex-1">
+                        <h3 class="text-lg font-bold text-gray-900">Liste des Paiements</h3>
+                        <p class="text-sm text-gray-600">Historique des règlements</p>
+                    </div>
+                </div>
+                <div class="mt-4 pt-4 border-t border-gray-200">
+                    <div class="text-center">
+                        <div class="text-lg font-bold text-green-600">{{ stats.total_paiements_mois|default:"0"|floatformat:0 }} FCFA</div>
+                        <div class="text-xs text-gray-600">Total ce mois</div>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between text-sm text-gray-600 font-medium mt-3">
+                    <span>Voir la liste</span>
+                    <i class="fas fa-arrow-right"></i>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Smooth scroll pour navigation rapide
+document.querySelectorAll('a[href^="#section-"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+            target.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
+    });
+});
+</script>
+{% endblock %}

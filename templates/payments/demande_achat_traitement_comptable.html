@@ -1,0 +1,330 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Préparation Chèque - {{ demande.numero_facture }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Navigation -->
+    <div class="mb-6">
+        <a href="{% url 'payments:demande_achat_detail' demande.pk %}" class="text-gray-600 hover:text-gray-900 flex items-center">
+            <i class="fas fa-arrow-left mr-2"></i>
+            Retour au détail
+        </a>
+    </div>
+
+    <div class="max-w-5xl mx-auto">
+        <!-- En-tête -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0">
+                    <div class="h-12 w-12 rounded-full bg-indigo-100 flex items-center justify-center">
+                        <i class="fas fa-calculator text-indigo-600 text-xl"></i>
+                    </div>
+                </div>
+                <div class="ml-4">
+                    <h1 class="text-2xl font-bold text-gray-900 mb-1">
+                        Préparation du Chèque
+                    </h1>
+                    <p class="text-gray-600">
+                        Demande {{ demande.numero_facture }} - Validée par {{ demande.valide_par_responsable.get_full_name }}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Colonne principale -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Résumé demande -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h2 class="text-xl font-semibold text-gray-900 mb-4">
+                        Résumé de la demande
+                    </h2>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-sm text-gray-600">Demandeur</p>
+                            <p class="font-medium text-gray-900">{{ demande.demandeur.get_full_name }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600">Service</p>
+                            <p class="font-medium text-gray-900">{{ demande.service_fonction }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600">Date validation</p>
+                            <p class="font-medium text-gray-900">{{ demande.date_validation_responsable|date:"d/m/Y H:i" }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600">Montant total</p>
+                            <p class="font-bold text-blue-600">{{ demande.montant_ttc|floatformat:0 }} FCFA</p>
+                        </div>
+                    </div>
+
+                    {% if demande.commentaire_responsable %}
+                    <div class="mt-4 bg-blue-50 border-l-4 border-blue-400 p-4">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-comment text-blue-400"></i>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm text-blue-700">
+                                    <strong>Commentaire du responsable :</strong><br>
+                                    {{ demande.commentaire_responsable }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Détail articles -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h2 class="text-xl font-semibold text-gray-900 mb-4">
+                        Articles à acheter
+                    </h2>
+
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">#</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Article</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Quantité</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fournisseur</th>
+                                    <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Montant</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                {% for ligne in demande.lignes_achat.all %}
+                                <tr>
+                                    <td class="px-4 py-3 text-sm text-gray-900">{{ forloop.counter }}</td>
+                                    <td class="px-4 py-3">
+                                        <p class="text-sm font-medium text-gray-900">{{ ligne.designation }}</p>
+                                    </td>
+                                    <td class="px-4 py-3 text-sm text-gray-900">
+                                        {{ ligne.quantite|floatformat:0 }} {{ ligne.unite }}
+                                    </td>
+                                    <td class="px-4 py-3 text-sm text-gray-900">
+                                        {{ ligne.fournisseur|default:"-" }}
+                                    </td>
+                                    <td class="px-4 py-3 text-sm font-semibold text-gray-900 text-right">
+                                        {{ ligne.prix_total|floatformat:0 }} F
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot class="bg-gray-50">
+                                <tr>
+                                    <td colspan="4" class="px-4 py-3 text-right text-sm font-bold text-gray-900">
+                                        Total à payer
+                                    </td>
+                                    <td class="px-4 py-3 text-sm font-bold text-blue-600 text-right">
+                                        {{ demande.montant_ttc|floatformat:0 }} FCFA
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Formulaire préparation chèque -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h2 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+                        <i class="fas fa-money-check text-green-600 mr-2"></i>
+                        Informations du Chèque
+                    </h2>
+
+                    <form method="post">
+                        {% csrf_token %}
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Numéro de chèque -->
+                            <div>
+                                <label for="id_numero_cheque" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Numéro de chèque <span class="text-red-500">*</span>
+                                </label>
+                                <input type="text" id="id_numero_cheque" name="numero_cheque" required
+                                       placeholder="Ex: 1234567"
+                                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                                {% if form.numero_cheque.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.numero_cheque.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+
+                            <!-- Banque -->
+                            <div>
+                                <label for="id_banque_cheque" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Banque <span class="text-red-500">*</span>
+                                </label>
+                                <select id="id_banque_cheque" name="banque_cheque" required
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                                    <option value="">Sélectionner une banque</option>
+                                    <option value="BOA Sénégal">BOA Sénégal</option>
+                                    <option value="BICIS">BICIS</option>
+                                    <option value="SGBS">SGBS</option>
+                                    <option value="Ecobank">Ecobank</option>
+                                    <option value="CBAO">CBAO</option>
+                                    <option value="UBA">UBA</option>
+                                    <option value="BHS">BHS</option>
+                                    <option value="Autre">Autre</option>
+                                </select>
+                                {% if form.banque_cheque.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.banque_cheque.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+
+                            <!-- Date d'émission -->
+                            <div>
+                                <label for="id_date_emission_cheque" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Date d'émission <span class="text-red-500">*</span>
+                                </label>
+                                <input type="date" id="id_date_emission_cheque" name="date_emission_cheque" required
+                                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                                {% if form.date_emission_cheque.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.date_emission_cheque.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+
+                            <!-- Bénéficiaire -->
+                            <div>
+                                <label for="id_beneficiaire_cheque" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Bénéficiaire <span class="text-red-500">*</span>
+                                </label>
+                                <input type="text" id="id_beneficiaire_cheque" name="beneficiaire_cheque" required
+                                       placeholder="Nom du fournisseur/bénéficiaire"
+                                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                                {% if form.beneficiaire_cheque.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.beneficiaire_cheque.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+
+                            <!-- Commentaire -->
+                            <div class="md:col-span-2">
+                                <label for="id_commentaire_comptable" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Commentaire
+                                    <span class="text-gray-500 font-normal">(optionnel)</span>
+                                </label>
+                                <textarea id="id_commentaire_comptable" name="commentaire_comptable" rows="3"
+                                          placeholder="Remarques ou informations complémentaires..."
+                                          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Info -->
+                        <div class="mt-6 bg-indigo-50 border-l-4 border-indigo-400 p-4">
+                            <div class="flex">
+                                <div class="flex-shrink-0">
+                                    <i class="fas fa-info-circle text-indigo-400"></i>
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-sm text-indigo-700">
+                                        Une fois le chèque préparé, la demande sera transmise à la Direction Générale pour validation finale.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Boutons -->
+                        <div class="flex justify-between items-center pt-6 border-t border-gray-200 mt-6">
+                            <a href="{% url 'payments:demande_achat_detail' demande.pk %}"
+                               class="text-gray-600 hover:text-gray-900 flex items-center">
+                                <i class="fas fa-arrow-left mr-2"></i>
+                                Retour
+                            </a>
+
+                            <button type="submit"
+                                    class="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-lg font-medium transition-colors">
+                                <i class="fas fa-check mr-2"></i>
+                                Enregistrer et transmettre à la DG
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Colonne latérale -->
+            <div class="space-y-6">
+                <!-- Montant -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-sm font-medium text-gray-600 mb-2">Montant du chèque</h3>
+                    <p class="text-3xl font-bold text-indigo-600">
+                        {{ demande.montant_ttc|floatformat:0 }}
+                    </p>
+                    <p class="text-sm text-gray-600">FCFA</p>
+
+                    <div class="mt-4 pt-4 border-t border-gray-200">
+                        <p class="text-xs text-gray-600 mb-1">En lettres :</p>
+                        <p class="text-sm font-medium text-gray-900 italic">
+                            <!-- La conversion en lettres sera ajoutée via JavaScript ou backend -->
+                            À remplir sur le chèque
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Checklist -->
+                <div class="bg-yellow-50 rounded-lg p-6">
+                    <h3 class="text-sm font-semibold text-yellow-900 mb-3 flex items-center">
+                        <i class="fas fa-clipboard-list mr-2"></i>
+                        Vérifications
+                    </h3>
+                    <ul class="space-y-2 text-sm text-yellow-800">
+                        <li class="flex items-start">
+                            <i class="fas fa-check-square text-yellow-600 mr-2 mt-0.5"></i>
+                            <span>Budget disponible vérifié</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check-square text-yellow-600 mr-2 mt-0.5"></i>
+                            <span>Montant confirmé</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check-square text-yellow-600 mr-2 mt-0.5"></i>
+                            <span>Chéquier disponible</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check-square text-yellow-600 mr-2 mt-0.5"></i>
+                            <span>Bénéficiaire correct</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check-square text-yellow-600 mr-2 mt-0.5"></i>
+                            <span>Date d'émission valide</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Workflow -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-sm font-semibold text-gray-900 mb-3">
+                        Prochaine étape
+                    </h3>
+                    <div class="flex items-start">
+                        <span class="flex-shrink-0 h-8 w-8 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center mr-3">
+                            <i class="fas fa-user-tie text-sm"></i>
+                        </span>
+                        <div>
+                            <p class="text-sm font-medium text-gray-900">Validation DG</p>
+                            <p class="text-xs text-gray-600 mt-1">
+                                La Direction Générale devra approuver le chèque avant sa remise
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Validation responsable -->
+                <div class="bg-green-50 rounded-lg p-6">
+                    <h3 class="text-sm font-semibold text-green-900 mb-3 flex items-center">
+                        <i class="fas fa-check-circle mr-2"></i>
+                        Validation responsable
+                    </h3>
+                    <div class="text-sm text-green-800">
+                        <p class="font-medium">{{ demande.valide_par_responsable.get_full_name }}</p>
+                        <p class="text-xs text-green-700 mt-1">
+                            {{ demande.date_validation_responsable|date:"d/m/Y à H:i" }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

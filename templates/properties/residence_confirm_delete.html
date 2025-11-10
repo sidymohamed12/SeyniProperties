@@ -1,0 +1,335 @@
+<!-- templates/properties/residence_confirm_delete.html -->
+{% extends 'base_dashboard.html' %}
+
+{% block title %}Supprimer {{ residence.nom }} - {{ block.super }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .danger-zone {
+        background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+        border: 2px solid #fca5a5;
+    }
+    
+    .warning-icon {
+        color: #dc2626;
+        font-size: 4rem;
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.7; }
+    }
+    
+    .info-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        border: 1px solid #e5e7eb;
+    }
+    
+    .action-button {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        transition: all 0.2s ease;
+        text-decoration: none;
+    }
+    
+    .action-button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <!-- Breadcrumb -->
+    <nav class="flex items-center space-x-2 text-sm mb-6">
+        <a href="{% url 'dashboard:index' %}" class="text-gray-500 hover:text-gray-700">Dashboard</a>
+        <i class="fas fa-chevron-right text-gray-400"></i>
+        <a href="{% url 'properties:residences_list' %}" class="text-gray-500 hover:text-gray-700">Résidences</a>
+        <i class="fas fa-chevron-right text-gray-400"></i>
+        <a href="{% url 'properties:residence_detail' residence.pk %}" class="text-gray-500 hover:text-gray-700">{{ residence.nom }}</a>
+        <i class="fas fa-chevron-right text-gray-400"></i>
+        <span class="text-red-600">Supprimer</span>
+    </nav>
+
+    <!-- Zone d'alerte -->
+    <div class="danger-zone rounded-xl p-8 mb-8">
+        <div class="text-center">
+            <i class="fas fa-exclamation-triangle warning-icon mb-4"></i>
+            <h1 class="text-3xl font-bold text-red-800 mb-2">
+                Confirmation de suppression
+            </h1>
+            <p class="text-red-700 text-lg">
+                Cette action est <strong>irréversible</strong> et supprimera définitivement la résidence
+            </p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Informations de la résidence -->
+        <div class="info-card">
+            <h2 class="text-xl font-semibold text-gray-900 mb-6">
+                <i class="fas fa-building text-red-600 mr-2"></i>
+                Résidence à supprimer
+            </h2>
+            
+            <div class="space-y-4">
+                <div class="flex items-start justify-between p-4 bg-gray-50 rounded-lg">
+                    <div>
+                        <h3 class="font-semibold text-lg text-gray-900">{{ residence.nom }}</h3>
+                        <p class="text-gray-600">{{ residence.get_type_residence_display }}</p>
+                        <p class="text-sm text-gray-500 mt-1">
+                            <i class="fas fa-map-marker-alt mr-1"></i>
+                            {{ residence.quartier }}, {{ residence.ville }}
+                        </p>
+                    </div>
+                    <span class="px-3 py-1 text-xs font-medium rounded-full
+                        {% if residence.statut == 'active' %}bg-green-100 text-green-800
+                        {% else %}bg-gray-100 text-gray-800{% endif %}">
+                        {{ residence.get_statut_display }}
+                    </span>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                        <span class="text-gray-600">Propriétaire:</span>
+                        <div class="font-medium">{{ residence.proprietaire.nom_complet }}</div>
+                    </div>
+                    <div>
+                        <span class="text-gray-600">Créée le:</span>
+                        <div class="font-medium">{{ residence.created_at|date:"d/m/Y" }}</div>
+                    </div>
+                    <div>
+                        <span class="text-gray-600">Étages:</span>
+                        <div class="font-medium">{{ residence.nb_etages }}</div>
+                    </div>
+                    <div>
+                        <span class="text-gray-600">Appartements:</span>
+                        <div class="font-medium">{{ residence.appartements.count }}</div>
+                    </div>
+                </div>
+
+                {% if residence.description %}
+                <div class="pt-4 border-t border-gray-200">
+                    <span class="text-gray-600 text-sm">Description:</span>
+                    <p class="text-gray-800 text-sm mt-1">{{ residence.description|truncatewords:20 }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Avertissements et impacts -->
+        <div class="space-y-6">
+            <!-- Vérification des appartements -->
+            {% if residence.appartements.count > 0 %}
+            <div class="info-card border-red-200 bg-red-50">
+                <h3 class="text-lg font-semibold text-red-800 mb-4">
+                    <i class="fas fa-exclamation-circle mr-2"></i>
+                    Suppression impossible
+                </h3>
+                
+                <div class="space-y-3">
+                    <p class="text-red-700">
+                        Cette résidence contient <strong>{{ residence.appartements.count }} appartement{{ residence.appartements.count|pluralize }}</strong> 
+                        et ne peut pas être supprimée.
+                    </p>
+                    
+                    <div class="bg-white rounded-lg p-3">
+                        <h4 class="font-medium text-red-800 mb-2">Appartements dans cette résidence:</h4>
+                        <div class="space-y-1">
+                            {% for appartement in residence.appartements.all|slice:":5" %}
+                            <div class="flex items-center justify-between text-sm">
+                                <span>{{ appartement.nom }} ({{ appartement.get_type_bien_display }})</span>
+                                <span class="px-2 py-1 text-xs rounded-full
+                                    {% if appartement.statut_occupation == 'libre' or appartement.statut_occupation == 'available' %}bg-green-100 text-green-800
+                                    {% elif appartement.statut_occupation == 'occupe' or appartement.statut_occupation == 'occupied' %}bg-yellow-100 text-yellow-800
+                                    {% else %}bg-red-100 text-red-800{% endif %}">
+                                    {% if appartement.statut_occupation == 'libre' or appartement.statut_occupation == 'available' %}Libre
+                                    {% elif appartement.statut_occupation == 'occupe' or appartement.statut_occupation == 'occupied' %}Occupé
+                                    {% else %}Maintenance{% endif %}
+                                </span>
+                            </div>
+                            {% endfor %}
+                            {% if residence.appartements.count > 5 %}
+                            <div class="text-xs text-gray-500">
+                                ... et {{ residence.appartements.count|add:"-5" }} autre{{ residence.appartements.count|add:"-5"|pluralize }}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                        <h4 class="font-medium text-yellow-800 mb-1">Action requise:</h4>
+                        <p class="text-yellow-700 text-sm">
+                            Vous devez d'abord supprimer ou déplacer tous les appartements avant de pouvoir supprimer cette résidence.
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- Actions alternatives -->
+                <div class="flex items-center space-x-3 mt-6">
+                    <a href="{% url 'properties:residence_detail' residence.pk %}" 
+                       class="action-button bg-blue-600 text-white hover:bg-blue-700">
+                        <i class="fas fa-eye mr-2"></i>
+                        Voir les appartements
+                    </a>
+                    <a href="{% url 'properties:residence_edit' residence.pk %}" 
+                       class="action-button bg-gray-600 text-white hover:bg-gray-700">
+                        <i class="fas fa-edit mr-2"></i>
+                        Modifier plutôt
+                    </a>
+                </div>
+            </div>
+            
+            {% else %}
+            <!-- Confirmation finale -->
+            <div class="info-card border-red-200">
+                <h3 class="text-lg font-semibold text-red-800 mb-4">
+                    <i class="fas fa-trash-alt mr-2"></i>
+                    Que va-t-il se passer ?
+                </h3>
+                
+                <div class="space-y-3 text-sm">
+                    <div class="flex items-start">
+                        <i class="fas fa-times-circle text-red-500 mr-2 mt-0.5"></i>
+                        <span>La résidence <strong>"{{ residence.nom }}"</strong> sera définitivement supprimée</span>
+                    </div>
+                    <div class="flex items-start">
+                        <i class="fas fa-times-circle text-red-500 mr-2 mt-0.5"></i>
+                        <span>Toutes les informations associées seront perdues</span>
+                    </div>
+                    <div class="flex items-start">
+                        <i class="fas fa-times-circle text-red-500 mr-2 mt-0.5"></i>
+                        <span>Cette action ne peut pas être annulée</span>
+                    </div>
+                </div>
+                
+                <div class="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <h4 class="font-medium text-yellow-800 mb-2">
+                        <i class="fas fa-lightbulb mr-1"></i>
+                        Alternative recommandée
+                    </h4>
+                    <p class="text-yellow-700 text-sm">
+                        Plutôt que de supprimer, vous pouvez marquer la résidence comme "Inactive" 
+                        pour la conserver dans l'historique tout en la masquant.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Formulaire de confirmation -->
+            <div class="info-card border-red-200">
+                <h3 class="text-lg font-semibold text-red-800 mb-4">
+                    <i class="fas fa-keyboard mr-2"></i>
+                    Confirmation finale
+                </h3>
+                
+                <form method="post" id="deleteForm">
+                    {% csrf_token %}
+                    
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Pour confirmer, tapez le nom exact de la résidence:
+                        </label>
+                        <input type="text" id="confirmName" name="confirm_name" 
+                               class="w-full px-3 py-2 border border-red-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                               placeholder="{{ residence.nom }}"
+                               autocomplete="off">
+                        <div class="text-xs text-gray-500 mt-1">
+                            Nom attendu: <strong>{{ residence.nom }}</strong>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center mb-4">
+                        <input type="checkbox" id="confirmUnderstand" name="confirm_understand" 
+                               class="rounded border-gray-300 text-red-600 focus:ring-red-500">
+                        <label for="confirmUnderstand" class="ml-2 text-sm text-gray-700">
+                            Je comprends que cette action est irréversible
+                        </label>
+                    </div>
+                    
+                    <button type="submit" id="deleteButton" disabled
+                            class="w-full action-button bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <i class="fas fa-trash-alt mr-2"></i>
+                        Supprimer définitivement la résidence
+                    </button>
+                </form>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Actions de navigation -->
+    <div class="flex items-center justify-between mt-8 pt-6 border-t border-gray-200">
+        <a href="{% url 'properties:residence_detail' residence.pk %}" 
+           class="action-button bg-gray-500 text-white hover:bg-gray-600">
+            <i class="fas fa-arrow-left mr-2"></i>
+            Retour aux détails
+        </a>
+        
+        <div class="flex items-center space-x-3">
+            <a href="{% url 'properties:residences_list' %}" 
+               class="action-button bg-purple-600 text-white hover:bg-purple-700">
+                <i class="fas fa-list mr-2"></i>
+                Voir toutes les résidences
+            </a>
+            <a href="{% url 'properties:residence_edit' residence.pk %}" 
+               class="action-button bg-blue-600 text-white hover:bg-blue-700">
+                <i class="fas fa-edit mr-2"></i>
+                Modifier plutôt
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const confirmNameInput = document.getElementById('confirmName');
+    const confirmCheckbox = document.getElementById('confirmUnderstand');
+    const deleteButton = document.getElementById('deleteButton');
+    const expectedName = "{{ residence.nom }}";
+    
+    function checkForm() {
+        const nameMatches = confirmNameInput.value.trim() === expectedName;
+        const checkboxChecked = confirmCheckbox.checked;
+        
+        deleteButton.disabled = !(nameMatches && checkboxChecked);
+        
+        // Feedback visuel
+        if (confirmNameInput.value.length > 0) {
+            if (nameMatches) {
+                confirmNameInput.classList.remove('border-red-300');
+                confirmNameInput.classList.add('border-green-300', 'bg-green-50');
+            } else {
+                confirmNameInput.classList.remove('border-green-300', 'bg-green-50');
+                confirmNameInput.classList.add('border-red-300');
+            }
+        }
+    }
+    
+    confirmNameInput.addEventListener('input', checkForm);
+    confirmCheckbox.addEventListener('change', checkForm);
+    
+    // Protection supplémentaire
+    document.getElementById('deleteForm').addEventListener('submit', function(e) {
+        if (!confirm('Êtes-vous absolument certain de vouloir supprimer cette résidence ?')) {
+            e.preventDefault();
+            return false;
+        }
+        
+        if (confirmNameInput.value.trim() !== expectedName) {
+            e.preventDefault();
+            alert('Le nom de la résidence ne correspond pas.');
+            confirmNameInput.focus();
+            return false;
+        }
+    });
+});
+</script>
+{% endblock %}

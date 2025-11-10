@@ -1,0 +1,544 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Travaux{% endblock %}
+{% block extra_css %}
+<style>
+    /* Remplacer bleu par Imani gradient */
+    .bg-blue-600 { background: linear-gradient(135deg, #23456b 0%, #a25946 100%) !important; }
+    .hover\:bg-blue-700:hover { opacity: 0.9 !important; }
+    .text-blue-600 { color: #23456b !important; }
+    .border-blue-500 { border-color: #a25946 !important; }
+    .focus\:ring-blue-500:focus { --tw-ring-color: #23456b !important; }
+    
+    /* Améliorer les stats cards avec Imani */
+    .bg-blue-50 { background: linear-gradient(135deg, rgba(35, 69, 107, 0.05) 0%, rgba(162, 89, 70, 0.05) 100%) !important; }
+   
+    /* Tabs avec Imani */
+    .view-tab.active { 
+        border-color: #a25946 !important;
+        color: #23456b !important;
+    }
+    
+    /* Avatar et badges */
+    .bg-blue-100 { background: linear-gradient(135deg, rgba(35, 69, 107, 0.1) 0%, rgba(162, 89, 70, 0.1) 100%) !important; }
+</style>
+{% endblock %}
+
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- En-tête -->
+    <div class="mb-8 flex justify-between items-center">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">
+                <i class="fas fa-wrench text-imani-primary mr-3"></i>
+                Gestion des Travaux
+            </h1>
+            <p class="text-gray-600">
+                Vue unifiée de tous les travaux (interventions, tâches, projets)
+            </p>
+        </div>
+
+        <a href="{% url 'maintenance:travail_create' %}" class="imani-gradient hover:opacity-90 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+            <i class="fas fa-plus mr-2"></i>
+            Nouveau travail
+        </a>
+    </div>
+
+    <!-- Tabs vues -->
+    <div class="mb-6">
+        <div class="border-b border-gray-200">
+            <nav class="-mb-px flex space-x-8">
+                <button data-view="table" class="view-tab active border-b-2 border-imani-primary py-4 px-1 text-sm font-medium text-imani-primary">
+                    <i class="fas fa-list mr-2"></i>Liste
+                </button>
+                <button data-view="kanban" class="view-tab border-b-2 border-transparent py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                    <i class="fas fa-columns mr-2"></i>Kanban
+                </button>
+                <button data-view="calendar" class="view-tab border-b-2 border-transparent py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                    <i class="fas fa-calendar mr-2"></i>Calendrier
+                </button>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Filtres -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <form method="get" id="filters-form" class="space-y-4">
+            <!-- Ligne 1: Filtres rapides -->
+            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                <!-- Nature -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-tag mr-1"></i>Nature
+                    </label>
+                    <select name="nature" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-imani-primary text-sm">
+                        <option value="">Toutes</option>
+                        <option value="reactif" {% if request.GET.nature == 'reactif' %}selected{% endif %}>Réactif</option>
+                        <option value="planifie" {% if request.GET.nature == 'planifie' %}selected{% endif %}>Planifié</option>
+                        <option value="preventif" {% if request.GET.nature == 'preventif' %}selected{% endif %}>Préventif</option>
+                        <option value="projet" {% if request.GET.nature == 'projet' %}selected{% endif %}>Projet</option>
+                    </select>
+                </div>
+
+                <!-- Type -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-tools mr-1"></i>Type
+                    </label>
+                    <select name="type_travail" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-imani-primary text-sm">
+                        <option value="">Tous</option>
+                        <option value="plomberie" {% if request.GET.type_travail == 'plomberie' %}selected{% endif %}>Plomberie</option>
+                        <option value="electricite" {% if request.GET.type_travail == 'electricite' %}selected{% endif %}>Électricité</option>
+                        <option value="peinture" {% if request.GET.type_travail == 'peinture' %}selected{% endif %}>Peinture</option>
+                        <option value="menuiserie" {% if request.GET.type_travail == 'menuiserie' %}selected{% endif %}>Menuiserie</option>
+                        <option value="climatisation" {% if request.GET.type_travail == 'climatisation' %}selected{% endif %}>Climatisation</option>
+                        <option value="autre" {% if request.GET.type_travail == 'autre' %}selected{% endif %}>Autre</option>
+                    </select>
+                </div>
+
+                <!-- Statut -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-info-circle mr-1"></i>Statut
+                    </label>
+                    <select name="statut" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-imani-primary text-sm">
+                        <option value="">Tous</option>
+                        <option value="signale" {% if request.GET.statut == 'signale' %}selected{% endif %}>Signalé</option>
+                        <option value="planifie" {% if request.GET.statut == 'planifie' %}selected{% endif %}>Planifié</option>
+                        <option value="assigne" {% if request.GET.statut == 'assigne' %}selected{% endif %}>Assigné</option>
+                        <option value="en_cours" {% if request.GET.statut == 'en_cours' %}selected{% endif %}>En cours</option>
+                        <option value="en_attente_materiel" {% if request.GET.statut == 'en_attente_materiel' %}selected{% endif %}>Attente matériel</option>
+                        <option value="en_pause" {% if request.GET.statut == 'en_pause' %}selected{% endif %}>En pause</option>
+                        <option value="termine" {% if request.GET.statut == 'termine' %}selected{% endif %}>Terminé</option>
+                    </select>
+                </div>
+
+                <!-- Priorité -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-exclamation-circle mr-1"></i>Priorité
+                    </label>
+                    <select name="priorite" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-imani-primary text-sm">
+                        <option value="">Toutes</option>
+                        <option value="urgente" {% if request.GET.priorite == 'urgente' %}selected{% endif %}>Urgente</option>
+                        <option value="haute" {% if request.GET.priorite == 'haute' %}selected{% endif %}>Haute</option>
+                        <option value="normale" {% if request.GET.priorite == 'normale' %}selected{% endif %}>Normale</option>
+                        <option value="basse" {% if request.GET.priorite == 'basse' %}selected{% endif %}>Basse</option>
+                    </select>
+                </div>
+
+                <!-- Assigné à -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-user mr-1"></i>Assigné à
+                    </label>
+                    <select name="assigne_a" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-imani-primary text-sm">
+                        <option value="">Tous</option>
+                        <option value="non_assigne" {% if request.GET.assigne_a == 'non_assigne' %}selected{% endif %}>Non assigné</option>
+                        {% for employe in employes %}
+                        <option value="{{ employe.id }}" {% if request.GET.assigne_a == employe.id|stringformat:"s" %}selected{% endif %}>
+                            {{ employe.get_full_name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Demande achat -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-shopping-cart mr-1"></i>Demande achat
+                    </label>
+                    <select name="a_demande_achat" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-imani-primary text-sm">
+                        <option value="">Tous</option>
+                        <option value="oui" {% if request.GET.a_demande_achat == 'oui' %}selected{% endif %}>Avec demande</option>
+                        <option value="non" {% if request.GET.a_demande_achat == 'non' %}selected{% endif %}>Sans demande</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Ligne 2: Recherche et dates -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <!-- Recherche -->
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-search mr-1"></i>Recherche
+                    </label>
+                    <input type="text" name="search" value="{{ request.GET.search }}"
+                           placeholder="Numéro, titre, localisation..."
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-imani-primary">
+                </div>
+
+                <!-- Date de -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-calendar mr-1"></i>Date prévue de
+                    </label>
+                    <input type="date" name="date_debut" value="{{ request.GET.date_debut }}"
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-imani-primary">
+                </div>
+
+                <!-- Date à -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-calendar mr-1"></i>À
+                    </label>
+                    <input type="date" name="date_fin" value="{{ request.GET.date_fin }}"
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-imani-primary">
+                </div>
+            </div>
+
+            <!-- Boutons -->
+            <div class="flex justify-end space-x-3">
+                <a href="{% url 'maintenance:travail_list' %}" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+                    <i class="fas fa-redo mr-2"></i>Réinitialiser
+                </a>
+                <button type="submit" class="px-6 py-2 imani-gradient text-white rounded-lg hover:opacity-90">
+                    <i class="fas fa-search mr-2"></i>Rechercher
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Statistiques rapides -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded-lg">
+            <div class="flex items-center">
+                <i class="fas fa-exclamation-triangle text-yellow-600 text-2xl mr-3"></i>
+                <div>
+                    <p class="text-sm text-gray-600">Urgents</p>
+                    <p class="text-2xl font-bold text-yellow-600">{{ stats.urgents|default:0 }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-blue-50 border-l-4 border-imani-primary p-4 rounded-lg">
+            <div class="flex items-center">
+                <i class="fas fa-play-circle text-imani-primary text-2xl mr-3"></i>
+                <div>
+                    <p class="text-sm text-gray-600">En cours</p>
+                    <p class="text-2xl font-bold text-imani-primary">{{ stats.en_cours|default:0 }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-orange-50 border-l-4 border-orange-500 p-4 rounded-lg">
+            <div class="flex items-center">
+                <i class="fas fa-shopping-cart text-orange-600 text-2xl mr-3"></i>
+                <div>
+                    <p class="text-sm text-gray-600">Attente matériel</p>
+                    <p class="text-2xl font-bold text-orange-600">{{ stats.attente_materiel|default:0 }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
+            <div class="flex items-center">
+                <i class="fas fa-clock text-red-600 text-2xl mr-3"></i>
+                <div>
+                    <p class="text-sm text-gray-600">En retard</p>
+                    <p class="text-2xl font-bold text-red-600">{{ stats.en_retard|default:0 }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vue Table -->
+    <div id="table-view" class="view-content">
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            {% if travaux %}
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Numéro
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Titre & Type
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Localisation
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Assigné à
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Priorité
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Statut
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Date prévue
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Actions
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for travail in travaux %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900">
+                                    {{ travail.numero_travail }}
+                                </div>
+                                <!-- Badge nature -->
+                                {% if travail.nature == 'reactif' %}
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                                    Réactif
+                                </span>
+                                {% elif travail.nature == 'planifie' %}
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-blue-800">
+                                    Planifié
+                                </span>
+                                {% elif travail.nature == 'preventif' %}
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                    Préventif
+                                </span>
+                                {% elif travail.nature == 'projet' %}
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800">
+                                    Projet
+                                </span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="text-sm font-medium text-gray-900">{{ travail.titre }}</div>
+                                <div class="text-xs text-gray-500">{{ travail.get_type_travail_display }}</div>
+                                {% if travail.demande_achat %}
+                                <div class="mt-1">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
+                                        <i class="fas fa-shopping-cart mr-1"></i>
+                                        {{ travail.demande_achat.numero_facture }}
+                                    </span>
+                                </div>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="text-sm text-gray-900">
+                                    {% if travail.appartement %}
+                                        {{ travail.appartement.residence.nom }} - {{ travail.appartement.nom }}
+                                    {% elif travail.residence %}
+                                        {{ travail.residence.nom }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </div>
+                                {% if travail.lieu_precis %}
+                                <div class="text-xs text-gray-500">{{ travail.lieu_precis }}</div>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                {% if travail.assigne_a %}
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0 h-8 w-8">
+                                        <div class="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center">
+                                            <span class="text-xs font-medium text-imani-primary">
+                                                {{ travail.assigne_a.first_name.0 }}{{ travail.assigne_a.last_name.0 }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="ml-2">
+                                        <div class="text-sm font-medium text-gray-900">
+                                            {{ travail.assigne_a.get_full_name }}
+                                        </div>
+                                    </div>
+                                </div>
+                                {% else %}
+                                <span class="text-sm text-gray-400 italic">Non assigné</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                {% if travail.priorite == 'urgente' %}
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                                    <i class="fas fa-circle text-red-600 mr-1"></i>Urgente
+                                </span>
+                                {% elif travail.priorite == 'haute' %}
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-orange-100 text-orange-800">
+                                    <i class="fas fa-circle text-orange-600 mr-1"></i>Haute
+                                </span>
+                                {% elif travail.priorite == 'normale' %}
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                    <i class="fas fa-circle text-yellow-600 mr-1"></i>Normale
+                                </span>
+                                {% else %}
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                    <i class="fas fa-circle text-green-600 mr-1"></i>Basse
+                                </span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                {% if travail.statut == 'signale' %}
+                                <span class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">Signalé</span>
+                                {% elif travail.statut == 'planifie' %}
+                                <span class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-blue-800">Planifié</span>
+                                {% elif travail.statut == 'assigne' %}
+                                <span class="px-2 py-1 text-xs font-semibold rounded-full bg-indigo-100 text-indigo-800">Assigné</span>
+                                {% elif travail.statut == 'en_cours' %}
+                                <span class="px-2 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800">En cours</span>
+                                {% elif travail.statut == 'en_attente_materiel' %}
+                                <span class="px-2 py-1 text-xs font-semibold rounded-full bg-orange-100 text-orange-800">
+                                    <i class="fas fa-shopping-cart mr-1"></i>Attente matériel
+                                </span>
+                                {% elif travail.statut == 'en_pause' %}
+                                <span class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">En pause</span>
+                                {% elif travail.statut == 'termine' %}
+                                <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Terminé</span>
+                                {% elif travail.statut == 'annule' %}
+                                <span class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">Annulé</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                {% if travail.date_prevue %}
+                                <div class="text-sm text-gray-900">{{ travail.date_prevue|date:"d/m/Y" }}</div>
+                                {% if travail.est_en_retard %}
+                                <span class="text-xs text-red-600"><i class="fas fa-exclamation-triangle mr-1"></i>En retard</span>
+                                {% endif %}
+                                {% else %}
+                                <span class="text-sm text-gray-400">-</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <a href="{% url 'maintenance:travail_detail' travail.pk %}"
+                                   class="text-imani-primary hover:text-blue-900 mr-3">
+                                    <i class="fas fa-eye mr-1"></i>Voir
+                                </a>
+                                <a href="{% url 'maintenance:travail_edit' travail.pk %}"
+                                   class="text-indigo-600 hover:text-indigo-900">
+                                    <i class="fas fa-edit mr-1"></i>Modifier
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            {% if is_paginated %}
+            <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+                <div class="flex-1 flex justify-between sm:hidden">
+                    {% if page_obj.has_previous %}
+                    <a href="?page={{ page_obj.previous_page_number }}"
+                       class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                        Précédent
+                    </a>
+                    {% endif %}
+                    {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}"
+                       class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                        Suivant
+                    </a>
+                    {% endif %}
+                </div>
+                <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                    <div>
+                        <p class="text-sm text-gray-700">
+                            Affichage de
+                            <span class="font-medium">{{ page_obj.start_index }}</span>
+                            à
+                            <span class="font-medium">{{ page_obj.end_index }}</span>
+                            sur
+                            <span class="font-medium">{{ page_obj.paginator.count }}</span>
+                            travaux
+                        </p>
+                    </div>
+                    <div>
+                        <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+                            {% if page_obj.has_previous %}
+                            <a href="?page={{ page_obj.previous_page_number }}"
+                               class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                <i class="fas fa-chevron-left"></i>
+                            </a>
+                            {% endif %}
+                            {% if page_obj.has_next %}
+                            <a href="?page={{ page_obj.next_page_number }}"
+                               class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                            {% endif %}
+                        </nav>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            {% else %}
+            <!-- État vide -->
+            <div class="text-center py-12">
+                <i class="fas fa-inbox text-gray-400 text-6xl mb-4"></i>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">Aucun travail</h3>
+                <p class="text-gray-500 mb-4">
+                    {% if request.GET.search or request.GET.statut %}
+                    Aucun travail ne correspond à vos critères de recherche.
+                    {% else %}
+                    Créez votre premier travail pour commencer.
+                    {% endif %}
+                </p>
+                <a href="{% url 'maintenance:travail_create' %}"
+                   class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white imani-gradient hover:opacity-90">
+                    <i class="fas fa-plus mr-2"></i>
+                    Créer un travail
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Vue Kanban (placeholder) -->
+    <div id="kanban-view" class="view-content hidden">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <!-- Colonnes Kanban à implémenter -->
+            <div class="bg-gray-100 rounded-lg p-4">
+                <h3 class="font-semibold text-gray-900 mb-3">À faire</h3>
+                <!-- Cards travaux -->
+            </div>
+            <div class="bg-gray-100 rounded-lg p-4">
+                <h3 class="font-semibold text-gray-900 mb-3">En cours</h3>
+            </div>
+            <div class="bg-gray-100 rounded-lg p-4">
+                <h3 class="font-semibold text-gray-900 mb-3">En attente</h3>
+            </div>
+            <div class="bg-gray-100 rounded-lg p-4">
+                <h3 class="font-semibold text-gray-900 mb-3">Terminé</h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vue Calendrier (placeholder) -->
+    <div id="calendar-view" class="view-content hidden">
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <p class="text-center text-gray-500">Vue calendrier à implémenter</p>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Gestion des tabs vues
+    const viewTabs = document.querySelectorAll('.view-tab');
+    const viewContents = document.querySelectorAll('.view-content');
+
+    viewTabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            const view = this.dataset.view;
+
+            // Update tabs
+            viewTabs.forEach(t => {
+                t.classList.remove('active', 'border-imani-primary', 'text-imani-primary');
+                t.classList.add('border-transparent', 'text-gray-500');
+            });
+            this.classList.add('active', 'border-imani-primary', 'text-imani-primary');
+            this.classList.remove('border-transparent', 'text-gray-500');
+
+            // Update content
+            viewContents.forEach(content => {
+                content.classList.add('hidden');
+            });
+            document.getElementById(view + '-view').classList.remove('hidden');
+        });
+    });
+});
+</script>
+{% endblock %}

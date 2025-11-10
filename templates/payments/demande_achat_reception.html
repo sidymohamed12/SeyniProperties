@@ -1,0 +1,365 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Réception Marchandise - {{ demande.numero_facture }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Navigation -->
+    <div class="mb-6">
+        <a href="{% url 'payments:demande_achat_detail' demande.pk %}" class="text-gray-600 hover:text-gray-900 flex items-center">
+            <i class="fas fa-arrow-left mr-2"></i>
+            Retour au détail
+        </a>
+    </div>
+
+    <div class="max-w-5xl mx-auto">
+        <!-- En-tête -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0">
+                    <div class="h-12 w-12 rounded-full bg-teal-100 flex items-center justify-center">
+                        <i class="fas fa-box-open text-teal-600 text-xl"></i>
+                    </div>
+                </div>
+                <div class="ml-4">
+                    <h1 class="text-2xl font-bold text-gray-900 mb-1">
+                        Réception de la Marchandise
+                    </h1>
+                    <p class="text-gray-600">
+                        Demande {{ demande.numero_facture }} - Approuvée le {{ demande.date_validation_dg|date:"d/m/Y" }}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Informations demande -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">
+                Informations de la commande
+            </h2>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div>
+                    <p class="text-sm text-gray-600">Demandeur</p>
+                    <p class="font-medium text-gray-900">{{ demande.demandeur.get_full_name }}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-600">Chèque n°</p>
+                    <p class="font-medium text-gray-900">{{ demande.numero_cheque }}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-600">Fournisseur</p>
+                    <p class="font-medium text-gray-900">{{ demande.beneficiaire_cheque }}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-600">Montant commandé</p>
+                    <p class="font-bold text-teal-600">{{ demande.montant_ttc|floatformat:0 }} F</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Formulaire de réception -->
+        <form method="post" id="reception-form">
+            {% csrf_token %}
+
+            <!-- Date et informations générales -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <h2 class="text-xl font-semibold text-gray-900 mb-4">
+                    Informations de réception
+                </h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Date de réception -->
+                    <div>
+                        <label for="id_date_reception" class="block text-sm font-medium text-gray-700 mb-2">
+                            Date de réception <span class="text-red-500">*</span>
+                        </label>
+                        <input type="date" id="id_date_reception" name="date_reception" required
+                               value="{% now 'Y-m-d' %}"
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500">
+                    </div>
+
+                    <!-- Réceptionné par (auto-rempli) -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Réceptionné par
+                        </label>
+                        <input type="text" value="{{ request.user.get_full_name }}" disabled
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50">
+                    </div>
+
+                    <!-- Remarques -->
+                    <div class="md:col-span-2">
+                        <label for="id_remarques_reception" class="block text-sm font-medium text-gray-700 mb-2">
+                            Remarques générales
+                            <span class="text-gray-500 font-normal">(optionnel)</span>
+                        </label>
+                        <textarea id="id_remarques_reception" name="remarques_reception" rows="3"
+                                  placeholder="Observations sur la livraison, l'état des articles, etc."
+                                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vérification des articles -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <h2 class="text-xl font-semibold text-gray-900 mb-4">
+                    Vérification des articles ({{ demande.lignes_achat.count }})
+                </h2>
+
+                <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-info-circle text-yellow-400"></i>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm text-yellow-700">
+                                Vérifiez chaque article reçu. Indiquez les quantités réelles et les prix si différents de la commande.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                {{ formset.management_form }}
+
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">#</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Article</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Commandé</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Qté Reçue</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Prix Réel</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Statut</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for form in formset %}
+                            <tr class="article-ligne" data-form-index="{{ forloop.counter0 }}">
+                                <td class="px-4 py-3 text-sm text-gray-900">{{ forloop.counter }}</td>
+
+                                <!-- Désignation -->
+                                <td class="px-4 py-3">
+                                    <p class="text-sm font-medium text-gray-900">{{ form.instance.designation }}</p>
+                                    <p class="text-xs text-gray-500">{{ form.instance.unite }}</p>
+                                </td>
+
+                                <!-- Quantité commandée -->
+                                <td class="px-4 py-3 text-sm text-gray-900">
+                                    <div class="text-center">
+                                        <p class="font-semibold">{{ form.instance.quantite|floatformat:0 }}</p>
+                                        <p class="text-xs text-gray-500">à {{ form.instance.prix_unitaire|floatformat:0 }} F</p>
+                                    </div>
+                                </td>
+
+                                <!-- Quantité reçue -->
+                                <td class="px-4 py-3">
+                                    {{ form.id }}
+                                    <input type="number" name="{{ form.quantite_recue.name }}"
+                                           value="{{ form.instance.quantite|floatformat:0 }}"
+                                           min="0" step="0.01" required
+                                           class="quantite-recue w-24 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 text-center"
+                                           data-quantite-commandee="{{ form.instance.quantite }}">
+                                </td>
+
+                                <!-- Prix réel unitaire -->
+                                <td class="px-4 py-3">
+                                    <input type="number" name="{{ form.prix_reel.name }}"
+                                           value="{{ form.instance.prix_unitaire|floatformat:0 }}"
+                                           min="0" step="0.01" required
+                                           class="prix-reel w-32 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 text-center"
+                                           data-prix-commande="{{ form.instance.prix_unitaire }}">
+                                </td>
+
+                                <!-- Total ligne -->
+                                <td class="px-4 py-3 text-sm font-semibold text-gray-900 text-center">
+                                    <span class="total-ligne">{{ form.instance.prix_total|floatformat:0 }}</span> F
+                                </td>
+
+                                <!-- Statut -->
+                                <td class="px-4 py-3">
+                                    <span class="statut-badge inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                        OK
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot class="bg-gray-50">
+                            <tr>
+                                <td colspan="5" class="px-4 py-3 text-right text-sm font-semibold text-gray-900">
+                                    Total Réel
+                                </td>
+                                <td class="px-4 py-3 text-center">
+                                    <span id="total-reel" class="text-lg font-bold text-teal-600">
+                                        {{ demande.montant_ttc|floatformat:0 }}
+                                    </span> F
+                                </td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td colspan="5" class="px-4 py-3 text-right text-sm text-gray-600">
+                                    Total Commandé
+                                </td>
+                                <td class="px-4 py-3 text-center">
+                                    <span class="text-sm text-gray-600">
+                                        {{ demande.montant_ttc|floatformat:0 }}
+                                    </span> F
+                                </td>
+                                <td></td>
+                            </tr>
+                            <tr id="ecart-row" style="display: none;">
+                                <td colspan="5" class="px-4 py-3 text-right text-sm font-medium text-orange-600">
+                                    Écart
+                                </td>
+                                <td class="px-4 py-3 text-center">
+                                    <span id="ecart-montant" class="text-sm font-bold text-orange-600">0</span> F
+                                </td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Résumé et validation -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-semibold text-gray-900 mb-4">
+                    Validation de la réception
+                </h2>
+
+                <!-- Checklist -->
+                <div class="bg-teal-50 rounded-lg p-4 mb-6">
+                    <h3 class="text-sm font-semibold text-teal-900 mb-3 flex items-center">
+                        <i class="fas fa-clipboard-check mr-2"></i>
+                        Points de vérification
+                    </h3>
+                    <div class="space-y-2">
+                        <label class="flex items-center text-sm text-teal-800">
+                            <input type="checkbox" class="h-4 w-4 text-teal-600 focus:ring-teal-500 border-gray-300 rounded mr-2">
+                            <span>Tous les articles ont été vérifiés</span>
+                        </label>
+                        <label class="flex items-center text-sm text-teal-800">
+                            <input type="checkbox" class="h-4 w-4 text-teal-600 focus:ring-teal-500 border-gray-300 rounded mr-2">
+                            <span>Les quantités correspondent (ou écarts justifiés)</span>
+                        </label>
+                        <label class="flex items-center text-sm text-teal-800">
+                            <input type="checkbox" class="h-4 w-4 text-teal-600 focus:ring-teal-500 border-gray-300 rounded mr-2">
+                            <span>La qualité des articles est conforme</span>
+                        </label>
+                        <label class="flex items-center text-sm text-teal-800">
+                            <input type="checkbox" class="h-4 w-4 text-teal-600 focus:ring-teal-500 border-gray-300 rounded mr-2">
+                            <span>Les factures fournisseur sont disponibles</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Avertissement si écart -->
+                <div id="ecart-warning" class="bg-orange-50 border-l-4 border-orange-400 p-4 mb-6" style="display: none;">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-exclamation-triangle text-orange-400"></i>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm text-orange-700">
+                                <strong>Attention :</strong> Un écart a été détecté entre les quantités/prix commandés et réels.
+                                Assurez-vous d'avoir documenté cet écart dans les remarques.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Boutons -->
+                <div class="flex justify-between items-center pt-6 border-t border-gray-200">
+                    <a href="{% url 'payments:demande_achat_detail' demande.pk %}"
+                       class="text-gray-600 hover:text-gray-900 flex items-center">
+                        <i class="fas fa-arrow-left mr-2"></i>
+                        Retour
+                    </a>
+
+                    <button type="submit"
+                            class="bg-teal-600 hover:bg-teal-700 text-white px-8 py-3 rounded-lg font-medium transition-colors shadow-lg">
+                        <i class="fas fa-check-circle mr-2"></i>
+                        Valider la réception
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('reception-form');
+    const totalReelSpan = document.getElementById('total-reel');
+    const ecartRow = document.getElementById('ecart-row');
+    const ecartMontant = document.getElementById('ecart-montant');
+    const ecartWarning = document.getElementById('ecart-warning');
+    const montantCommande = {{ demande.montant_ttc }};
+
+    // Fonction pour calculer le total d'une ligne
+    function calculateLigneTotal(ligne) {
+        const quantiteInput = ligne.querySelector('.quantite-recue');
+        const prixInput = ligne.querySelector('.prix-reel');
+        const totalSpan = ligne.querySelector('.total-ligne');
+        const statutBadge = ligne.querySelector('.statut-badge');
+
+        const quantiteRecue = parseFloat(quantiteInput.value) || 0;
+        const prixReel = parseFloat(prixInput.value) || 0;
+        const quantiteCommandee = parseFloat(quantiteInput.dataset.quantiteCommandee) || 0;
+        const prixCommande = parseFloat(prixInput.dataset.prixCommande) || 0;
+
+        const total = quantiteRecue * prixReel;
+        totalSpan.textContent = total.toLocaleString('fr-FR', {maximumFractionDigits: 0});
+
+        // Mise à jour du badge statut
+        if (quantiteRecue < quantiteCommandee || prixReel !== prixCommande) {
+            statutBadge.className = 'statut-badge inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-orange-100 text-orange-800';
+            statutBadge.textContent = 'Écart';
+        } else if (quantiteRecue > quantiteCommandee) {
+            statutBadge.className = 'statut-badge inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800';
+            statutBadge.textContent = 'Surplus';
+        } else {
+            statutBadge.className = 'statut-badge inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800';
+            statutBadge.textContent = 'OK';
+        }
+
+        return total;
+    }
+
+    // Fonction pour calculer le total général
+    function calculateTotalGeneral() {
+        let totalReel = 0;
+        document.querySelectorAll('.article-ligne').forEach(ligne => {
+            totalReel += calculateLigneTotal(ligne);
+        });
+
+        totalReelSpan.textContent = totalReel.toLocaleString('fr-FR', {maximumFractionDigits: 0});
+
+        // Calculer et afficher l'écart
+        const ecart = totalReel - montantCommande;
+        if (Math.abs(ecart) > 1) {
+            ecartRow.style.display = 'table-row';
+            ecartWarning.style.display = 'block';
+            ecartMontant.textContent = ecart.toLocaleString('fr-FR', {maximumFractionDigits: 0, signDisplay: 'always'});
+        } else {
+            ecartRow.style.display = 'none';
+            ecartWarning.style.display = 'none';
+        }
+    }
+
+    // Événements sur les inputs
+    form.addEventListener('input', function(e) {
+        if (e.target.classList.contains('quantite-recue') || e.target.classList.contains('prix-reel')) {
+            calculateTotalGeneral();
+        }
+    });
+
+    // Calcul initial
+    calculateTotalGeneral();
+});
+</script>
+{% endblock %}

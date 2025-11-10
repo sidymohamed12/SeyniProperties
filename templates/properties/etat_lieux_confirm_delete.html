@@ -1,0 +1,87 @@
+<!-- templates/properties/etat_lieux_confirm_delete.html -->
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Supprimer {{ etat.numero_etat }} - IMANY{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 max-w-2xl">
+    
+    <!-- Breadcrumb -->
+    <nav class="mb-6 text-sm">
+        <ol class="flex items-center space-x-2 text-gray-600">
+            <li><a href="{% url 'dashboard:index' %}" class="hover:text-blue-600"><i class="fas fa-home"></i></a></li>
+            <li><i class="fas fa-chevron-right text-xs"></i></li>
+            <li><a href="{% url 'properties:etat_lieux_list' %}" class="hover:text-blue-600">États des lieux</a></li>
+            <li><i class="fas fa-chevron-right text-xs"></i></li>
+            <li class="text-gray-900 font-medium">Supprimer</li>
+        </ol>
+    </nav>
+    
+    <!-- Confirmation -->
+    <div class="bg-white rounded-lg shadow-lg p-8">
+        <div class="text-center mb-6">
+            <div class="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
+                <i class="fas fa-exclamation-triangle text-red-600 text-3xl"></i>
+            </div>
+            <h1 class="text-2xl font-bold text-gray-900 mb-2">
+                Confirmer la suppression
+            </h1>
+            <p class="text-gray-600">
+                Cette action est irréversible
+            </p>
+        </div>
+        
+        <!-- Informations de l'état des lieux -->
+        <div class="bg-gray-50 rounded-lg p-6 mb-6">
+            <h2 class="font-semibold text-gray-900 mb-4">État des lieux à supprimer :</h2>
+            <div class="space-y-2">
+                <p class="text-sm">
+                    <span class="font-medium text-gray-700">Numéro :</span>
+                    <span class="text-gray-900">{{ etat.numero_etat }}</span>
+                </p>
+                <p class="text-sm">
+                    <span class="font-medium text-gray-700">Type :</span>
+                    <span class="text-gray-900">{{ etat.get_type_etat_display }}</span>
+                </p>
+                <p class="text-sm">
+                    <span class="font-medium text-gray-700">Bien :</span>
+                    <span class="text-gray-900">{{ etat.residence.nom }} - {{ etat.appartement.numero_appartement }}</span>
+                </p>
+                <p class="text-sm">
+                    <span class="font-medium text-gray-700">Locataire :</span>
+                    <span class="text-gray-900">{{ etat.locataire.nom_complet }}</span>
+                </p>
+                <p class="text-sm">
+                    <span class="font-medium text-gray-700">Date :</span>
+                    <span class="text-gray-900">{{ etat.date_etat|date:"d/m/Y" }}</span>
+                </p>
+            </div>
+        </div>
+        
+        <!-- Warning -->
+        <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <div class="flex items-start">
+                <i class="fas fa-exclamation-circle text-red-600 mt-1 mr-3"></i>
+                <div class="text-sm text-red-800">
+                    <p class="font-semibold mb-1">Attention !</p>
+                    <p>La suppression de cet état des lieux entraînera également la suppression de tous les détails associés. Cette action ne peut pas être annulée.</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Actions -->
+        <form method="post" class="flex gap-4">
+            {% csrf_token %}
+            <a href="{% url 'properties:etat_lieux_detail' etat.pk %}" 
+               class="flex-1 px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 text-center font-semibold transition">
+                <i class="fas fa-times mr-2"></i>Annuler
+            </a>
+            <button type="submit" 
+                    class="flex-1 px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 font-semibold transition">
+                <i class="fas fa-trash mr-2"></i>Confirmer la suppression
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

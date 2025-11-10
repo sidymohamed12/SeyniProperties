@@ -1,0 +1,846 @@
+# templates/employees/mobile/task_detail.html
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#3B82F6">
+    
+    <title>{{ task.titre }} - Seyni Employés</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        body {
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+            -webkit-tap-highlight-color: transparent;
+            overscroll-behavior: none;
+        }
+        
+        .safe-area {
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        
+        .card-shadow {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .priority-urgent { border-left: 4px solid #EF4444; }
+        .priority-haute { border-left: 4px solid #F59E0B; }
+        .priority-normale { border-left: 4px solid #3B82F6; }
+        .priority-basse { border-left: 4px solid #10B981; }
+        
+        .status-planifie { background: #FEF3C7; color: #92400E; }
+        .status-en_cours { background: #FED7AA; color: #9A3412; }
+        .status-complete { background: #D1FAE5; color: #065F46; }
+        
+        .btn-ripple {
+            position: relative;
+            overflow: hidden;
+            transform: translate3d(0, 0, 0);
+        }
+        
+        .btn-ripple:active {
+            transform: scale(0.98);
+        }
+        
+        .media-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 0.75rem;
+        }
+        
+        .camera-preview {
+            width: 100%;
+            max-width: 300px;
+            height: 200px;
+            background: #000;
+            border-radius: 0.5rem;
+            object-fit: cover;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 safe-area">
+    <!-- Header -->
+    <header class="bg-blue-600 text-white sticky top-0 z-50 shadow-lg">
+        <div class="px-4 py-3">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <button onclick="goBack()" class="p-2 hover:bg-blue-700 rounded-lg transition-colors">
+                        <i class="fas fa-arrow-left text-xl"></i>
+                    </button>
+                    <div>
+                        <h1 class="font-bold text-lg">Détail Tâche</h1>
+                        <p class="text-blue-200 text-sm">#{{ task.id }}</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center space-x-2">
+                    <span class="status-{{ task.statut }} px-3 py-1 rounded-full text-xs font-medium">
+                        {{ task.get_statut_display }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenu principal -->
+    <main class="p-4 pb-24">
+        <!-- Informations principales -->
+        <div class="bg-white rounded-xl p-4 card-shadow priority-{{ task.priorite }} mb-4">
+            <div class="flex items-start justify-between mb-3">
+                <div class="flex-1">
+                    <h2 class="text-xl font-bold text-gray-900 mb-2">{{ task.titre }}</h2>
+                    <p class="text-gray-600 mb-3">{{ task.description }}</p>
+                </div>
+                
+                <div class="ml-4">
+                    {% if task.priorite == 'urgente' %}
+                        <span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-medium">
+                            {{ task.get_priorite_display }}
+                        </span>
+                    {% elif task.priorite == 'haute' %}
+                        <span class="bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-xs font-medium">
+                            {{ task.get_priorite_display }}
+                        </span>
+                    {% elif task.priorite == 'normale' %}
+                        <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-medium">
+                            {{ task.get_priorite_display }}
+                        </span>
+                    {% else %}
+                        <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-medium">
+                            {{ task.get_priorite_display }}
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Détails -->
+            <div class="grid grid-cols-2 gap-4 text-sm">
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-calendar-alt text-gray-400"></i>
+                    <div>
+                        <p class="text-gray-500">Date prévue</p>
+                        <p class="font-medium">{{ task.date_prevue|date:"d/m/Y H:i" }}</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-tag text-gray-400"></i>
+                    <div>
+                        <p class="text-gray-500">Type</p>
+                        <p class="font-medium">{{ task.get_type_tache_display }}</p>
+                    </div>
+                </div>
+                
+                {% if task.bien %}
+                <div class="flex items-center space-x-2 col-span-2">
+                    <i class="fas fa-map-marker-alt text-gray-400"></i>
+                    <div>
+                        <p class="text-gray-500">Lieu</p>
+                        <p class="font-medium">{{ task.bien.name }}</p>
+                        <p class="text-xs text-gray-500">{{ task.bien.address }}</p>
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if task.duree_estimee %}
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-clock text-gray-400"></i>
+                    <div>
+                        <p class="text-gray-500">Durée estimée</p>
+                        <p class="font-medium">{{ task.duree_estimee }} minutes</p>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-user text-gray-400"></i>
+                    <div>
+                        <p class="text-gray-500">Assigné à</p>
+                        <p class="font-medium">{{ task.assigne_a.get_full_name }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions principales -->
+        <div class="grid grid-cols-2 gap-3 mb-6">
+            {% if can_start %}
+            <button onclick="startTask()" 
+                    class="bg-blue-600 text-white py-4 rounded-xl font-medium btn-ripple flex items-center justify-center space-x-2">
+                <i class="fas fa-play"></i>
+                <span>Démarrer</span>
+            </button>
+            {% endif %}
+            
+            {% if can_complete %}
+            <button onclick="openCompleteModal()" 
+                    class="bg-green-600 text-white py-4 rounded-xl font-medium btn-ripple flex items-center justify-center space-x-2">
+                <i class="fas fa-check"></i>
+                <span>Terminer</span>
+            </button>
+            {% endif %}
+            
+            {% if can_upload %}
+            <button onclick="openCameraModal()" 
+                    class="bg-purple-600 text-white py-4 rounded-xl font-medium btn-ripple flex items-center justify-center space-x-2">
+                <i class="fas fa-camera"></i>
+                <span>Photo</span>
+            </button>
+            
+            <button onclick="openReportModal()" 
+                    class="bg-orange-600 text-white py-4 rounded-xl font-medium btn-ripple flex items-center justify-center space-x-2">
+                <i class="fas fa-file-alt"></i>
+                <span>Rapport</span>
+            </button>
+            {% endif %}
+        </div>
+
+        <!-- Timeline/Historique -->
+        {% if history %}
+        <div class="bg-white rounded-xl p-4 card-shadow mb-6">
+            <h3 class="font-bold text-gray-900 mb-3 flex items-center">
+                <i class="fas fa-history mr-2 text-gray-400"></i>
+                Historique
+            </h3>
+            
+            <div class="space-y-3">
+                {% for event in history %}
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 bg-{{ event.color }}-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-{{ event.icon }} text-{{ event.color }}-600 text-sm"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="font-medium text-gray-900">{{ event.action }}</p>
+                        <p class="text-sm text-gray-500">{{ event.date|date:"d/m/Y H:i" }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Médias associés -->
+        {% if medias %}
+        <div class="bg-white rounded-xl p-4 card-shadow mb-6">
+            <h3 class="font-bold text-gray-900 mb-3 flex items-center">
+                <i class="fas fa-images mr-2 text-gray-400"></i>
+                Photos & Documents
+            </h3>
+            
+            <div class="media-grid">
+                {% for media in medias %}
+                <div class="relative">
+                    {% if media.fichier.url|slice:"-4:" == ".jpg" or media.fichier.url|slice:"-4:" == ".png" or media.fichier.url|slice:"-5:" == ".jpeg" %}
+                    <img src="{{ media.fichier.url }}" 
+                         alt="{{ media.description }}"
+                         class="w-full h-24 object-cover rounded-lg cursor-pointer"
+                         onclick="openImageModal('{{ media.fichier.url }}', '{{ media.description }}')">
+                    {% else %}
+                    <div class="w-full h-24 bg-gray-100 rounded-lg flex items-center justify-center cursor-pointer"
+                         onclick="window.open('{{ media.fichier.url }}', '_blank')">
+                        <i class="fas fa-file text-gray-400 text-2xl"></i>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="absolute bottom-1 left-1 bg-black bg-opacity-70 text-white px-2 py-1 rounded text-xs">
+                        {{ media.get_type_media_display }}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Commentaires -->
+        {% if task.commentaire %}
+        <div class="bg-white rounded-xl p-4 card-shadow">
+            <h3 class="font-bold text-gray-900 mb-3 flex items-center">
+                <i class="fas fa-comment mr-2 text-gray-400"></i>
+                Commentaires
+            </h3>
+            <p class="text-gray-700">{{ task.commentaire }}</p>
+        </div>
+        {% endif %}
+    </main>
+
+    <!-- Modal de completion -->
+    <div id="complete-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-end">
+        <div class="bg-white w-full rounded-t-2xl p-6 transform translate-y-full transition-transform duration-300">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-bold text-gray-900">Terminer la tâche</h3>
+                <button onclick="closeCompleteModal()" class="p-2 text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <form id="complete-form">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Commentaire (obligatoire)
+                    </label>
+                    <textarea id="complete-comment" 
+                              rows="4" 
+                              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              placeholder="Décrivez le travail effectué..."></textarea>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3">
+                    <button type="button" 
+                            onclick="closeCompleteModal()"
+                            class="py-3 px-4 bg-gray-200 text-gray-800 rounded-lg font-medium">
+                        Annuler
+                    </button>
+                    <button type="submit" 
+                            class="py-3 px-4 bg-green-600 text-white rounded-lg font-medium btn-ripple">
+                        Terminer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal caméra -->
+    <div id="camera-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-end">
+        <div class="bg-white w-full rounded-t-2xl p-6 transform translate-y-full transition-transform duration-300">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-bold text-gray-900">Prendre une photo</h3>
+                <button onclick="closeCameraModal()" class="p-2 text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="text-center mb-4">
+                <video id="camera-preview" class="camera-preview mx-auto mb-4 hidden"></video>
+                <canvas id="photo-canvas" class="camera-preview mx-auto mb-4 hidden"></canvas>
+                
+                <div class="flex justify-center space-x-3">
+                    <button id="start-camera-btn" 
+                            onclick="startCamera()"
+                            class="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium btn-ripple">
+                        <i class="fas fa-camera mr-2"></i>
+                        Démarrer caméra
+                    </button>
+                    
+                    <button id="take-photo-btn" 
+                            onclick="takePhoto()"
+                            class="bg-green-600 text-white px-6 py-3 rounded-lg font-medium btn-ripple hidden">
+                        <i class="fas fa-camera mr-2"></i>
+                        Prendre photo
+                    </button>
+                    
+                    <button id="retake-photo-btn" 
+                            onclick="retakePhoto()"
+                            class="bg-orange-600 text-white px-6 py-3 rounded-lg font-medium btn-ripple hidden">
+                        <i class="fas fa-redo mr-2"></i>
+                        Reprendre
+                    </button>
+                </div>
+            </div>
+            
+            <form id="photo-form" class="hidden">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Type de photo
+                    </label>
+                    <select id="photo-type" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                        <option value="photo_avant">Photo avant</option>
+                        <option value="photo_apres">Photo après</option>
+                        <option value="rapport">Rapport visuel</option>
+                    </select>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Description (optionnel)
+                    </label>
+                    <input type="text" 
+                           id="photo-description" 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                           placeholder="Description de la photo...">
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3">
+                    <button type="button" 
+                            onclick="closeCameraModal()"
+                            class="py-3 px-4 bg-gray-200 text-gray-800 rounded-lg font-medium">
+                        Annuler
+                    </button>
+                    <button type="submit" 
+                            class="py-3 px-4 bg-blue-600 text-white rounded-lg font-medium btn-ripple">
+                        Envoyer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal rapport -->
+    <div id="report-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-end">
+        <div class="bg-white w-full rounded-t-2xl p-6 transform translate-y-full transition-transform duration-300">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-bold text-gray-900">Rapport rapide</h3>
+                <button onclick="closeReportModal()" class="p-2 text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <form id="report-form">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Notes de progression
+                    </label>
+                    <textarea id="report-text" 
+                              rows="4" 
+                              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              placeholder="Ajoutez des notes sur l'avancement..."></textarea>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3">
+                    <button type="button" 
+                            onclick="closeReportModal()"
+                            class="py-3 px-4 bg-gray-200 text-gray-800 rounded-lg font-medium">
+                        Annuler
+                    </button>
+                    <button type="submit" 
+                            class="py-3 px-4 bg-orange-600 text-white rounded-lg font-medium btn-ripple">
+                        Sauvegarder
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal d'image en plein écran -->
+    <div id="image-modal" class="fixed inset-0 bg-black bg-opacity-90 z-50 hidden flex items-center justify-center">
+        <div class="relative max-w-full max-h-full p-4">
+            <button onclick="closeImageModal()" 
+                    class="absolute top-4 right-4 text-white bg-black bg-opacity-50 rounded-full w-10 h-10 flex items-center justify-center">
+                <i class="fas fa-times"></i>
+            </button>
+            <img id="modal-image" src="" alt="" class="max-w-full max-h-full object-contain">
+            <p id="modal-image-description" class="text-white text-center mt-4"></p>
+        </div>
+    </div>
+
+    <!-- Toast container -->
+    <div id="toast-container" class="fixed top-20 left-4 right-4 z-50"></div>
+
+    <!-- Loading overlay -->
+    <div id="loading-overlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl p-6 flex flex-col items-center">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-3"></div>
+            <p class="text-gray-700">Chargement...</p>
+        </div>
+    </div>
+
+<script>
+        let currentStream = null;
+        let photoTaken = false;
+        
+        // ===== Navigation =====
+        function goBack() {
+            window.history.back();
+        }
+        
+        // ===== Actions de tâche =====
+        async function startTask() {
+            try {
+                showLoading(true);
+                const response = await fetch(`/employees/mobile/tasks/{{ task.id }}/start/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken'),
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showToast(data.message, 'success');
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    showToast(data.error, 'error');
+                }
+            } catch (error) {
+                showToast('Erreur de connexion', 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+        
+        // ===== Modal de completion =====
+        function openCompleteModal() {
+            const modal = document.getElementById('complete-modal');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.querySelector('.bg-white').classList.remove('translate-y-full');
+            }, 10);
+        }
+        
+        function closeCompleteModal() {
+            const modal = document.getElementById('complete-modal');
+            modal.querySelector('.bg-white').classList.add('translate-y-full');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+        
+        document.getElementById('complete-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const comment = document.getElementById('complete-comment').value.trim();
+            if (!comment) {
+                showToast('Un commentaire est obligatoire', 'error');
+                return;
+            }
+            
+            try {
+                showLoading(true);
+                const formData = new FormData();
+                formData.append('commentaire', comment);
+                
+                const response = await fetch(`/employees/mobile/tasks/{{ task.id }}/complete/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken'),
+                    },
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showToast(data.message, 'success');
+                    closeCompleteModal();
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    showToast(data.error, 'error');
+                }
+            } catch (error) {
+                showToast('Erreur lors de la completion', 'error');
+            } finally {
+                showLoading(false);
+            }
+        });
+        
+        // ===== Modal caméra =====
+        function openCameraModal() {
+            const modal = document.getElementById('camera-modal');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.querySelector('.bg-white').classList.remove('translate-y-full');
+            }, 10);
+        }
+        
+        function closeCameraModal() {
+            stopCamera();
+            const modal = document.getElementById('camera-modal');
+            modal.querySelector('.bg-white').classList.add('translate-y-full');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                resetCamera();
+            }, 300);
+        }
+        
+        async function startCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: 'environment' } 
+                });
+                
+                currentStream = stream;
+                const video = document.getElementById('camera-preview');
+                video.srcObject = stream;
+                video.play();
+                
+                video.classList.remove('hidden');
+                document.getElementById('start-camera-btn').classList.add('hidden');
+                document.getElementById('take-photo-btn').classList.remove('hidden');
+                
+            } catch (error) {
+                showToast('Impossible d\'accéder à la caméra', 'error');
+            }
+        }
+        
+        function takePhoto() {
+            const video = document.getElementById('camera-preview');
+            const canvas = document.getElementById('photo-canvas');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            ctx.drawImage(video, 0, 0);
+            
+            video.classList.add('hidden');
+            canvas.classList.remove('hidden');
+            
+            document.getElementById('take-photo-btn').classList.add('hidden');
+            document.getElementById('retake-photo-btn').classList.remove('hidden');
+            document.getElementById('photo-form').classList.remove('hidden');
+            
+            photoTaken = true;
+        }
+        
+        function retakePhoto() {
+            const video = document.getElementById('camera-preview');
+            const canvas = document.getElementById('photo-canvas');
+            
+            canvas.classList.add('hidden');
+            video.classList.remove('hidden');
+            
+            document.getElementById('retake-photo-btn').classList.add('hidden');
+            document.getElementById('take-photo-btn').classList.remove('hidden');
+            document.getElementById('photo-form').classList.add('hidden');
+            
+            photoTaken = false;
+        }
+        
+        function stopCamera() {
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop());
+                currentStream = null;
+            }
+        }
+        
+        function resetCamera() {
+            const video = document.getElementById('camera-preview');
+            const canvas = document.getElementById('photo-canvas');
+            
+            video.classList.add('hidden');
+            canvas.classList.add('hidden');
+            document.getElementById('start-camera-btn').classList.remove('hidden');
+            document.getElementById('take-photo-btn').classList.add('hidden');
+            document.getElementById('retake-photo-btn').classList.add('hidden');
+            document.getElementById('photo-form').classList.add('hidden');
+            
+            photoTaken = false;
+        }
+        
+        document.getElementById('photo-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            if (!photoTaken) {
+                showToast('Veuillez prendre une photo', 'error');
+                return;
+            }
+            
+            try {
+                showLoading(true);
+                
+                const canvas = document.getElementById('photo-canvas');
+                const dataURL = canvas.toDataURL('image/jpeg', 0.8);
+                
+                const formData = new FormData();
+                formData.append('image_data', dataURL);
+                formData.append('type_media', document.getElementById('photo-type').value);
+                formData.append('description', document.getElementById('photo-description').value);
+                
+                const response = await fetch(`/employees/mobile/upload/task/{{ task.id }}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken'),
+                    },
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showToast('Photo uploadée avec succès !', 'success');
+                    closeCameraModal();
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    showToast(data.error, 'error');
+                }
+            } catch (error) {
+                showToast('Erreur lors de l\'upload', 'error');
+            } finally {
+                showLoading(false);
+            }
+        });
+        
+        // ===== Modal rapport - CORRIGÉ =====
+        function openReportModal() {
+            const modal = document.getElementById('report-modal');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.querySelector('.bg-white').classList.remove('translate-y-full');
+            }, 10);
+        }
+        
+        function closeReportModal() {
+            const modal = document.getElementById('report-modal');
+            modal.querySelector('.bg-white').classList.add('translate-y-full');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+        
+        document.getElementById('report-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const reportText = document.getElementById('report-text').value.trim();
+            if (!reportText) {
+                showToast('Veuillez saisir des notes', 'error');
+                return;
+            }
+            
+            try {
+                showLoading(true);
+                const formData = new FormData();
+                formData.append('commentaire', reportText);
+                
+                const response = await fetch(`/employees/mobile/report/task/{{ task.id }}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken'),
+                    },
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showToast('Rapport sauvegardé !', 'success');
+                    closeReportModal();
+                    // Nettoyer le formulaire
+                    document.getElementById('report-text').value = '';
+                    // Recharger après un délai pour voir le message
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    showToast(data.error || 'Erreur lors de la sauvegarde', 'error');
+                }
+            } catch (error) {
+                console.error('Erreur:', error);
+                showToast('Erreur de connexion', 'error');
+            } finally {
+                showLoading(false);
+            }
+        });
+        
+        // ===== Modal image =====
+        function openImageModal(src, description) {
+            const modal = document.getElementById('image-modal');
+            const img = document.getElementById('modal-image');
+            const desc = document.getElementById('modal-image-description');
+            
+            img.src = src;
+            desc.textContent = description;
+            modal.classList.remove('hidden');
+        }
+        
+        function closeImageModal() {
+            document.getElementById('image-modal').classList.add('hidden');
+        }
+        
+        // ===== Fonctions utilitaires =====
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            const colors = {
+                success: 'bg-green-600',
+                error: 'bg-red-600',
+                info: 'bg-blue-600',
+                warning: 'bg-orange-600'
+            };
+            
+            toast.className = `${colors[type]} text-white p-4 rounded-xl shadow-lg mb-3 transform translate-x-full transition-transform duration-300`;
+            toast.textContent = message;
+            
+            document.getElementById('toast-container').appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.remove('translate-x-full');
+            }, 100);
+            
+            setTimeout(() => {
+                toast.classList.add('translate-x-full');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+        
+        function showLoading(show) {
+            const overlay = document.getElementById('loading-overlay');
+            if (show) {
+                overlay.classList.remove('hidden');
+            } else {
+                overlay.classList.add('hidden');
+            }
+        }
+        
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        
+        // ===== Gestion des gestes =====
+        document.addEventListener('click', (e) => {
+            // Fermer les modales en cliquant à l'extérieur
+            if (e.target.classList.contains('bg-black')) {
+                if (e.target.closest('#complete-modal')) {
+                    closeCompleteModal();
+                } else if (e.target.closest('#camera-modal')) {
+                    closeCameraModal();
+                } else if (e.target.closest('#report-modal')) {
+                    closeReportModal();
+                } else if (e.target.closest('#image-modal')) {
+                    closeImageModal();
+                }
+            }
+        });
+        
+        // ===== Raccourcis clavier (pour debug) =====
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeCompleteModal();
+                closeCameraModal();
+                closeReportModal();
+                closeImageModal();
+            }
+        });
+        
+        // ===== Initialisation =====
+        document.addEventListener('DOMContentLoaded', () => {
+            // Vérifier le support de la caméra
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                const cameraBtn = document.querySelector('[onclick="openCameraModal()"]');
+                if (cameraBtn) {
+                    cameraBtn.disabled = true;
+                    cameraBtn.classList.add('opacity-50');
+                    cameraBtn.innerHTML = '<i class="fas fa-camera-slash"></i><span>Caméra non supportée</span>';
+                }
+            }
+        });
+        
+        // ===== Gestion hors ligne =====
+        window.addEventListener('offline', () => {
+            showToast('Mode hors ligne activé', 'warning');
+        });
+        
+        window.addEventListener('online', () => {
+            showToast('Connexion rétablie', 'success');
+        });
+    </script>
+</body>
+</html>
