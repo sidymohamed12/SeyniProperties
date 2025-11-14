@@ -1,4 +1,3 @@
-
 from .travail import Travail, TravailChecklist, TravailMedia
 from .tache import Tache
 from .intervention import Intervention, InterventionChecklistItem, InterventionMedia, InterventionTemplate, InterventionTemplateChecklistItem

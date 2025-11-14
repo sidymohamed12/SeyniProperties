@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import Notification, MessageTemplate, NotificationConfig
+from .models.notification import Notification, NotificationConfig
+from .models.message import MessageTemplate
 
 @admin.register(Notification)
 class NotificationAdmin(admin.ModelAdmin):
