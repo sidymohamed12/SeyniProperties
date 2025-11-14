@@ -116,7 +116,7 @@ class TravauxListView(LoginRequiredMixin, ListView):
 
     def dispatch(self, request, *args, **kwargs):
         # Vérifier les permissions manager
-        if not request.user.user_type in ['manager', 'accountant']:
+        if request.user.user_type not in ['manager', 'accountant']:
             return redirect('dashboard:index')
         return super().dispatch(request, *args, **kwargs)
 
@@ -232,7 +232,7 @@ class TravailCreateView(LoginRequiredMixin, CreateView):
     template_name = 'maintenance/travail_form.html'
 
     def dispatch(self, request, *args, **kwargs):
-        if not request.user.user_type in ['manager', 'accountant']:
+        if request.user.user_type not in ['manager', 'accountant']:
             messages.error(request, "Vous n'avez pas l'autorisation de créer des travaux.")
             return redirect('maintenance:travail_list')
         return super().dispatch(request, *args, **kwargs)
@@ -365,7 +365,7 @@ class TravailCreateView(LoginRequiredMixin, CreateView):
 
         # Importer les modèles nécessaires
         from apps.properties.models import Residence, Appartement
-        from apps.accounts.models import CustomUser
+        from apps.accounts.models.custom_user import CustomUser
 
         # Ajouter les données pour les dropdowns du formulaire
         context.update({
@@ -389,7 +389,7 @@ class TravailUpdateView(LoginRequiredMixin, UpdateView):
     pk_url_kwarg = 'travail_id'
 
     def dispatch(self, request, *args, **kwargs):
-        if not request.user.user_type in ['manager', 'accountant']:
+        if request.user.user_type not in ['manager', 'accountant']:
             messages.error(request, "Vous n'avez pas l'autorisation de modifier ce travail.")
             return redirect('maintenance:travail_list')
         return super().dispatch(request, *args, **kwargs)
@@ -467,7 +467,7 @@ class TravailUpdateView(LoginRequiredMixin, UpdateView):
 
             if assigne_a:
                 try:
-                    from apps.accounts.models import CustomUser
+                    from apps.accounts.models.custom_user import CustomUser
                     new_technicien = CustomUser.objects.get(id=assigne_a, is_active=True)
 
                     if new_technicien != old_technicien:
@@ -547,7 +547,7 @@ class TravailUpdateView(LoginRequiredMixin, UpdateView):
 
         # Importer les modèles nécessaires
         from apps.properties.models import Residence, Appartement
-        from apps.accounts.models import CustomUser
+        from apps.accounts.models.custom_user import CustomUser
 
         # Ajouter les données pour les dropdowns du formulaire
         context.update({
@@ -591,8 +591,8 @@ def travail_detail_view(request, travail_id):
     technicians = []
     try:
         from django.contrib.auth import get_user_model
-        User = get_user_model()
-        technicians = User.objects.filter(
+        user = get_user_model()
+        technicians = user.objects.filter(
             user_type__in=['technician', 'technicien', 'field_agent']
         ).order_by('first_name', 'last_name')
     except:
@@ -718,7 +718,7 @@ def travail_assign_view(request, travail_id):
     travail = get_object_or_404(Travail, id=travail_id)
     
     # Vérifier les permissions
-    if not request.user.user_type in ['manager', 'accountant']:
+    if request.user.user_type not in ['manager', 'accountant']:
         messages.error(request, "Vous n'avez pas l'autorisation d'assigner cette travail.")
         return redirect('maintenance:travail_detail', travail_id=travail.id)
     
@@ -921,7 +921,7 @@ def travail_delete_view(request, travail_id):
     """Supprimer une intervention"""
     travail = get_object_or_404(Travail, id=travail_id)
     
-    if not request.user.user_type in ['manager', 'accountant']:
+    if request.user.user_type not in ['manager', 'accountant']:
         messages.error(request, "Vous n'avez pas l'autorisation de supprimer des interventions.")
         return redirect('maintenance:travail_detail', travail_id=travail.id)
     
@@ -1043,7 +1043,7 @@ def travaux_stats_api(request):
 @login_required
 def travail_calendar_api(request):
     """API pour le calendrier des interventions"""
-    if not request.user.user_type in ['manager', 'accountant']:
+    if request.user.user_type not in ['manager', 'accountant']:
         return JsonResponse({'error': 'Non autorisé'}, status=403)
     
     # ✅ RÉCUPÉRER SELON LES CHAMPS DISPONIBLES
@@ -1095,7 +1095,7 @@ def travail_create_simple(request):
     """Vue simplifiée pour créer une intervention"""
     
     # Vérification des permissions
-    if not request.user.user_type in ['manager', 'accountant']:
+    if request.user.user_type not in ['manager', 'accountant']:
         messages.error(request, "Vous n'avez pas l'autorisation de créer des interventions.")
         return redirect('maintenance:interventions_list')
     
@@ -1216,7 +1216,7 @@ def travail_edit_simple(request, travail_id):
     intervention = get_object_or_404(Travail, id=travail_id)
     
     # Vérification des permissions
-    if not request.user.user_type in ['manager', 'accountant']:
+    if request.user.user_type not in ['manager', 'accountant']:
         messages.error(request, "Vous n'avez pas l'autorisation de modifier cette intervention.")
         return redirect('maintenance:travail_detail', travail_id=travail.id)
     
@@ -1419,7 +1419,7 @@ def mes_travaux_view(request):
 @require_http_methods(["POST"])
 def travaux_bulk_action(request):
     """Actions en masse sur les interventions"""
-    if not request.user.user_type in ['manager', 'accountant']:
+    if request.user.user_type not in ['manager', 'accountant']:
         return JsonResponse({'success': False, 'error': 'Permission refusée'})
     
     action = request.POST.get('action')
@@ -1507,7 +1507,7 @@ def travaux_search(request):
 @login_required
 def travaux_export(request):
     """Export des interventions en CSV"""
-    if not request.user.user_type in ['manager', 'accountant']:
+    if request.user.user_type not in ['manager', 'accountant']:
         return JsonResponse({'error': 'Permission refusée'}, status=403)
     
     try:
@@ -1568,7 +1568,7 @@ def travaux_export(request):
 @login_required
 def maintenance_dashboard(request):
     """Tableau de bord maintenance pour managers"""
-    if not request.user.user_type in ['manager', 'accountant']:
+    if request.user.user_type not in ['manager', 'accountant']:
         return redirect('dashboard:index')
     
     # Statistiques générales

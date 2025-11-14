@@ -175,7 +175,7 @@ class WorkflowFilterForm(forms.Form):
         super().__init__(*args, **kwargs)
 
         # Charger les responsables PMO (utilisateurs qui ont des workflows assignés)
-        from apps.accounts.models import CustomUser
+        from apps.accounts.models.custom_user import CustomUser
         self.fields['responsable'].queryset = CustomUser.objects.filter(
             workflows_pmo__isnull=False
         ).distinct().order_by('first_name', 'last_name')

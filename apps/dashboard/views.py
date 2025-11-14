@@ -18,7 +18,7 @@ from apps.properties.models import Residence, Appartement
 from apps.contracts.models import RentalContract
 from apps.payments.models import Invoice, Payment
 from apps.maintenance.models import Intervention
-from apps.accounts.models import CustomUser
+from apps.accounts.models.custom_user import CustomUser
 from apps.tiers.models import Tiers, TiersBien
 
 # Import conditionnel pour Employee et Task
@@ -854,7 +854,7 @@ def enregistrements_view(request):
 @login_required
 def nouveau_bien(request):
     """Vue pour créer un nouveau bien (appartement)"""
-    if not request.user.user_type in ['manager', 'accountant']:
+    if  request.user.user_type not in ['manager', 'accountant']:
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return JsonResponse({'success': False, 'error': 'Permission refusée'})
         return redirect('properties:appartement_create')
@@ -933,7 +933,7 @@ def nouveau_bien(request):
 @login_required
 def nouvelle_residence(request):
     """Vue pour créer une nouvelle résidence"""
-    if not request.user.user_type in ['manager', 'accountant']:
+    if  request.user.user_type not in ['manager', 'accountant']:
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return JsonResponse({'success': False, 'error': 'Permission refusée'})
         return redirect('properties:residence_create')
@@ -997,7 +997,7 @@ def nouvelle_residence(request):
 @login_required
 def nouveau_locataire(request):
     """Vue pour créer un nouveau locataire (Tiers)"""
-    if not request.user.user_type in ['manager', 'accountant']:
+    if request.user.user_type not in ['manager', 'accountant']:
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return JsonResponse({'success': False, 'error': 'Permission refusée'})
         return redirect('tenants:create')
@@ -1087,7 +1087,7 @@ def nouveau_locataire(request):
 @login_required
 def nouveau_bailleur(request):
     """Vue pour créer un nouveau propriétaire (Tiers)"""
-    if not request.user.user_type in ['manager', 'accountant']:
+    if request.user.user_type not in ['manager', 'accountant']:
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return JsonResponse({'success': False, 'error': 'Permission refusée'})
         return redirect('landlords:create')
@@ -1191,7 +1191,7 @@ def nouveau_bailleur(request):
 @login_required
 def nouveau_contrat(request):
     """Vue pour créer un nouveau contrat"""
-    if not request.user.user_type in ['manager', 'accountant']:
+    if request.user.user_type not in ['manager', 'accountant']:
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return JsonResponse({'success': False, 'error': 'Permission refusée'})
         return redirect('contracts:create')
@@ -1286,7 +1286,7 @@ def nouvelle_tache(request):
 @login_required
 def nouvel_employe(request):
     """Vue pour créer un nouvel employé"""
-    if not request.user.user_type in ['manager', 'accountant']:
+    if request.user.user_type not in ['manager', 'accountant']:
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return JsonResponse({'success': False, 'error': 'Permission refusée'})
         return redirect('dashboard:index')
