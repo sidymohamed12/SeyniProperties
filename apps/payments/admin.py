@@ -1,7 +1,10 @@
 # apps/payments/admin.py
 from django.contrib import admin
 from django.utils.html import format_html
-from .models import Invoice, Payment, PaymentReminder, LigneDemandeAchat, HistoriqueValidation
+from apps.payments.models.ligne_demade_achat import LigneDemandeAchat
+from apps.payments.models.invoice import Invoice
+from apps.payments.models.historique_validation import HistoriqueValidation
+from apps.payments.models.payment import Payment, PaymentReminder
 
 
 class PaymentInline(admin.TabularInline):

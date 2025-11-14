@@ -126,11 +126,11 @@ class DashboardStats(BaseModel):
         from django.utils import timezone
         from django.db.models import Count, Sum, Q
         from apps.properties.models import Property
-        from apps.payments.models import Invoice
+        from apps.payments.models.invoice import Invoice
         from apps.maintenance.models.intervention import Intervention
         from apps.employees.models.task import Task
         from apps.accounting.models.expenses import Expense
-        from apps.payments.models import Payment
+        from apps.payments.models.payment import Payment
         
         if not date:
             date = timezone.now().date()
@@ -386,7 +386,8 @@ class DashboardWidget(BaseModel):
             from apps.properties.models import Property
             return self._get_properties_data()
         elif self.source_donnees == 'payments':
-            from apps.payments.models import Payment, Invoice
+            from apps.payments.models.payment import Payment
+            from apps.payments.models.invoice import Invoice
             return self._get_payments_data()
         elif self.source_donnees == 'interventions':
             from apps.maintenance.models.intervention import Intervention
@@ -427,7 +428,8 @@ class DashboardWidget(BaseModel):
     
     def _get_payments_data(self):
         """Génère les données pour les paiements"""
-        from apps.payments.models import Payment, Invoice
+        from apps.payments.models.payment import Payment
+        from apps.payments.models.invoice import Invoice
         from django.db.models import Sum, Count
         from django.utils import timezone
         from datetime import timedelta

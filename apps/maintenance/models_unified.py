@@ -406,7 +406,8 @@ class Travail(BaseModel):
         Returns:
             Invoice (demande d'achat créée)
         """
-        from apps.payments.models import Invoice, LigneDemandeAchat
+        from apps.payments.models.invoice import Invoice
+        from apps.payments.models.ligne_demade_achat import LigneDemandeAchat
 
         # Calculer le montant total
         montant_total = sum(

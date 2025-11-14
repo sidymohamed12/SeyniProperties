@@ -406,7 +406,9 @@ class Travail(BaseModel):
             ...     ]
             ... )
         """
-        from apps.payments.models import Invoice, LigneDemandeAchat, HistoriqueValidation
+        from apps.payments.models.ligne_demade_achat import LigneDemandeAchat
+        from apps.payments.models.invoice import Invoice
+        from apps.payments.models.historique_validation import HistoriqueValidation
         from decimal import Decimal
 
         # Calculer le montant total

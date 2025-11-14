@@ -81,7 +81,7 @@ class AccountingPeriod(BaseModel):
     def calculate_totals(self):
         """Calcule les totaux de la période"""
         from django.db.models import Sum
-        from apps.payments.models import Payment
+        from apps.payments.models.payment import Payment
         
         # Calculer les revenus (paiements validés)
         self.total_revenus = Payment.objects.filter(

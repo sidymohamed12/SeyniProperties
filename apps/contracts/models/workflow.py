@@ -215,7 +215,7 @@ class ContractWorkflow(TimestampedModel):
                 self.date_envoi_finance = timezone.now()
 
                 # 🆕 Créer la facture automatiquement
-                from apps.payments.models import Invoice
+                from apps.payments.models.payment import Invoice
                 from apps.core.utils import generate_unique_reference
 
                 # Calculer le montant de la facture initiale

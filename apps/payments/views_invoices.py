@@ -10,7 +10,7 @@ from django.utils import timezone
 import logging
 import os
 
-from .models import Invoice
+from .models.invoice import Invoice
 from .forms import (
     InvoiceLoyerForm, InvoiceSyndicForm, 
     InvoiceDemandeAchatForm, InvoicePrestataireForm,

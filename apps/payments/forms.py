@@ -2,9 +2,10 @@
 
 from django import forms
 from django.core.exceptions import ValidationError
-from .models import Payment, Invoice
 from decimal import Decimal
 from datetime import date, timedelta
+from apps.payments.models.invoice import Invoice
+from apps.payments.models.payment import Payment
 
 
 # ==================== FORMULAIRES FACTURES ====================
@@ -355,7 +356,7 @@ class QuickPaymentForm(forms.ModelForm):
 # ============================================================================
 
 from django.forms import inlineformset_factory
-from .models import LigneDemandeAchat
+from .models.ligne_demade_achat import LigneDemandeAchat
 from apps.maintenance.models.travail import Travail
 
 

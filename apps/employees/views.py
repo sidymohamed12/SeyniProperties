@@ -775,7 +775,9 @@ def travail_demande_materiel(request, travail_id):
     Formulaire mobile simplifié pour qu'un employé demande du matériel pour un travail
     """
     from apps.maintenance.models.travail import Travail
-    from apps.payments.models import Invoice, LigneDemandeAchat, HistoriqueValidation
+    from apps.payments.models.ligne_demade_achat import LigneDemandeAchat
+    from apps.payments.models.invoice import Invoice
+    from apps.payments.models.historique_validation import HistoriqueValidation
     from decimal import Decimal
     import re
 
@@ -862,7 +864,8 @@ def confirmer_reception_materiel(request, demande_id):
     L'employé confirme avoir reçu le matériel sur le terrain
     Déclenche le déblocage du travail si tout le matériel est reçu
     """
-    from apps.payments.models import Invoice, HistoriqueValidation
+    from apps.payments.models.invoice import Invoice
+    from apps.payments.models.historique_validation import HistoriqueValidation
     from django.http import JsonResponse
 
     if request.method != 'POST':

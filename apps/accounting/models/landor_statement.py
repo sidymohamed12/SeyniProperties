@@ -142,7 +142,7 @@ class LandlordStatement(BaseModel):
     def calculate_totals(self):
         """Calcule les totaux du relevé"""
         from django.db.models import Sum
-        from apps.payments.models import Payment
+        from apps.payments.models.payment import Payment
         from apps.contracts.models import RentalContract
         
         # Récupérer tous les biens du bailleur
@@ -179,7 +179,7 @@ class LandlordStatement(BaseModel):
     
     def generate_details(self):
         """Génère les détails du relevé"""
-        from apps.payments.models import Payment
+        from apps.payments.models.payment import Payment
         from apps.contracts.models import RentalContract
         
         # Supprimer les anciens détails

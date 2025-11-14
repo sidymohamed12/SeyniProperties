@@ -7,7 +7,8 @@ Gestion automatique des actions liées aux paiements et factures
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
-from .models import Payment, Invoice
+from apps.payments.models.invoice import Invoice
+from apps.payments.models.payment import Payment
 
 
 @receiver(post_save, sender=Payment)
@@ -175,7 +176,7 @@ def verifier_factures_en_retard(sender, instance, **kwargs):
                 instance.save(update_fields=['statut'])
 
             # Enregistrer le rappel
-            from .models import PaymentReminder
+            from .models.payment import PaymentReminder
 
             locataire = instance.contrat.locataire if instance.contrat else None
             if locataire and locataire.email:

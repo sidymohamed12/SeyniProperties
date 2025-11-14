@@ -7,8 +7,9 @@ from django.db import transaction
 from django.utils import timezone
 from django.http import HttpResponseForbidden
 from decimal import Decimal
-
-from apps.payments.models import Invoice, LigneDemandeAchat, HistoriqueValidation
+from apps.payments.models.invoice import Invoice
+from apps.payments.models.ligne_demade_achat import LigneDemandeAchat
+from apps.payments.models.historique_validation import HistoriqueValidation
 from apps.payments.forms import (
     DemandeAchatForm,
     LigneDemandeAchatFormSet,

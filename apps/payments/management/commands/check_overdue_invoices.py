@@ -6,7 +6,7 @@ Usage: python manage.py check_overdue_invoices
 
 from django.core.management.base import BaseCommand
 from django.utils import timezone
-from apps.payments.models import Invoice
+from apps.payments.models.invoice import Invoice
 
 
 class Command(BaseCommand):

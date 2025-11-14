@@ -2,7 +2,7 @@
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 from datetime import timedelta
-from apps.payments.models import Invoice
+from apps.payments.models.invoice import Invoice
 
 
 class Command(BaseCommand):

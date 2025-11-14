@@ -19,7 +19,8 @@ from django.utils import timezone
 from datetime import datetime, timedelta
 import logging
 
-from .models import Invoice, Payment, PaymentReminder
+from .models.invoice import Invoice
+from .models.payment import Payment, PaymentReminder
 from .utils import generate_payment_receipt_pdf, generate_payment_receipt_filename
 from .forms import PaymentForm, QuickPaymentForm
 
@@ -929,7 +930,7 @@ def envoyer_rappel_paiement(request, pk):
         }, status=400)
 
     # Créer un rappel
-    from .models import PaymentReminder
+    from .models.payment import PaymentReminder
 
     locataire = invoice.contrat.locataire if invoice.contrat else None
     if not locataire or not locataire.email:

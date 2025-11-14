@@ -16,7 +16,8 @@ import json
 # Imports des modèles
 from apps.properties.models import Residence, Appartement
 from apps.contracts.models import RentalContract
-from apps.payments.models import Invoice, Payment
+from apps.payments.models.invoice import Invoice
+from apps.payments.models.payment import Payment
 from apps.maintenance.models.intervention import Intervention
 from apps.accounts.models.custom_user import CustomUser
 from apps.tiers.models import Tiers, TiersBien

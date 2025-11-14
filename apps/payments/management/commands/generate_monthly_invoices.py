@@ -12,7 +12,7 @@ from decimal import Decimal
 import calendar
 
 from apps.contracts.models import RentalContract
-from apps.payments.models import Invoice
+from apps.payments.models.invoice import Invoice
 from apps.core.utils import generate_unique_reference
 
 
