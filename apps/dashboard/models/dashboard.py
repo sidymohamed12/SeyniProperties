@@ -125,7 +125,7 @@ class DashboardStats(BaseModel):
         """Génère les statistiques pour une date donnée"""
         from django.utils import timezone
         from django.db.models import Count, Sum, Q
-        from apps.properties.models import Property
+        from apps.properties.models.properties import Property
         from apps.payments.models.invoice import Invoice
         from apps.maintenance.models.intervention import Intervention
         from apps.employees.models.task import Task
@@ -383,7 +383,7 @@ class DashboardWidget(BaseModel):
         from django.db.models import Count, Sum, Avg
         
         if self.source_donnees == 'properties':
-            from apps.properties.models import Property
+            from apps.properties.models.properties import Property
             return self._get_properties_data()
         elif self.source_donnees == 'payments':
             from apps.payments.models.payment import Payment
@@ -405,7 +405,7 @@ class DashboardWidget(BaseModel):
     
     def _get_properties_data(self):
         """Génère les données pour les biens"""
-        from apps.properties.models import Property
+        from apps.properties.models.properties import Property
         from django.db.models import Count
         
         data = Property.objects.aggregate(

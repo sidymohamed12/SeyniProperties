@@ -14,7 +14,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from ..models import RentalContract
-from apps.properties.models import Appartement
+from apps.properties.models.appartement import Appartement
 from apps.tiers.models import Tiers
 
 

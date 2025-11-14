@@ -137,7 +137,7 @@ def contracts_revenue_report(request):
     total_contracts = active_contracts.count()
 
     # Données pour les filtres
-    from apps.properties.models import Residence
+    from apps.properties.models.residence import Residence
     from apps.tiers.models import Tiers
 
     residences = Residence.objects.all().order_by('nom')

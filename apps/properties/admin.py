@@ -4,8 +4,12 @@ from django.contrib import admin
 from django.utils.html import format_html
 from django.urls import reverse
 from django.utils.safestring import mark_safe
-from .models import Residence, Appartement, AppartementMedia, Property, EtatDesLieux, EtatDesLieuxDetail, RemiseDesCles
-
+from .models.residence import Residence
+from .models.appartement import Appartement
+from .models.appartement import Appartement, AppartementMedia
+from .models.etat_lieu import EtatDesLieux, EtatDesLieuxDetail
+from .models.remise import RemiseDesCles
+from .models.properties import Property
 
 class AppartementInline(admin.TabularInline):
     """Inline pour afficher les appartements dans la résidence"""

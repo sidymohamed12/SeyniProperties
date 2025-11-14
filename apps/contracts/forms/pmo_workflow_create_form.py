@@ -6,7 +6,7 @@ Formulaire pour démarrer un nouveau workflow PMO
 from django import forms
 from django.core.exceptions import ValidationError
 
-from apps.properties.models import Appartement
+from apps.properties.models.appartement import Appartement
 from apps.tiers.models import Tiers
 from ..models import RentalContract, ContractWorkflow
 

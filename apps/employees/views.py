@@ -24,7 +24,7 @@ from django.views.decorators.csrf import csrf_exempt
 from .forms import TaskForm, EmployeeForm
 from django.urls import reverse, reverse_lazy
 from django.core.paginator import Paginator
-from apps.properties.models import Property
+from apps.properties.models.properties import Property
 
 User = get_user_model()
 

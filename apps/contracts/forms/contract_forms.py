@@ -11,7 +11,8 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Row, Column, Submit
 
 from ..models import RentalContract
-from apps.properties.models import Appartement, Residence
+from apps.properties.models.appartement import Appartement
+from apps.properties.models.residence import Residence
 from apps.tiers.models import Tiers
 
 

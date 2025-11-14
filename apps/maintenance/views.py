@@ -23,7 +23,9 @@ from .forms import InterventionForm, TravailForm
 from django.views.decorators.csrf import csrf_exempt
 
 # Imports des modèles de properties et tiers
-from apps.properties.models import Property, Appartement, Residence
+from apps.properties.models.properties import Property
+from apps.properties.models.appartement import Appartement
+from apps.properties.models.residence import Residence
 from apps.tiers.models import Tiers
 
 User = get_user_model()
@@ -365,7 +367,8 @@ class TravailCreateView(LoginRequiredMixin, CreateView):
         context = super().get_context_data(**kwargs)
 
         # Importer les modèles nécessaires
-        from apps.properties.models import Residence, Appartement
+        from apps.properties.models.residence import Residence
+        from apps.properties.models.appartement import Appartement
         from apps.accounts.models.custom_user import CustomUser
 
         # Ajouter les données pour les dropdowns du formulaire
@@ -431,7 +434,7 @@ class TravailUpdateView(LoginRequiredMixin, UpdateView):
             appartement_id = post_data.get('appartement', '')
             if appartement_id:
                 try:
-                    from apps.properties.models import Appartement
+                    from apps.properties.models.appartement import Appartement
                     intervention.appartement = Appartement.objects.get(id=appartement_id)
                 except:
                     pass
@@ -442,7 +445,7 @@ class TravailUpdateView(LoginRequiredMixin, UpdateView):
             residence_id = post_data.get('residence', '')
             if residence_id and hasattr(intervention, 'residence'):
                 try:
-                    from apps.properties.models import Residence
+                    from apps.properties.models.residence import Residence
                     intervention.residence = Residence.objects.get(id=residence_id)
                 except:
                     pass
@@ -547,7 +550,8 @@ class TravailUpdateView(LoginRequiredMixin, UpdateView):
         context = super().get_context_data(**kwargs)
 
         # Importer les modèles nécessaires
-        from apps.properties.models import Residence, Appartement
+        from apps.properties.models.residence import Residence
+        from apps.properties.models.appartement import Appartement
         from apps.accounts.models.custom_user import CustomUser
 
         # Ajouter les données pour les dropdowns du formulaire

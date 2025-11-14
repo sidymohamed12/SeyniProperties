@@ -4,11 +4,13 @@ from django import forms
 from django.core.exceptions import ValidationError
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Fieldset, Row, Column, Submit, HTML, Div
-from crispy_forms.bootstrap import InlineRadios
-from .models import RemiseDesCles, Residence, Appartement, AppartementMedia, Property  # Garde Property pour compatibilité
-from apps.tiers.models import Tiers
+from .models.residence import Residence
+from .models.appartement import Appartement
+from .models.appartement import Appartement, AppartementMedia
+from .models.etat_lieu import EtatDesLieux, EtatDesLieuxDetail
+from .models.remise import RemiseDesCles
+from .models.properties import Property
 from django import forms
-from .models import EtatDesLieux, EtatDesLieuxDetail
 
 
 class ResidenceForm(forms.ModelForm):

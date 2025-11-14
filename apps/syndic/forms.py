@@ -14,7 +14,7 @@ class CoproprieteForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Filtrer les résidences de type syndic ou mixte
-        from apps.properties.models import Residence
+        from apps.properties.models.residence import Residence
         self.fields['residence'].queryset = Residence.objects.filter(
             type_gestion__in=['syndic', 'mixte']
         ).order_by('nom')

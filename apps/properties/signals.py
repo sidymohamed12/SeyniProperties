@@ -6,7 +6,8 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
 
-from apps.properties.models import Residence, Appartement
+from apps.properties.models.residence import Residence
+from apps.properties.models.appartement import Appartement
 
 
 @receiver(post_save, sender=Residence)

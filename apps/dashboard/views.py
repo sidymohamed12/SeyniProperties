@@ -14,7 +14,8 @@ from decimal import Decimal
 import json
 
 # Imports des modèles
-from apps.properties.models import Residence, Appartement
+from apps.properties.models.residence import Residence
+from apps.properties.models.appartement import Appartement
 from apps.contracts.models import RentalContract
 from apps.payments.models.invoice import Invoice
 from apps.payments.models.payment import Payment

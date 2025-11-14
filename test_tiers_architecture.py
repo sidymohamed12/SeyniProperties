@@ -12,7 +12,8 @@ django.setup()
 
 from django.contrib.auth import get_user_model
 from apps.tiers.models import Tiers
-from apps.properties.models import Residence, Appartement
+from apps.properties.models.residence import Residence
+from apps.properties.models.appartement import Appartement
 from apps.contracts.models import RentalContract
 from decimal import Decimal
 from datetime import date, timedelta

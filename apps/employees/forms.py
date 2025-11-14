@@ -6,7 +6,7 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 from apps.employees.models.employee import Employee
 from apps.employees.models.task import Task
-from apps.properties.models import Property
+from apps.properties.models.properties import Property
 from apps.maintenance.models.intervention import Intervention, InterventionMedia
 from datetime import datetime
 import random
@@ -16,13 +16,13 @@ User = get_user_model()
 
 # ✅ IMPORT SÉCURISÉ DES MODÈLES
 try:
-    from apps.properties.models import Property
+    from apps.properties.models.properties import Property
     PROPERTY_AVAILABLE = True
 except ImportError:
     PROPERTY_AVAILABLE = False
 
 try:
-    from apps.properties.models import Appartement
+    from apps.properties.models.appartement import Appartement
     APPARTEMENT_AVAILABLE = True
 except ImportError:
     APPARTEMENT_AVAILABLE = False
@@ -169,7 +169,7 @@ class TaskForm(forms.ModelForm):
         print("=== DÉBUT CONFIGURATION APPARTEMENT ===")
         
         if APPARTEMENT_AVAILABLE:
-            from apps.properties.models import Appartement
+            from apps.properties.models.appartement import Appartement
             appartements_queryset = Appartement.objects.select_related('residence').order_by('residence__nom', 'nom')
             appartements_count = appartements_queryset.count()
             print(f"Nombre d'appartements trouvés: {appartements_count}")
@@ -236,7 +236,7 @@ class TaskForm(forms.ModelForm):
         # ✅ GESTION DE LA CONVERSION APPARTEMENT -> BIEN
         appartement_choice = self.cleaned_data.get('appartement_choice')
         if appartement_choice and PROPERTY_AVAILABLE:
-            from apps.properties.models import Property
+            from apps.properties.models.properties import Property
             
             # Chercher ou créer un Property correspondant à l'appartement
             try:

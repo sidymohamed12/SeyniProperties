@@ -7,10 +7,17 @@ from django.contrib import messages
 from django.http import JsonResponse, Http404
 from django.views.decorators.http import require_http_methods
 from django.core.paginator import Paginator
-from django.db.models import Q, Count, Avg, Sum
+from django.db.models import Q, Count, Sum
 from django.urls import reverse_lazy, reverse
 from .forms import EtatDesLieuxForm, EtatDesLieuxDetailFormSet, RemiseDesClesForm
-from .models import EtatDesLieux, EtatDesLieuxDetail, RemiseDesCles
+
+from .models.residence import Residence
+from .models.appartement import Appartement
+from .models.appartement import Appartement, AppartementMedia
+from .models.etat_lieu import EtatDesLieux, EtatDesLieuxDetail
+from .models.remise import RemiseDesCles
+
+
 from django.utils import timezone
 from .utils import generate_etat_lieux_pdf, generate_etat_lieux_filename, generate_remise_cles_pdf, generate_remise_cles_filename
 from django.views.decorators.csrf import csrf_exempt
@@ -19,12 +26,11 @@ from django.http import HttpResponse
 import json
 
 # ✅ IMPORTS CORRECTS SELON LES MODÈLES EXISTANTS
-from .models import Residence, Appartement, AppartementMedia
 from .forms import ResidenceForm, AppartementForm, AppartementMediaForm
 
 # ✅ IMPORTS CONDITIONNELS POUR ÉVITER LES ERREURS
 try:
-    from .models import Property  # Pour compatibilité
+    from .models.properties import Property  # Pour compatibilité
 except ImportError:
     Property = None
 

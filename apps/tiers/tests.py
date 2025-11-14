@@ -7,7 +7,8 @@ from django.contrib.auth import get_user_model
 from datetime import date, timedelta
 
 from .models import Tiers, TiersBien
-from apps.properties.models import Residence, Appartement
+from apps.properties.models.residence import Residence
+from apps.properties.models.appartement import Appartement
 
 User = get_user_model()
 
