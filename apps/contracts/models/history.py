@@ -1,7 +1,6 @@
 # apps/contracts/models/history.py
 
 from django.db import models
-from django.urls import reverse
 from apps.core.models import TimestampedModel
 
 

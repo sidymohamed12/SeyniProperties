@@ -129,7 +129,7 @@ class DashboardStats(BaseModel):
         from apps.payments.models import Invoice
         from apps.maintenance.models import Intervention
         from apps.employees.models import Task
-        from apps.accounting.models import Expense
+        from apps.accounting.models.expenses import Expense
         from apps.payments.models import Payment
         
         if not date:
@@ -522,7 +522,7 @@ class DashboardWidget(BaseModel):
             from apps.employees.models import Task
             return self._get_tasks_data()
         elif self.source_donnees == 'expenses':
-            from apps.accounting.models import Expense
+            from apps.accounting.models.expenses import Expense
             return self._get_expenses_data()
         elif self.source_donnees == 'kpis':
             return self._get_kpis_data()
@@ -621,7 +621,7 @@ class DashboardWidget(BaseModel):
     
     def _get_expenses_data(self):
         """Génère les données pour les dépenses"""
-        from apps.accounting.models import Expense
+        from apps.accounting.models.expenses import Expense
         from django.db.models import Sum, Count
         from django.utils import timezone
         

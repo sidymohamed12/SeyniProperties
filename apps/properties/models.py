@@ -4,7 +4,7 @@ from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils import timezone
 from decimal import Decimal
-from apps.accounting.models import User
+from apps.accounting.models.expenses import User
 from apps.core.models import BaseModel, TimestampedModel
 from apps.core.utils import generate_unique_reference
 

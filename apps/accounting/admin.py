@@ -1,14 +1,10 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from django.urls import reverse
 from django.utils import timezone
-from .models import (
-    Expense, 
-    LandlordStatement, 
-    LandlordStatementDetail,
-    AccountingPeriod,
-    TaxDeclaration
-)
+from apps.accounting.models.accounting_period import AccountingPeriod, TaxDeclaration
+from apps.accounting.models.expenses import Expense
+from apps.accounting.models.landor_statement import LandlordStatement, LandlordStatementDetail
+
 
 
 @admin.register(Expense)
