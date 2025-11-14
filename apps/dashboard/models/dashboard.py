@@ -3,6 +3,7 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from django.contrib.auth import get_user_model
 from decimal import Decimal
 from apps.core.models import BaseModel
+from apps.dashboard.models.kpi import KPI
 
 User = get_user_model()
 
