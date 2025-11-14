@@ -1,711 +1,955 @@
 <!-- templates/base.html -->
 <!DOCTYPE html>
 <html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{% block title %}Imani - Gestion Locative{% endblock %}</title>
-    
+
     <!-- Meta tags -->
-    <meta name="description" content="Plateforme de gestion locative complète pour Seyni Properties">
-    <meta name="author" content="Seyni Properties">
-    <meta name="theme-color" content="#23456b">
-    
+    <meta
+      name="description"
+      content="Plateforme de gestion locative complète pour Seyni Properties"
+    />
+    <meta name="author" content="Seyni Properties" />
+    <meta name="theme-color" content="#23456b" />
+
     <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="{% load static %}{% static 'img/favicon.ico' %}">
-    <link rel="apple-touch-icon" href="https://darkviolet-whale-568036.hostingersite.com/wp-content/uploads/2025/08/logo_imani.avif">
-    
+    <link
+      rel="icon"
+      type="image/x-icon"
+      href="{% load static %}{% static 'img/favicon.ico' %}"
+    />
+    <link
+      rel="apple-touch-icon"
+      href="https://darkviolet-whale-568036.hostingersite.com/wp-content/uploads/2025/08/logo_imani.avif"
+    />
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        'seyni-primary': '#23456b',
-                        'seyni-secondary': '#a25946',
-                        'seyni-primary-light': '#2d5a8a',
-                        'seyni-primary-dark': '#1a3552',
-                        'seyni-secondary-light': '#b86b56',
-                        'seyni-secondary-dark': '#8a4936',
-                    },
-                    fontFamily: {
-                        'inter': ['Inter', 'sans-serif'],
-                    },
-                    animation: {
-                        'fade-in': 'fadeIn 0.5s ease-in-out',
-                        'slide-up': 'slideUp 0.3s ease-out',
-                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                    },
-                    keyframes: {
-                        fadeIn: {
-                            '0%': { opacity: '0' },
-                            '100%': { opacity: '1' },
-                        },
-                        slideUp: {
-                            '0%': { transform: 'translateY(20px)', opacity: '0' },
-                            '100%': { transform: 'translateY(0)', opacity: '1' },
-                        }
-                    },
-                    boxShadow: {
-                        'seyni': '0 4px 14px 0 rgba(35, 69, 107, 0.1)',
-                        'seyni-lg': '0 10px 25px -3px rgba(35, 69, 107, 0.15)',
-                    }
-                }
-            }
-        }
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              "seyni-primary": "#23456b",
+              "seyni-secondary": "#a25946",
+              "seyni-primary-light": "#2d5a8a",
+              "seyni-primary-dark": "#1a3552",
+              "seyni-secondary-light": "#b86b56",
+              "seyni-secondary-dark": "#8a4936",
+            },
+            fontFamily: {
+              inter: ["Inter", "sans-serif"],
+            },
+            animation: {
+              "fade-in": "fadeIn 0.5s ease-in-out",
+              "slide-up": "slideUp 0.3s ease-out",
+              "pulse-slow": "pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+            },
+            keyframes: {
+              fadeIn: {
+                "0%": { opacity: "0" },
+                "100%": { opacity: "1" },
+              },
+              slideUp: {
+                "0%": { transform: "translateY(20px)", opacity: "0" },
+                "100%": { transform: "translateY(0)", opacity: "1" },
+              },
+            },
+            boxShadow: {
+              seyni: "0 4px 14px 0 rgba(35, 69, 107, 0.1)",
+              "seyni-lg": "0 10px 25px -3px rgba(35, 69, 107, 0.15)",
+            },
+          },
+        },
+      };
     </script>
-    
+
     <!-- Font Awesome -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      rel="stylesheet"
+    />
+
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+
     {% block extra_css %}{% endblock %}
-    
+
     <style>
-        /* Configuration globale avec couleurs Seyni */
-        :root {
-            --seyni-primary: #23456b;
-            --seyni-secondary: #a25946;
-            --seyni-primary-light: #2d5a8a;
-            --seyni-primary-dark: #1a3552;
-            --seyni-secondary-light: #b86b56;
-            --seyni-secondary-dark: #8a4936;
-            --seyni-gradient: linear-gradient(135deg, #23456b 0%, #a25946 100%);
-            --seyni-gradient-light: linear-gradient(135deg, #2d5a8a 0%, #b86b56 100%);
-        }
-        
-        body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e1 100%);
-            min-height: 100vh;
-        }
-        
-        /* Animations personnalisées */
-        .transition-all {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        
-        .transition-colors {
-            transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
-        }
-        
-        /* Gradients personnalisés Seyni */
-        .gradient-seyni {
-            background: var(--seyni-gradient);
-        }
-        
-        .gradient-seyni-light {
-            background: var(--seyni-gradient-light);
-        }
-        
-        .gradient-seyni-subtle {
-            background: linear-gradient(135deg, rgba(35, 69, 107, 0.05) 0%, rgba(162, 89, 70, 0.05) 100%);
-        }
-        
-        /* Custom scrollbar avec couleurs Seyni */
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 6px;
-        }
-        
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: #f1f5f9;
-            border-radius: 10px;
-        }
-        
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: var(--seyni-secondary);
-            border-radius: 10px;
-        }
-        
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: var(--seyni-secondary-dark);
-        }
-        
-        /* Navigation states avec couleurs Seyni */
-        .nav-active {
-            background: var(--seyni-gradient);
-            color: white;
-            border-radius: 0.75rem;
-            box-shadow: 0 4px 14px 0 rgba(35, 69, 107, 0.25);
-        }
-        
-        .nav-inactive {
-            color: #64748b;
-        }
-        
-        .nav-inactive:hover {
-            color: var(--seyni-primary);
-            background: rgba(35, 69, 107, 0.05);
-            border-radius: 0.75rem;
-        }
-        
-        /* Badge styles avec couleurs Seyni */
-        .badge-success {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            color: white;
-        }
-        
-        .badge-warning {
-            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-            color: white;
-        }
-        
-        .badge-error {
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-            color: white;
-        }
-        
-        .badge-info {
-            background: var(--seyni-gradient);
-            color: white;
-        }
-        
-        /* Logo responsive */
-        .logo-container {
-            transition: all 0.3s ease;
-        }
-        
-        .logo-container:hover {
-            transform: scale(1.05);
-        }
-        
-        /* Card styles avec identité Seyni */
-        .card-seyni {
-            background: white;
-            border-radius: 1rem;
-            box-shadow: 0 4px 14px 0 rgba(35, 69, 107, 0.08);
-            border: 1px solid rgba(35, 69, 107, 0.1);
-            transition: all 0.3s ease;
-        }
-        
-        .card-seyni:hover {
-            box-shadow: 0 10px 25px -3px rgba(35, 69, 107, 0.15);
-            transform: translateY(-2px);
-        }
-        
-        /* Boutons avec style Seyni */
-        .btn-seyni-primary {
-            background: var(--seyni-gradient);
-            color: white;
-            border: none;
-            border-radius: 0.75rem;
-            padding: 0.75rem 1.5rem;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 14px 0 rgba(35, 69, 107, 0.25);
-        }
-        
-        .btn-seyni-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px -2px rgba(35, 69, 107, 0.35);
-        }
+      /* Configuration globale avec couleurs Seyni */
+      :root {
+        --seyni-primary: #23456b;
+        --seyni-secondary: #a25946;
+        --seyni-primary-light: #2d5a8a;
+        --seyni-primary-dark: #1a3552;
+        --seyni-secondary-light: #b86b56;
+        --seyni-secondary-dark: #8a4936;
+        --seyni-gradient: linear-gradient(135deg, #23456b 0%, #a25946 100%);
+        --seyni-gradient-light: linear-gradient(
+          135deg,
+          #2d5a8a 0%,
+          #b86b56 100%
+        );
+      }
+
+      body {
+        font-family: "Inter", sans-serif;
+        background: linear-gradient(
+          135deg,
+          #f8fafc 0%,
+          #e2e8f0 50%,
+          #cbd5e1 100%
+        );
+        min-height: 100vh;
+      }
+
+      /* Animations personnalisées */
+      .transition-all {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .transition-colors {
+        transition: color 0.2s ease, background-color 0.2s ease,
+          border-color 0.2s ease;
+      }
+
+      /* Gradients personnalisés Seyni */
+      .gradient-seyni {
+        background: var(--seyni-gradient);
+      }
+
+      .gradient-seyni-light {
+        background: var(--seyni-gradient-light);
+      }
+
+      .gradient-seyni-subtle {
+        background: linear-gradient(
+          135deg,
+          rgba(35, 69, 107, 0.05) 0%,
+          rgba(162, 89, 70, 0.05) 100%
+        );
+      }
+
+      /* Custom scrollbar avec couleurs Seyni */
+      .custom-scrollbar::-webkit-scrollbar {
+        width: 6px;
+      }
+
+      .custom-scrollbar::-webkit-scrollbar-track {
+        background: #f1f5f9;
+        border-radius: 10px;
+      }
+
+      .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: var(--seyni-secondary);
+        border-radius: 10px;
+      }
+
+      .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: var(--seyni-secondary-dark);
+      }
+
+      /* Navigation states avec couleurs Seyni */
+      .nav-active {
+        background: var(--seyni-gradient);
+        color: white;
+        border-radius: 0.75rem;
+        box-shadow: 0 4px 14px 0 rgba(35, 69, 107, 0.25);
+      }
+
+      .nav-inactive {
+        color: #64748b;
+      }
+
+      .nav-inactive:hover {
+        color: var(--seyni-primary);
+        background: rgba(35, 69, 107, 0.05);
+        border-radius: 0.75rem;
+      }
+
+      /* Badge styles avec couleurs Seyni */
+      .badge-success {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+      }
+
+      .badge-warning {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        color: white;
+      }
+
+      .badge-error {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        color: white;
+      }
+
+      .badge-info {
+        background: var(--seyni-gradient);
+        color: white;
+      }
+
+      /* Logo responsive */
+      .logo-container {
+        transition: all 0.3s ease;
+      }
+
+      .logo-container:hover {
+        transform: scale(1.05);
+      }
+
+      /* Card styles avec identité Seyni */
+      .card-seyni {
+        background: white;
+        border-radius: 1rem;
+        box-shadow: 0 4px 14px 0 rgba(35, 69, 107, 0.08);
+        border: 1px solid rgba(35, 69, 107, 0.1);
+        transition: all 0.3s ease;
+      }
+
+      .card-seyni:hover {
+        box-shadow: 0 10px 25px -3px rgba(35, 69, 107, 0.15);
+        transform: translateY(-2px);
+      }
+
+      /* Boutons avec style Seyni */
+      .btn-seyni-primary {
+        background: var(--seyni-gradient);
+        color: white;
+        border: none;
+        border-radius: 0.75rem;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 14px 0 rgba(35, 69, 107, 0.25);
+      }
+
+      .btn-seyni-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px -2px rgba(35, 69, 107, 0.35);
+      }
     </style>
-</head>
-<body class="min-h-screen">
-    
+  </head>
+  <body class="min-h-screen">
     <!-- Header avec identité Seyni -->
-    <header class="bg-white shadow-seyni border-b border-gray-100 sticky top-0 z-40 backdrop-blur-sm bg-white/95">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-20">
-                <!-- Logo et titre Seyni Properties -->
-                <div class="flex items-center space-x-4">
-                    <button id="sidebar-toggle" class="lg:hidden p-2 rounded-lg text-gray-400 hover:text-seyni-primary hover:bg-gray-50 transition-colors">
-                        <i class="fas fa-bars text-xl"></i>
-                    </button>
-                    
-                    <div class="flex items-center space-x-4 logo-container">
-                        <!-- Logo IMANY -->
-                        <img src="{% static 'images/logo_imany.jpg' %}"
-                             alt="IMANY"
-                             class="h-12 w-auto object-contain"
-                             onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';">
-                        <span style="display:none;" class="text-seyni-primary text-xl font-bold">IMANY</span>
-                    </div>
-                </div>
+    <header
+      class="bg-white shadow-seyni border-b border-gray-100 sticky top-0 z-40 backdrop-blur-sm bg-white/95"
+    >
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-20">
+          <!-- Logo et titre Seyni Properties -->
+          <div class="flex items-center space-x-4">
+            <button
+              id="sidebar-toggle"
+              class="lg:hidden p-2 rounded-lg text-gray-400 hover:text-seyni-primary hover:bg-gray-50 transition-colors"
+            >
+              <i class="fas fa-bars text-xl"></i>
+            </button>
 
-                <!-- Navigation principale avec style Seyni -->
-<nav class="hidden lg:flex space-x-1">
-    <a href="{% url 'dashboard:index' %}" 
-       class="{% if request.resolver_match.url_name == 'index' %}nav-active{% else %}nav-inactive{% endif %} px-4 py-3 text-sm font-semibold transition-all duration-200 flex items-center">
-        <i class="fas fa-chart-line mr-2"></i>Dashboard
-    </a>
-    <a href="{% url 'dashboard:enregistrements' %}" 
-       class="{% if request.resolver_match.url_name == 'enregistrements' %}nav-active{% else %}nav-inactive{% endif %} px-4 py-3 text-sm font-semibold transition-all duration-200 flex items-center">
-        <i class="fas fa-plus-circle mr-2"></i>Enregistrements
-    </a>
-    <a href="{% url 'dashboard:properties_overview' %}" 
-       class="{% if request.resolver_match.url_name == 'properties_overview' %}nav-active{% else %}nav-inactive{% endif %} px-4 py-3 text-sm font-semibold transition-all duration-200 flex items-center">
-        <i class="fas fa-building mr-2"></i>Biens
-    </a>
-    <a href="{% url 'contracts:list' %}" 
-       class="{% if 'contracts' in request.resolver_match.namespace %}nav-active{% else %}nav-inactive{% endif %} px-4 py-3 text-sm font-semibold transition-all duration-200 flex items-center">
-        <i class="fas fa-file-contract mr-2"></i>Contrats
-    </a>
-    <a href="{% url 'payments:list' %}" 
-       class="{% if 'payments' in request.resolver_match.namespace %}nav-active{% else %}nav-inactive{% endif %} px-4 py-3 text-sm font-semibold transition-all duration-200 flex items-center">
-        <i class="fas fa-wallet mr-2"></i>Paiements
-        <span class="ml-2 bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded-full font-bold">NEW</span>
-    </a>
-    <a href="{% url 'dashboard:documents' %}" 
-       class="{% if request.resolver_match.url_name == 'documents' %}nav-active{% else %}nav-inactive{% endif %} px-4 py-3 text-sm font-semibold transition-all duration-200 flex items-center">
-        <i class="fas fa-folder-open mr-2"></i>Documents
-        <span class="ml-2 bg-indigo-100 text-indigo-800 text-xs px-2 py-0.5 rounded-full font-bold">NEW</span>
-    </a>
-    <a href="{% url 'employees:tasks' %}" 
-       class="{% if 'tasks' in request.resolver_match.url_name %}nav-active{% else %}nav-inactive{% endif %} px-4 py-3 text-sm font-semibold transition-all duration-200 flex items-center">
-        <i class="fas fa-tasks mr-2"></i>Tâches
-        {% if stats.urgent_count > 0 %}
-        <span class="ml-2 bg-gradient-to-r from-red-500 to-red-600 text-white text-xs rounded-full px-2 py-1 animate-pulse font-bold">
-            {{ stats.urgent_count }}
-        </span>
-        {% endif %}
-    </a>
-</nav>
-
-                <!-- Section profil et notifications -->
-                <div class="flex items-center space-x-3">
-                    <!-- Notifications avec badge Seyni -->
-                    <div class="relative">
-                        <button id="notifications-btn" class="p-2 text-gray-400 hover:text-seyni-primary hover:bg-gray-50 rounded-lg transition-colors relative">
-                            <i class="fas fa-bell text-lg"></i>
-                            {% if notifications_count > 0 %}
-                            <span class="absolute -top-1 -right-1 bg-gradient-to-r from-seyni-secondary to-seyni-secondary-dark text-white text-xs rounded-full w-5 h-5 flex items-center justify-center animate-pulse font-bold">
-                                {{ notifications_count }}
-                            </span>
-                            {% endif %}
-                        </button>
-                        
-                        <!-- Dropdown des notifications -->
-                        <div id="notifications-dropdown" class="hidden absolute right-0 mt-3 w-80 bg-white rounded-xl shadow-seyni-lg border border-gray-100 z-50 overflow-hidden">
-                            <div class="gradient-seyni p-4">
-                                <h3 class="text-lg font-bold text-white flex items-center">
-                                    <i class="fas fa-bell mr-2"></i>Notifications
-                                </h3>
-                            </div>
-                            <div class="max-h-96 overflow-y-auto custom-scrollbar">
-                                {% if recent_notifications %}
-                                    {% for notification in recent_notifications %}
-                                    <div class="p-4 border-b border-gray-50 hover:bg-gradient-seyni-subtle transition-colors">
-                                        <div class="flex items-start space-x-3">
-                                            <div class="w-10 h-10 gradient-seyni rounded-full flex items-center justify-center flex-shrink-0">
-                                                <i class="fas fa-info text-white"></i>
-                                            </div>
-                                            <div class="flex-1 min-w-0">
-                                                <p class="text-sm font-semibold text-gray-900">{{ notification.sujet }}</p>
-                                                <p class="text-xs text-gray-600 mt-1">{{ notification.message|truncatechars:80 }}</p>
-                                                <p class="text-xs text-seyni-secondary mt-2 font-medium">{{ notification.date_created|timesince }}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    {% endfor %}
-                                {% else %}
-                                <div class="p-8 text-center">
-                                    <div class="w-16 h-16 gradient-seyni rounded-full flex items-center justify-center mx-auto mb-3 opacity-20">
-                                        <i class="fas fa-bell-slash text-2xl text-white"></i>
-                                    </div>
-                                    <p class="text-gray-500 font-medium">Aucune notification</p>
-                                    <p class="text-xs text-gray-400 mt-1">Vous êtes à jour !</p>
-                                </div>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Profil utilisateur -->
-                    <div class="relative">
-                        <button id="user-menu-btn" class="flex items-center space-x-3 p-2 rounded-xl hover:bg-gradient-seyni-subtle transition-all duration-200">
-                            <div class="w-10 h-10 gradient-seyni rounded-full flex items-center justify-center shadow-md">
-                                <span class="text-white text-sm font-bold">
-                                    {{ user.first_name.0|default:user.username.0 }}{{ user.last_name.0|default:'' }}
-                                </span>
-                            </div>
-                            <div class="hidden lg:block text-left">
-                                <p class="text-sm font-semibold text-gray-900">
-                                    {{ user.get_full_name|default:user.username }}
-                                </p>
-                                <p class="text-xs text-seyni-secondary font-medium">{{ user.get_user_type_display }}</p>
-                            </div>
-                            <i class="fas fa-chevron-down text-xs text-gray-400"></i>
-                        </button>
-                        
-                        <!-- Dropdown du profil -->
-                        <div id="user-menu-dropdown" class="hidden absolute right-0 mt-3 w-64 bg-white rounded-xl shadow-seyni-lg border border-gray-100 z-50 overflow-hidden">
-                            <div class="gradient-seyni p-4">
-                                <div class="flex items-center space-x-3">
-                                    <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
-                                        <span class="text-white text-lg font-bold">
-                                            {{ user.first_name.0|default:user.username.0 }}{{ user.last_name.0|default:'' }}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <p class="text-white font-semibold">{{ user.get_full_name|default:user.username }}</p>
-                                        <p class="text-white/80 text-xs">{{ user.email }}</p>
-                                        <p class="text-white/70 text-xs">{{ user.get_user_type_display }}</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="py-2">
-                                <a href="/profile/" class="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gradient-seyni-subtle hover:text-seyni-primary transition-colors font-medium">
-                                    <i class="fas fa-user mr-3 w-4"></i>Mon Profil
-                                </a>
-                                <a href="/settings/" class="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gradient-seyni-subtle hover:text-seyni-primary transition-colors font-medium">
-                                    <i class="fas fa-cog mr-3 w-4"></i>Paramètres
-                                </a>
-                                <a href="/help/" class="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gradient-seyni-subtle hover:text-seyni-primary transition-colors font-medium">
-                                    <i class="fas fa-question-circle mr-3 w-4"></i>Centre d'aide
-                                </a>
-                            </div>
-                            <div class="border-t border-gray-100 py-2">
-                                <a href="{% url 'accounts:logout' %}" class="flex items-center px-4 py-3 text-sm text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors font-medium">
-                                    <i class="fas fa-sign-out-alt mr-3 w-4"></i>Déconnexion
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <div class="flex items-center space-x-4 logo-container">
+              <!-- Logo IMANY -->
+              <img
+                src="{% static 'images/logo_imany.jpg' %}"
+                alt="IMANY"
+                class="h-12 w-auto object-contain"
+                onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';"
+              />
+              <span
+                style="display: none"
+                class="text-seyni-primary text-xl font-bold"
+                >IMANY</span
+              >
             </div>
+          </div>
+
+          <!-- Navigation principale avec style Seyni -->
+          <nav class="hidden lg:flex space-x-1">
+            <a
+              href="{% url 'dashboard:index' %}"
+              class="{% if request.resolver_match.url_name == 'index' %}nav-active{% else %}nav-inactive{% endif %} px-4 py-3 text-sm font-semibold transition-all duration-200 flex items-center"
+            >
+              <i class="fas fa-chart-line mr-2"></i>Dashboard
+            </a>
+            <a
+              href="{% url 'dashboard:enregistrements' %}"
+              class="{% if request.resolver_match.url_name == 'enregistrements' %}nav-active{% else %}nav-inactive{% endif %} px-4 py-3 text-sm font-semibold transition-all duration-200 flex items-center"
+            >
+              <i class="fas fa-plus-circle mr-2"></i>Enregistrements
+            </a>
+            <a
+              href="{% url 'dashboard:properties_overview' %}"
+              class="{% if request.resolver_match.url_name == 'properties_overview' %}nav-active{% else %}nav-inactive{% endif %} px-4 py-3 text-sm font-semibold transition-all duration-200 flex items-center"
+            >
+              <i class="fas fa-building mr-2"></i>Biens
+            </a>
+            <a
+              href="{% url 'contracts:list' %}"
+              class="{% if 'contracts' in request.resolver_match.namespace %}nav-active{% else %}nav-inactive{% endif %} px-4 py-3 text-sm font-semibold transition-all duration-200 flex items-center"
+            >
+              <i class="fas fa-file-contract mr-2"></i>Contrats
+            </a>
+            <a
+              href="{% url 'payments:list' %}"
+              class="{% if 'payments' in request.resolver_match.namespace %}nav-active{% else %}nav-inactive{% endif %} px-4 py-3 text-sm font-semibold transition-all duration-200 flex items-center"
+            >
+              <i class="fas fa-wallet mr-2"></i>Paiements
+              <span
+                class="ml-2 bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded-full font-bold"
+                >NEW</span
+              >
+            </a>
+            <a
+              href="{% url 'dashboard:documents' %}"
+              class="{% if request.resolver_match.url_name == 'documents' %}nav-active{% else %}nav-inactive{% endif %} px-4 py-3 text-sm font-semibold transition-all duration-200 flex items-center"
+            >
+              <i class="fas fa-folder-open mr-2"></i>Documents
+              <span
+                class="ml-2 bg-indigo-100 text-indigo-800 text-xs px-2 py-0.5 rounded-full font-bold"
+                >NEW</span
+              >
+            </a>
+            <a
+              href="{% url 'employees:tasks' %}"
+              class="{% if 'tasks' in request.resolver_match.url_name %}nav-active{% else %}nav-inactive{% endif %} px-4 py-3 text-sm font-semibold transition-all duration-200 flex items-center"
+            >
+              <i class="fas fa-tasks mr-2"></i>Tâches {% if stats.urgent_count >
+              0 %}
+              <span
+                class="ml-2 bg-gradient-to-r from-red-500 to-red-600 text-white text-xs rounded-full px-2 py-1 animate-pulse font-bold"
+              >
+                {{ stats.urgent_count }}
+              </span>
+              {% endif %}
+            </a>
+          </nav>
+
+          <!-- Section profil et notifications -->
+          <div class="flex items-center space-x-3">
+            <!-- Notifications avec badge Seyni -->
+            <div class="relative">
+              <button
+                id="notifications-btn"
+                class="p-2 text-gray-400 hover:text-seyni-primary hover:bg-gray-50 rounded-lg transition-colors relative"
+              >
+                <i class="fas fa-bell text-lg"></i>
+                {% if notifications_count > 0 %}
+                <span
+                  class="absolute -top-1 -right-1 bg-gradient-to-r from-seyni-secondary to-seyni-secondary-dark text-white text-xs rounded-full w-5 h-5 flex items-center justify-center animate-pulse font-bold"
+                >
+                  {{ notifications_count }}
+                </span>
+                {% endif %}
+              </button>
+
+              <!-- Dropdown des notifications -->
+              <div
+                id="notifications-dropdown"
+                class="hidden absolute right-0 mt-3 w-80 bg-white rounded-xl shadow-seyni-lg border border-gray-100 z-50 overflow-hidden"
+              >
+                <div class="gradient-seyni p-4">
+                  <h3 class="text-lg font-bold text-white flex items-center">
+                    <i class="fas fa-bell mr-2"></i>Notifications
+                  </h3>
+                </div>
+                <div class="max-h-96 overflow-y-auto custom-scrollbar">
+                  {% if recent_notifications %} {% for notification in
+                  recent_notifications %}
+                  <div
+                    class="p-4 border-b border-gray-50 hover:bg-gradient-seyni-subtle transition-colors"
+                  >
+                    <div class="flex items-start space-x-3">
+                      <div
+                        class="w-10 h-10 gradient-seyni rounded-full flex items-center justify-center flex-shrink-0"
+                      >
+                        <i class="fas fa-info text-white"></i>
+                      </div>
+                      <div class="flex-1 min-w-0">
+                        <p class="text-sm font-semibold text-gray-900">
+                          {{ notification.sujet }}
+                        </p>
+                        <p class="text-xs text-gray-600 mt-1">
+                          {{ notification.message|truncatechars:80 }}
+                        </p>
+                        <p
+                          class="text-xs text-seyni-secondary mt-2 font-medium"
+                        >
+                          {{ notification.date_created|timesince }}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  {% endfor %} {% else %}
+                  <div class="p-8 text-center">
+                    <div
+                      class="w-16 h-16 gradient-seyni rounded-full flex items-center justify-center mx-auto mb-3 opacity-20"
+                    >
+                      <i class="fas fa-bell-slash text-2xl text-white"></i>
+                    </div>
+                    <p class="text-gray-500 font-medium">Aucune notification</p>
+                    <p class="text-xs text-gray-400 mt-1">Vous êtes à jour !</p>
+                  </div>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+
+            <!-- Profil utilisateur -->
+            <div class="relative">
+              <button
+                id="user-menu-btn"
+                class="flex items-center space-x-3 p-2 rounded-xl hover:bg-gradient-seyni-subtle transition-all duration-200"
+              >
+                <div
+                  class="w-10 h-10 gradient-seyni rounded-full flex items-center justify-center shadow-md"
+                >
+                  <span class="text-white text-sm font-bold">
+                    {{ user.first_name.0|default:user.username.0 }}{{
+                    user.last_name.0|default:'' }}
+                  </span>
+                </div>
+                <div class="hidden lg:block text-left">
+                  <p class="text-sm font-semibold text-gray-900">
+                    {{ user.get_full_name|default:user.username }}
+                  </p>
+                  <p class="text-xs text-seyni-secondary font-medium">
+                    {{ user.get_user_type_display }}
+                  </p>
+                </div>
+                <i class="fas fa-chevron-down text-xs text-gray-400"></i>
+              </button>
+
+              <!-- Dropdown du profil -->
+              <div
+                id="user-menu-dropdown"
+                class="hidden absolute right-0 mt-3 w-64 bg-white rounded-xl shadow-seyni-lg border border-gray-100 z-50 overflow-hidden"
+              >
+                <div class="gradient-seyni p-4">
+                  <div class="flex items-center space-x-3">
+                    <div
+                      class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center"
+                    >
+                      <span class="text-white text-lg font-bold">
+                        {{ user.first_name.0|default:user.username.0 }}{{
+                        user.last_name.0|default:'' }}
+                      </span>
+                    </div>
+                    <div>
+                      <p class="text-white font-semibold">
+                        {{ user.get_full_name|default:user.username }}
+                      </p>
+                      <p class="text-white/80 text-xs">{{ user.email }}</p>
+                      <p class="text-white/70 text-xs">
+                        {{ user.get_user_type_display }}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div class="py-2">
+                  <a
+                    href="/profile/"
+                    class="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gradient-seyni-subtle hover:text-seyni-primary transition-colors font-medium"
+                  >
+                    <i class="fas fa-user mr-3 w-4"></i>Mon Profil
+                  </a>
+                  <a
+                    href="/settings/"
+                    class="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gradient-seyni-subtle hover:text-seyni-primary transition-colors font-medium"
+                  >
+                    <i class="fas fa-cog mr-3 w-4"></i>Paramètres
+                  </a>
+                  <a
+                    href="/help/"
+                    class="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gradient-seyni-subtle hover:text-seyni-primary transition-colors font-medium"
+                  >
+                    <i class="fas fa-question-circle mr-3 w-4"></i>Centre d'aide
+                  </a>
+                </div>
+                <div class="border-t border-gray-100 py-2">
+                  <a
+                    href="{% url 'accounts:logout' %}"
+                    class="flex items-center px-4 py-3 text-sm text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors font-medium"
+                  >
+                    <i class="fas fa-sign-out-alt mr-3 w-4"></i>Déconnexion
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
+      </div>
     </header>
 
     <!-- Sidebar mobile -->
     <div id="mobile-sidebar" class="lg:hidden fixed inset-0 z-50 hidden">
-        <!-- Overlay -->
-        <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" onclick="closeMobileSidebar()"></div>
-        
-        <!-- Sidebar -->
-        <div class="fixed left-0 top-0 bottom-0 w-80 bg-white shadow-2xl transform -translate-x-full transition-transform duration-300" id="mobile-sidebar-content">
-            <div class="gradient-seyni p-6">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center space-x-3">
-                        <img src="{% static 'images/logo_imany.jpg' %}"
-                             alt="IMANY"
-                             class="h-10 w-auto object-contain"
-                             onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';">
-                        <div>
-                            <h1 class="text-white font-bold text-lg">IMANY</h1>
-                            <p class="text-white/80 text-xs">Gestion Locative</p>
-                        </div>
-                    </div>
-                    <button onclick="closeMobileSidebar()" class="p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-colors">
-                        <i class="fas fa-times text-lg"></i>
-                    </button>
-                </div>
+      <!-- Overlay -->
+      <div
+        class="fixed inset-0 bg-black/60 backdrop-blur-sm"
+        onclick="closeMobileSidebar()"
+      ></div>
+
+      <!-- Sidebar -->
+      <div
+        class="fixed left-0 top-0 bottom-0 w-80 bg-white shadow-2xl transform -translate-x-full transition-transform duration-300"
+        id="mobile-sidebar-content"
+      >
+        <div class="gradient-seyni p-6">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+              <img
+                src="{% static 'images/logo_imany.jpg' %}"
+                alt="IMANY"
+                class="h-10 w-auto object-contain"
+                onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';"
+              />
+              <div>
+                <h1 class="text-white font-bold text-lg">IMANY</h1>
+                <p class="text-white/80 text-xs">Gestion Locative</p>
+              </div>
             </div>
-            
-            <nav class="p-4 space-y-1">
-                <a href="{% url 'dashboard:index' %}" class="flex items-center px-4 py-4 text-gray-700 rounded-xl hover:bg-gradient-seyni-subtle hover:text-seyni-primary transition-all duration-200 font-medium">
-                    <i class="fas fa-chart-line mr-4 w-5"></i>Dashboard
-                </a>
-                <a href="{% url 'dashboard:enregistrements' %}" class="flex items-center px-4 py-4 text-gray-700 rounded-xl hover:bg-gradient-seyni-subtle hover:text-seyni-primary transition-all duration-200 font-medium">
-                   <i class="fas fa-plus-circle mr-4 w-5"></i>Enregistrements
-                </a>
-                <a href="{% url 'dashboard:properties_overview' %}" class="flex items-center px-4 py-4 text-gray-700 rounded-xl hover:bg-gradient-seyni-subtle hover:text-seyni-primary transition-all duration-200 font-medium">
-                    <i class="fas fa-building mr-4 w-5"></i>Biens Immobiliers
-                </a>
-                <a href="{% url 'contracts:list' %}" class="flex items-center px-4 py-4 text-gray-700 rounded-xl hover:bg-gradient-seyni-subtle hover:text-seyni-primary transition-all duration-200 font-medium">
-                    <i class="fas fa-file-contract mr-4 w-5"></i>Contrats
-                </a>
-                <a href="{% url 'payments:list' %}" class="flex items-center px-4 py-4 text-gray-700 rounded-xl hover:bg-gradient-seyni-subtle hover:text-seyni-primary transition-all duration-200 font-medium">
-                    <i class="fas fa-wallet mr-4 w-5"></i>Paiements
-                </a>
-
-                <!-- ✨ NOUVEAU - Documents -->
-                <a href="{% url 'dashboard:documents' %}" class="flex items-center px-4 py-4 text-gray-700 rounded-xl hover:bg-gradient-seyni-subtle hover:text-seyni-primary transition-all duration-200 font-medium">
-                    <i class="fas fa-folder-open mr-4 w-5"></i>Documents
-                    <span class="ml-auto bg-indigo-100 text-indigo-800 text-xs px-2 py-1 rounded-full font-bold">NEW</span>
-                </a>
-
-                <a href="{% url 'employees:tasks' %}" class="flex items-center px-4 py-4 text-gray-700 rounded-xl hover:bg-gradient-seyni-subtle hover:text-seyni-primary transition-all duration-200 font-medium">
-                    <i class="fas fa-tasks mr-4 w-5"></i>Tâches & Interventions
-                    {% if stats.urgent_count > 0 %}
-                    <span class="ml-auto badge-error text-xs rounded-full px-2 py-1 font-bold">{{ stats.urgent_count }}</span>
-                    {% endif %}
-                </a>
-            </nav>
+            <button
+              onclick="closeMobileSidebar()"
+              class="p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+            >
+              <i class="fas fa-times text-lg"></i>
+            </button>
+          </div>
         </div>
+
+        <nav class="p-4 space-y-1">
+          <a
+            href="{% url 'dashboard:index' %}"
+            class="flex items-center px-4 py-4 text-gray-700 rounded-xl hover:bg-gradient-seyni-subtle hover:text-seyni-primary transition-all duration-200 font-medium"
+          >
+            <i class="fas fa-chart-line mr-4 w-5"></i>Dashboard
+          </a>
+          <a
+            href="{% url 'dashboard:enregistrements' %}"
+            class="flex items-center px-4 py-4 text-gray-700 rounded-xl hover:bg-gradient-seyni-subtle hover:text-seyni-primary transition-all duration-200 font-medium"
+          >
+            <i class="fas fa-plus-circle mr-4 w-5"></i>Enregistrements
+          </a>
+          <a
+            href="{% url 'dashboard:properties_overview' %}"
+            class="flex items-center px-4 py-4 text-gray-700 rounded-xl hover:bg-gradient-seyni-subtle hover:text-seyni-primary transition-all duration-200 font-medium"
+          >
+            <i class="fas fa-building mr-4 w-5"></i>Biens Immobiliers
+          </a>
+          <a
+            href="{% url 'contracts:list' %}"
+            class="flex items-center px-4 py-4 text-gray-700 rounded-xl hover:bg-gradient-seyni-subtle hover:text-seyni-primary transition-all duration-200 font-medium"
+          >
+            <i class="fas fa-file-contract mr-4 w-5"></i>Contrats
+          </a>
+          <a
+            href="{% url 'payments:list' %}"
+            class="flex items-center px-4 py-4 text-gray-700 rounded-xl hover:bg-gradient-seyni-subtle hover:text-seyni-primary transition-all duration-200 font-medium"
+          >
+            <i class="fas fa-wallet mr-4 w-5"></i>Paiements
+          </a>
+
+          <!-- ✨ NOUVEAU - Documents -->
+          <a
+            href="{% url 'dashboard:documents' %}"
+            class="flex items-center px-4 py-4 text-gray-700 rounded-xl hover:bg-gradient-seyni-subtle hover:text-seyni-primary transition-all duration-200 font-medium"
+          >
+            <i class="fas fa-folder-open mr-4 w-5"></i>Documents
+            <span
+              class="ml-auto bg-indigo-100 text-indigo-800 text-xs px-2 py-1 rounded-full font-bold"
+              >NEW</span
+            >
+          </a>
+
+          <a
+            href="{% url 'employees:tasks' %}"
+            class="flex items-center px-4 py-4 text-gray-700 rounded-xl hover:bg-gradient-seyni-subtle hover:text-seyni-primary transition-all duration-200 font-medium"
+          >
+            <i class="fas fa-tasks mr-4 w-5"></i>Tâches & Interventions {% if
+            stats.urgent_count > 0 %}
+            <span
+              class="ml-auto badge-error text-xs rounded-full px-2 py-1 font-bold"
+              >{{ stats.urgent_count }}</span
+            >
+            {% endif %}
+          </a>
+        </nav>
+      </div>
     </div>
 
     <!-- Messages Django -->
     {% if messages %}
     <div class="fixed top-24 right-4 z-50 space-y-3">
-        {% for message in messages %}
-        <div class="max-w-sm w-full bg-white border-l-4 {% if message.tags == 'success' %}border-green-500 bg-green-50{% elif message.tags == 'error' %}border-red-500 bg-red-50{% elif message.tags == 'warning' %}border-yellow-500 bg-yellow-50{% else %}border-seyni-primary bg-blue-50{% endif %} p-4 rounded-r-xl shadow-seyni transform transition-all duration-300 animate-slide-up">
-            <div class="flex items-center">
-                <div class="flex-shrink-0">
-                    {% if message.tags == 'success' %}
-                        <i class="fas fa-check-circle text-green-500 text-lg"></i>
-                    {% elif message.tags == 'error' %}
-                        <i class="fas fa-exclamation-circle text-red-500 text-lg"></i>
-                    {% elif message.tags == 'warning' %}
-                        <i class="fas fa-exclamation-triangle text-yellow-500 text-lg"></i>
-                    {% else %}
-                        <i class="fas fa-info-circle text-seyni-primary text-lg"></i>
-                    {% endif %}
-                </div>
-                <div class="ml-3 flex-1">
-                    <p class="text-sm font-medium text-gray-900">{{ message }}</p>
-                </div>
-                <div class="ml-3">
-                    <button onclick="this.parentElement.parentElement.parentElement.remove()" class="text-gray-400 hover:text-gray-600 transition-colors">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-            </div>
+      {% for message in messages %}
+      <div
+        class="max-w-sm w-full bg-white border-l-4 {% if message.tags == 'success' %}border-green-500 bg-green-50{% elif message.tags == 'error' %}border-red-500 bg-red-50{% elif message.tags == 'warning' %}border-yellow-500 bg-yellow-50{% else %}border-seyni-primary bg-blue-50{% endif %} p-4 rounded-r-xl shadow-seyni transform transition-all duration-300 animate-slide-up"
+      >
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            {% if message.tags == 'success' %}
+            <i class="fas fa-check-circle text-green-500 text-lg"></i>
+            {% elif message.tags == 'error' %}
+            <i class="fas fa-exclamation-circle text-red-500 text-lg"></i>
+            {% elif message.tags == 'warning' %}
+            <i class="fas fa-exclamation-triangle text-yellow-500 text-lg"></i>
+            {% else %}
+            <i class="fas fa-info-circle text-seyni-primary text-lg"></i>
+            {% endif %}
+          </div>
+          <div class="ml-3 flex-1">
+            <p class="text-sm font-medium text-gray-900">{{ message }}</p>
+          </div>
+          <div class="ml-3">
+            <button
+              onclick="this.parentElement.parentElement.parentElement.remove()"
+              class="text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
         </div>
-        {% endfor %}
+      </div>
+      {% endfor %}
     </div>
     {% endif %}
 
     <!-- Contenu principal -->
-    <main class="min-h-screen">
-        {% block content %}{% endblock %}
-    </main>
+    <main class="min-h-screen">{% block content %}{% endblock %}</main>
 
     <!-- Footer -->
     <footer class="bg-white border-t border-gray-200 mt-16">
-        <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-                <!-- Logo et description Seyni -->
-                <div class="col-span-1 md:col-span-2">
-                    <div class="flex items-center space-x-4 mb-6">
-                        <img src="https://darkviolet-whale-568036.hostingersite.com/wp-content/uploads/2025/08/logo_imani.avif" 
-                             alt="Imani" 
-                             class="h-12 w-auto object-contain">
-                        <div>
-                            <span class="text-xl font-bold text-seyni-primary">Imani</span>
-                            <p class="text-sm text-seyni-secondary font-medium">Gestion Locative Professionnelle</p>
-                        </div>
-                    </div>
-                    <p class="text-sm text-gray-600 leading-relaxed max-w-md">
-                        Plateforme de gestion locative moderne et intuitive développée spécialement pour Seyni Properties. 
-                        Optimisez la gestion de vos biens immobiliers avec nos outils avancés.
-                    </p>
-                </div>
-                
-                <!-- Liens rapides -->
-                <div class="col-span-1">
-                    <h3 class="text-sm font-bold text-seyni-primary mb-4 uppercase tracking-wider">Navigation</h3>
-                    <ul class="space-y-3">
-                        <li><a href="{% url 'dashboard:index' %}" class="text-sm text-gray-600 hover:text-seyni-primary transition-colors font-medium">Dashboard</a></li>
-                        <li><a href="{% url 'dashboard:properties_overview' %}" class="text-sm text-gray-600 hover:text-seyni-primary transition-colors font-medium">Gestion des Biens</a></li>
-                        <li><a href="{% url 'employees:tasks' %}" class="text-sm text-gray-600 hover:text-seyni-primary transition-colors font-medium">Tâches & Interventions</a></li>
-                        <li><a href="/contracts/" class="text-sm text-gray-600 hover:text-seyni-primary transition-colors font-medium">Contrats</a></li>
-                        <li><a href="{% url 'payments:list' %}" class="text-sm text-gray-600 hover:text-seyni-primary transition-colors font-medium">Paiements</a></li>
+      <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <!-- Logo et description Seyni -->
+          <div class="col-span-1 md:col-span-2">
+            <div class="flex items-center space-x-4 mb-6">
+              <img
+                src="https://darkviolet-whale-568036.hostingersite.com/wp-content/uploads/2025/08/logo_imani.avif"
+                alt="Imani"
+                class="h-12 w-auto object-contain"
+              />
+              <div>
+                <span class="text-xl font-bold text-seyni-primary">Imani</span>
+                <p class="text-sm text-seyni-secondary font-medium">
+                  Gestion Locative Professionnelle
+                </p>
+              </div>
+            </div>
+            <p class="text-sm text-gray-600 leading-relaxed max-w-md">
+              Plateforme de gestion locative moderne et intuitive développée
+              spécialement pour Seyni Properties. Optimisez la gestion de vos
+              biens immobiliers avec nos outils avancés.
+            </p>
+          </div>
 
-                    </ul>
-                </div>
-                
-                <!-- Support -->
-                <div class="col-span-1">
-                    <h3 class="text-sm font-bold text-seyni-primary mb-4 uppercase tracking-wider">Support</h3>
-                    <ul class="space-y-3">
-                        <li><a href="/help/" class="text-sm text-gray-600 hover:text-seyni-primary transition-colors font-medium">Centre d'aide</a></li>
-                        <li><a href="/contact/" class="text-sm text-gray-600 hover:text-seyni-primary transition-colors font-medium">Contact</a></li>
-                        <li><a href="/documentation/" class="text-sm text-gray-600 hover:text-seyni-primary transition-colors font-medium">Documentation</a></li>
-                    </ul>
-                    
-                    <div class="mt-6 p-4 bg-gradient-seyni-subtle rounded-xl">
-                        <h4 class="text-sm font-semibold text-seyni-primary mb-2">Contact Direct</h4>
-                        <div class="space-y-2">
-                            <p class="text-xs text-gray-600 flex items-center">
-                                <i class="fas fa-phone mr-2 text-seyni-secondary"></i>+221 XX XXX XX XX
-                            </p>
-                            <p class="text-xs text-gray-600 flex items-center">
-                                <i class="fas fa-envelope mr-2 text-seyni-secondary"></i>support@seyniproperties.sn
-                            </p>
-                            <p class="text-xs text-gray-600 flex items-center">
-                                <i class="fas fa-map-marker-alt mr-2 text-seyni-secondary"></i>Dakar, Sénégal
-                            </p>
-                        </div>
-                    </div>
-                </div>
+          <!-- Liens rapides -->
+          <div class="col-span-1">
+            <h3
+              class="text-sm font-bold text-seyni-primary mb-4 uppercase tracking-wider"
+            >
+              Navigation
+            </h3>
+            <ul class="space-y-3">
+              <li>
+                <a
+                  href="{% url 'dashboard:index' %}"
+                  class="text-sm text-gray-600 hover:text-seyni-primary transition-colors font-medium"
+                  >Dashboard</a
+                >
+              </li>
+              <li>
+                <a
+                  href="{% url 'dashboard:properties_overview' %}"
+                  class="text-sm text-gray-600 hover:text-seyni-primary transition-colors font-medium"
+                  >Gestion des Biens</a
+                >
+              </li>
+              <li>
+                <a
+                  href="{% url 'employees:tasks' %}"
+                  class="text-sm text-gray-600 hover:text-seyni-primary transition-colors font-medium"
+                  >Tâches & Interventions</a
+                >
+              </li>
+              <li>
+                <a
+                  href="/contracts/"
+                  class="text-sm text-gray-600 hover:text-seyni-primary transition-colors font-medium"
+                  >Contrats</a
+                >
+              </li>
+              <li>
+                <a
+                  href="{% url 'payments:list' %}"
+                  class="text-sm text-gray-600 hover:text-seyni-primary transition-colors font-medium"
+                  >Paiements</a
+                >
+              </li>
+            </ul>
+          </div>
+
+          <!-- Support -->
+          <div class="col-span-1">
+            <h3
+              class="text-sm font-bold text-seyni-primary mb-4 uppercase tracking-wider"
+            >
+              Support
+            </h3>
+            <ul class="space-y-3">
+              <li>
+                <a
+                  href="/help/"
+                  class="text-sm text-gray-600 hover:text-seyni-primary transition-colors font-medium"
+                  >Centre d'aide</a
+                >
+              </li>
+              <li>
+                <a
+                  href="/contact/"
+                  class="text-sm text-gray-600 hover:text-seyni-primary transition-colors font-medium"
+                  >Contact</a
+                >
+              </li>
+              <li>
+                <a
+                  href="/documentation/"
+                  class="text-sm text-gray-600 hover:text-seyni-primary transition-colors font-medium"
+                  >Documentation</a
+                >
+              </li>
+            </ul>
+
+            <div class="mt-6 p-4 bg-gradient-seyni-subtle rounded-xl">
+              <h4 class="text-sm font-semibold text-seyni-primary mb-2">
+                Contact Direct
+              </h4>
+              <div class="space-y-2">
+                <p class="text-xs text-gray-600 flex items-center">
+                  <i class="fas fa-phone mr-2 text-seyni-secondary"></i>+221 XX
+                  XXX XX XX
+                </p>
+                <p class="text-xs text-gray-600 flex items-center">
+                  <i class="fas fa-envelope mr-2 text-seyni-secondary"></i
+                  >support@seyniproperties.sn
+                </p>
+                <p class="text-xs text-gray-600 flex items-center">
+                  <i class="fas fa-map-marker-alt mr-2 text-seyni-secondary"></i
+                  >Dakar, Sénégal
+                </p>
+              </div>
             </div>
-            
-            <div class="border-t border-gray-200 mt-10 pt-8 flex flex-col sm:flex-row justify-between items-center">
-                <div class="text-sm text-gray-500">
-                    © 2025 <span class="font-semibold text-seyni-primary">Imani</span>. Tous droits réservés.
-                </div>
-                <div class="flex space-x-6 mt-4 sm:mt-0">
-                    <a href="/privacy/" class="text-sm text-gray-500 hover:text-seyni-primary transition-colors font-medium">Confidentialité</a>
-                    <a href="/terms/" class="text-sm text-gray-500 hover:text-seyni-primary transition-colors font-medium">Conditions</a>
-                    <a href="/security/" class="text-sm text-gray-500 hover:text-seyni-primary transition-colors font-medium">Sécurité</a>
-                </div>
-            </div>
+          </div>
         </div>
+
+        <div
+          class="border-t border-gray-200 mt-10 pt-8 flex flex-col sm:flex-row justify-between items-center"
+        >
+          <div class="text-sm text-gray-500">
+            © 2025 <span class="font-semibold text-seyni-primary">Imani</span>.
+            Tous droits réservés.
+          </div>
+          <div class="flex space-x-6 mt-4 sm:mt-0">
+            <a
+              href="/privacy/"
+              class="text-sm text-gray-500 hover:text-seyni-primary transition-colors font-medium"
+              >Confidentialité</a
+            >
+            <a
+              href="/terms/"
+              class="text-sm text-gray-500 hover:text-seyni-primary transition-colors font-medium"
+              >Conditions</a
+            >
+            <a
+              href="/security/"
+              class="text-sm text-gray-500 hover:text-seyni-primary transition-colors font-medium"
+              >Sécurité</a
+            >
+          </div>
+        </div>
+      </div>
     </footer>
 
     <!-- Scripts JavaScript -->
     <script>
-        // Configuration globale CSRF pour Django
-        function getCookie(name) {
-            let cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                const cookies = document.cookie.split(';');
-                for (let i = 0; i < cookies.length; i++) {
-                    const cookie = cookies[i].trim();
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
-                    }
-                }
+      // Configuration globale CSRF pour Django
+      function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== "") {
+          const cookies = document.cookie.split(";");
+          for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === name + "=") {
+              cookieValue = decodeURIComponent(
+                cookie.substring(name.length + 1)
+              );
+              break;
             }
-            return cookieValue;
+          }
+        }
+        return cookieValue;
+      }
+
+      // Configuration des requêtes AJAX
+      const csrftoken = getCookie("csrftoken");
+
+      // Couleurs Seyni pour usage JavaScript
+      const SeyniColors = {
+        primary: "#23456b",
+        secondary: "#a25946",
+        primaryLight: "#2d5a8a",
+        primaryDark: "#1a3552",
+        secondaryLight: "#b86b56",
+        secondaryDark: "#8a4936",
+        gradient: "linear-gradient(135deg, #23456b 0%, #a25946 100%)",
+      };
+
+      // Gestion des dropdowns avec animations fluides
+      function initializeDropdowns() {
+        // Notifications dropdown
+        const notificationsBtn = document.getElementById("notifications-btn");
+        const notificationsDropdown = document.getElementById(
+          "notifications-dropdown"
+        );
+
+        if (notificationsBtn && notificationsDropdown) {
+          notificationsBtn.addEventListener("click", function (e) {
+            e.stopPropagation();
+            toggleDropdown(notificationsDropdown);
+            // Fermer le dropdown du profil si ouvert
+            const userDropdown = document.getElementById("user-menu-dropdown");
+            if (userDropdown) closeDropdown(userDropdown);
+          });
         }
 
-        // Configuration des requêtes AJAX
-        const csrftoken = getCookie('csrftoken');
-        
-        // Couleurs Seyni pour usage JavaScript
-        const SeyniColors = {
-            primary: '#23456b',
-            secondary: '#a25946',
-            primaryLight: '#2d5a8a',
-            primaryDark: '#1a3552',
-            secondaryLight: '#b86b56',
-            secondaryDark: '#8a4936',
-            gradient: 'linear-gradient(135deg, #23456b 0%, #a25946 100%)'
+        // User menu dropdown
+        const userMenuBtn = document.getElementById("user-menu-btn");
+        const userMenuDropdown = document.getElementById("user-menu-dropdown");
+
+        if (userMenuBtn && userMenuDropdown) {
+          userMenuBtn.addEventListener("click", function (e) {
+            e.stopPropagation();
+            toggleDropdown(userMenuDropdown);
+            // Fermer le dropdown des notifications si ouvert
+            if (notificationsDropdown) closeDropdown(notificationsDropdown);
+          });
+        }
+
+        // Fermer tous les dropdowns en cliquant ailleurs
+        document.addEventListener("click", function () {
+          document.querySelectorAll(".absolute.right-0").forEach((dropdown) => {
+            closeDropdown(dropdown);
+          });
+        });
+      }
+
+      function toggleDropdown(dropdown) {
+        if (dropdown.classList.contains("hidden")) {
+          showDropdown(dropdown);
+        } else {
+          closeDropdown(dropdown);
+        }
+      }
+
+      function showDropdown(dropdown) {
+        dropdown.classList.remove("hidden");
+        dropdown.style.opacity = "0";
+        dropdown.style.transform = "translateY(-10px)";
+
+        requestAnimationFrame(() => {
+          dropdown.style.transition = "all 0.2s ease-out";
+          dropdown.style.opacity = "1";
+          dropdown.style.transform = "translateY(0)";
+        });
+      }
+
+      function closeDropdown(dropdown) {
+        dropdown.style.transition = "all 0.2s ease-in";
+        dropdown.style.opacity = "0";
+        dropdown.style.transform = "translateY(-10px)";
+
+        setTimeout(() => {
+          dropdown.classList.add("hidden");
+        }, 200);
+      }
+
+      // Gestion de la sidebar mobile avec animations
+      function toggleMobileSidebar() {
+        const sidebar = document.getElementById("mobile-sidebar");
+        const sidebarContent = document.getElementById(
+          "mobile-sidebar-content"
+        );
+
+        if (sidebar && sidebarContent) {
+          sidebar.classList.remove("hidden");
+
+          requestAnimationFrame(() => {
+            sidebarContent.style.transition =
+              "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)";
+            sidebarContent.classList.remove("-translate-x-full");
+          });
+        }
+      }
+
+      function closeMobileSidebar() {
+        const sidebar = document.getElementById("mobile-sidebar");
+        const sidebarContent = document.getElementById(
+          "mobile-sidebar-content"
+        );
+
+        if (sidebar && sidebarContent) {
+          sidebarContent.style.transition =
+            "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)";
+          sidebarContent.classList.add("-translate-x-full");
+
+          setTimeout(() => {
+            sidebar.classList.add("hidden");
+          }, 300);
+        }
+      }
+
+      // Fonction utilitaire pour les notifications toast avec style Seyni
+      function showToast(message, type = "success", duration = 4000) {
+        const toast = document.createElement("div");
+        toast.className = `fixed top-24 right-4 z-50 max-w-sm w-full transform transition-all duration-300 translate-x-full`;
+
+        const styles = {
+          success: {
+            bg: "bg-green-50 border-green-200",
+            icon: "fa-check-circle",
+            iconColor: "text-green-600",
+            borderColor: "border-l-4 border-green-500",
+          },
+          error: {
+            bg: "bg-red-50 border-red-200",
+            icon: "fa-exclamation-circle",
+            iconColor: "text-red-600",
+            borderColor: "border-l-4 border-red-500",
+          },
+          warning: {
+            bg: "bg-yellow-50 border-yellow-200",
+            icon: "fa-exclamation-triangle",
+            iconColor: "text-yellow-600",
+            borderColor: "border-l-4 border-yellow-500",
+          },
+          info: {
+            bg: "bg-blue-50 border-blue-200",
+            icon: "fa-info-circle",
+            iconColor: "text-blue-600",
+            borderColor: "border-l-4 border-blue-500",
+          },
+          seyni: {
+            bg: "bg-gradient-to-r from-blue-50 to-orange-50",
+            icon: "fa-star",
+            iconColor: "text-seyni-primary",
+            borderColor: "border-l-4 border-seyni-primary",
+          },
         };
-        
-        // Gestion des dropdowns avec animations fluides
-        function initializeDropdowns() {
-            // Notifications dropdown
-            const notificationsBtn = document.getElementById('notifications-btn');
-            const notificationsDropdown = document.getElementById('notifications-dropdown');
-            
-            if (notificationsBtn && notificationsDropdown) {
-                notificationsBtn.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    toggleDropdown(notificationsDropdown);
-                    // Fermer le dropdown du profil si ouvert
-                    const userDropdown = document.getElementById('user-menu-dropdown');
-                    if (userDropdown) closeDropdown(userDropdown);
-                });
-            }
-            
-            // User menu dropdown
-            const userMenuBtn = document.getElementById('user-menu-btn');
-            const userMenuDropdown = document.getElementById('user-menu-dropdown');
-            
-            if (userMenuBtn && userMenuDropdown) {
-                userMenuBtn.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    toggleDropdown(userMenuDropdown);
-                    // Fermer le dropdown des notifications si ouvert
-                    if (notificationsDropdown) closeDropdown(notificationsDropdown);
-                });
-            }
-            
-            // Fermer tous les dropdowns en cliquant ailleurs
-            document.addEventListener('click', function() {
-                document.querySelectorAll('.absolute.right-0').forEach(dropdown => {
-                    closeDropdown(dropdown);
-                });
-            });
-        }
-        
-        function toggleDropdown(dropdown) {
-            if (dropdown.classList.contains('hidden')) {
-                showDropdown(dropdown);
-            } else {
-                closeDropdown(dropdown);
-            }
-        }
-        
-        function showDropdown(dropdown) {
-            dropdown.classList.remove('hidden');
-            dropdown.style.opacity = '0';
-            dropdown.style.transform = 'translateY(-10px)';
-            
-            requestAnimationFrame(() => {
-                dropdown.style.transition = 'all 0.2s ease-out';
-                dropdown.style.opacity = '1';
-                dropdown.style.transform = 'translateY(0)';
-            });
-        }
-        
-        function closeDropdown(dropdown) {
-            dropdown.style.transition = 'all 0.2s ease-in';
-            dropdown.style.opacity = '0';
-            dropdown.style.transform = 'translateY(-10px)';
-            
-            setTimeout(() => {
-                dropdown.classList.add('hidden');
-            }, 200);
-        }
-        
-        // Gestion de la sidebar mobile avec animations
-        function toggleMobileSidebar() {
-            const sidebar = document.getElementById('mobile-sidebar');
-            const sidebarContent = document.getElementById('mobile-sidebar-content');
-            
-            if (sidebar && sidebarContent) {
-                sidebar.classList.remove('hidden');
-                
-                requestAnimationFrame(() => {
-                    sidebarContent.style.transition = 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
-                    sidebarContent.classList.remove('-translate-x-full');
-                });
-            }
-        }
-        
-        function closeMobileSidebar() {
-            const sidebar = document.getElementById('mobile-sidebar');
-            const sidebarContent = document.getElementById('mobile-sidebar-content');
-            
-            if (sidebar && sidebarContent) {
-                sidebarContent.style.transition = 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
-                sidebarContent.classList.add('-translate-x-full');
-                
-                setTimeout(() => {
-                    sidebar.classList.add('hidden');
-                }, 300);
-            }
-        }
-        
-        // Fonction utilitaire pour les notifications toast avec style Seyni
-        function showToast(message, type = 'success', duration = 4000) {
-            const toast = document.createElement('div');
-            toast.className = `fixed top-24 right-4 z-50 max-w-sm w-full transform transition-all duration-300 translate-x-full`;
-            
-            const styles = {
-                success: {
-                    bg: 'bg-green-50 border-green-200',
-                    icon: 'fa-check-circle',
-                    iconColor: 'text-green-600',
-                    borderColor: 'border-l-4 border-green-500'
-                },
-                error: {
-                    bg: 'bg-red-50 border-red-200',
-                    icon: 'fa-exclamation-circle',
-                    iconColor: 'text-red-600',
-                    borderColor: 'border-l-4 border-red-500'
-                },
-                warning: {
-                    bg: 'bg-yellow-50 border-yellow-200',
-                    icon: 'fa-exclamation-triangle',
-                    iconColor: 'text-yellow-600',
-                    borderColor: 'border-l-4 border-yellow-500'
-                },
-                info: {
-                    bg: 'bg-blue-50 border-blue-200',
-                    icon: 'fa-info-circle',
-                    iconColor: 'text-blue-600',
-                    borderColor: 'border-l-4 border-blue-500'
-                },
-                seyni: {
-                    bg: 'bg-gradient-to-r from-blue-50 to-orange-50',
-                    icon: 'fa-star',
-                    iconColor: 'text-seyni-primary',
-                    borderColor: 'border-l-4 border-seyni-primary'
-                }
-            };
-            
-            const style = styles[type] || styles.info;
-            
-            toast.innerHTML = `
+
+        const style = styles[type] || styles.info;
+
+        toast.innerHTML = `
                 <div class="${style.bg} ${style.borderColor} p-4 rounded-r-xl shadow-seyni animate-slide-up">
                     <div class="flex items-center">
                         <div class="flex-shrink-0">
@@ -722,40 +966,41 @@
                     </div>
                 </div>
             `;
-            
-            document.body.appendChild(toast);
-            
-            // Animation d'entrée
-            setTimeout(() => {
-                toast.classList.remove('translate-x-full');
-                toast.classList.add('translate-x-0');
-            }, 100);
-            
-            // Animation de sortie automatique
-            setTimeout(() => {
-                removeToast(toast.querySelector('button'));
-            }, duration);
-        }
-        
-        function removeToast(button) {
-            const toast = button.closest('.fixed');
-            if (toast) {
-                toast.style.transition = 'all 0.3s ease-in-out';
-                toast.classList.add('translate-x-full', 'opacity-0');
-                setTimeout(() => {
-                    if (toast.parentElement) {
-                        toast.remove();
-                    }
-                }, 300);
+
+        document.body.appendChild(toast);
+
+        // Animation d'entrée
+        setTimeout(() => {
+          toast.classList.remove("translate-x-full");
+          toast.classList.add("translate-x-0");
+        }, 100);
+
+        // Animation de sortie automatique
+        setTimeout(() => {
+          removeToast(toast.querySelector("button"));
+        }, duration);
+      }
+
+      function removeToast(button) {
+        const toast = button.closest(".fixed");
+        if (toast) {
+          toast.style.transition = "all 0.3s ease-in-out";
+          toast.classList.add("translate-x-full", "opacity-0");
+          setTimeout(() => {
+            if (toast.parentElement) {
+              toast.remove();
             }
+          }, 300);
         }
-        
-        // Fonction pour afficher un loader avec style Seyni
-        function showLoader(message = 'Chargement...') {
-            const loader = document.createElement('div');
-            loader.id = 'global-loader';
-            loader.className = 'fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50';
-            loader.innerHTML = `
+      }
+
+      // Fonction pour afficher un loader avec style Seyni
+      function showLoader(message = "Chargement...") {
+        const loader = document.createElement("div");
+        loader.id = "global-loader";
+        loader.className =
+          "fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50";
+        loader.innerHTML = `
                 <div class="bg-white rounded-2xl p-8 flex items-center space-x-4 shadow-2xl max-w-sm mx-4">
                     <div class="w-10 h-10 border-4 border-gray-200 border-t-seyni-primary rounded-full animate-spin"></div>
                     <div>
@@ -764,42 +1009,55 @@
                     </div>
                 </div>
             `;
-            document.body.appendChild(loader);
+        document.body.appendChild(loader);
+      }
+
+      // Fonction pour masquer le loader
+      function hideLoader() {
+        const loader = document.getElementById("global-loader");
+        if (loader) {
+          loader.style.transition = "opacity 0.3s ease-out";
+          loader.style.opacity = "0";
+          setTimeout(() => {
+            loader.remove();
+          }, 300);
         }
-        
-        // Fonction pour masquer le loader
-        function hideLoader() {
-            const loader = document.getElementById('global-loader');
-            if (loader) {
-                loader.style.transition = 'opacity 0.3s ease-out';
-                loader.style.opacity = '0';
-                setTimeout(() => {
-                    loader.remove();
-                }, 300);
-            }
-        }
-        
-        // Fonction pour confirmer une action avec style Seyni
-        function confirmAction(message, callback, options = {}) {
-            const {
-                title = 'Confirmation',
-                confirmText = 'Confirmer',
-                cancelText = 'Annuler',
-                type = 'warning'
-            } = options;
-            
-            const modal = document.createElement('div');
-            modal.className = 'fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4';
-            
-            const iconMap = {
-                warning: { icon: 'fa-exclamation-triangle', color: 'text-yellow-600', bg: 'bg-yellow-100' },
-                danger: { icon: 'fa-exclamation-circle', color: 'text-red-600', bg: 'bg-red-100' },
-                info: { icon: 'fa-info-circle', color: 'text-blue-600', bg: 'bg-blue-100' }
-            };
-            
-            const iconStyle = iconMap[type] || iconMap.warning;
-            
-            modal.innerHTML = `
+      }
+
+      // Fonction pour confirmer une action avec style Seyni
+      function confirmAction(message, callback, options = {}) {
+        const {
+          title = "Confirmation",
+          confirmText = "Confirmer",
+          cancelText = "Annuler",
+          type = "warning",
+        } = options;
+
+        const modal = document.createElement("div");
+        modal.className =
+          "fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4";
+
+        const iconMap = {
+          warning: {
+            icon: "fa-exclamation-triangle",
+            color: "text-yellow-600",
+            bg: "bg-yellow-100",
+          },
+          danger: {
+            icon: "fa-exclamation-circle",
+            color: "text-red-600",
+            bg: "bg-red-100",
+          },
+          info: {
+            icon: "fa-info-circle",
+            color: "text-blue-600",
+            bg: "bg-blue-100",
+          },
+        };
+
+        const iconStyle = iconMap[type] || iconMap.warning;
+
+        modal.innerHTML = `
                 <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full transform transition-all duration-300 scale-95 opacity-0" id="confirm-modal-content">
                     <div class="p-6">
                         <div class="flex items-center mb-6">
@@ -822,295 +1080,306 @@
                     </div>
                 </div>
             `;
-            
-            document.body.appendChild(modal);
-            
-            // Animation d'entrée
-            setTimeout(() => {
-                const content = document.getElementById('confirm-modal-content');
-                content.classList.remove('scale-95', 'opacity-0');
-                content.classList.add('scale-100', 'opacity-100');
-            }, 10);
-            
-            // Fonctions globales pour la modale
-            window.executeConfirmCallback = callback;
-            window.closeConfirmModal = () => {
-                const content = document.getElementById('confirm-modal-content');
-                content.classList.add('scale-95', 'opacity-0');
-                setTimeout(() => {
-                    modal.remove();
-                }, 300);
-            };
-            
-            // Fermer en cliquant sur l'overlay
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    window.closeConfirmModal();
-                }
-            });
-        }
-        
-        // Fonctions utilitaires de formatage
-        function formatNumber(num) {
-            return new Intl.NumberFormat('fr-FR').format(num);
-        }
-        
-        function formatCurrency(amount) {
-            return new Intl.NumberFormat('fr-FR', {
-                style: 'currency',
-                currency: 'XOF',
-                minimumFractionDigits: 0
-            }).format(amount).replace('XOF', 'FCFA');
-        }
-        
-        function formatDate(dateString) {
-            const date = new Date(dateString);
-            return date.toLocaleDateString('fr-FR', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-            });
-        }
-        
-        // Fonction pour gérer les requêtes AJAX avec gestion d'erreur avancée
-        async function makeRequest(url, options = {}) {
-            try {
-                const defaultOptions = {
-                    headers: {
-                        'X-CSRFToken': csrftoken,
-                        'Content-Type': 'application/json',
-                        ...options.headers
-                    }
-                };
-                
-                const response = await fetch(url, { ...defaultOptions, ...options });
-                
-                if (!response.ok) {
-                    let errorMessage = `Erreur HTTP ${response.status}`;
-                    
-                    try {
-                        const errorData = await response.json();
-                        errorMessage = errorData.error || errorData.message || errorMessage;
-                    } catch (e) {
-                        // Ignore l'erreur de parsing JSON
-                    }
-                    
-                    throw new Error(errorMessage);
-                }
-                
-                return await response.json();
-                
-            } catch (error) {
-                console.error('Erreur de requête:', error);
-                showToast(error.message || 'Une erreur est survenue. Veuillez réessayer.', 'error');
-                throw error;
-            }
-        }
-        
-        // Fonction pour débouncer les événements
-        function debounce(func, wait) {
-            let timeout;
-            return function executedFunction(...args) {
-                const later = () => {
-                    clearTimeout(timeout);
-                    func(...args);
-                };
-                clearTimeout(timeout);
-                timeout = setTimeout(later, wait);
-            };
-        }
-        
-        // Fonction pour gérer les formulaires avec AJAX et style Seyni
-        function submitForm(formElement, successCallback, options = {}) {
-            const formData = new FormData(formElement);
-            const loadingMessage = options.loadingMessage || 'Envoi en cours...';
-            
-            showLoader(loadingMessage);
-            
-            makeRequest(formElement.action, {
-                method: formElement.method || 'POST',
-                body: formData,
-                headers: {
-                    'X-CSRFToken': csrftoken
-                }
-            })
-            .then(data => {
-                hideLoader();
-                if (data.success) {
-                    showToast(data.message || 'Opération réussie', 'success');
-                    if (successCallback) successCallback(data);
-                } else {
-                    showToast(data.error || 'Une erreur est survenue', 'error');
-                }
-            })
-            .catch(error => {
-                hideLoader();
-                showToast('Erreur lors de l\'envoi du formulaire', 'error');
-            });
-        }
-        
-        // Fonction pour mettre à jour les badges de notification avec animation
-        function updateNotificationBadge(count) {
-            const badge = document.querySelector('#notifications-btn .absolute');
-            
-            if (count > 0) {
-                if (!badge) {
-                    const newBadge = document.createElement('span');
-                    newBadge.className = 'absolute -top-1 -right-1 bg-gradient-to-r from-seyni-secondary to-seyni-secondary-dark text-white text-xs rounded-full w-5 h-5 flex items-center justify-center animate-pulse font-bold transform scale-0';
-                    newBadge.textContent = count;
-                    document.getElementById('notifications-btn').appendChild(newBadge);
-                    
-                    // Animation d'apparition
-                    setTimeout(() => {
-                        newBadge.classList.remove('scale-0');
-                        newBadge.classList.add('scale-100');
-                    }, 100);
-                } else {
-                    badge.textContent = count;
-                    // Animation de mise à jour
-                    badge.classList.add('scale-125');
-                    setTimeout(() => {
-                        badge.classList.remove('scale-125');
-                    }, 200);
-                }
-            } else {
-                if (badge) {
-                    badge.classList.add('scale-0');
-                    setTimeout(() => {
-                        badge.remove();
-                    }, 200);
-                }
-            }
-        }
-        
-        // Fonction pour auto-refresh des données avec optimisations
-        function setupAutoRefresh(interval = 60000) {
-            let isRefreshing = false;
-            
-            const refreshData = async () => {
-                if (isRefreshing) return;
-                isRefreshing = true;
-                
-                try {
-                    // Simula un appel API - à remplacer par votre vraie API
-                    // const data = await makeRequest('/api/notifications/count/');
-                    // updateNotificationBadge(data.count);
-                } catch (error) {
-                    console.error('Erreur lors de la vérification des notifications:', error);
-                } finally {
-                    isRefreshing = false;
-                }
-            };
-            
-            // Refresh périodique
-            setInterval(refreshData, interval);
-            
-            // Refresh lors du focus de la fenêtre
-            document.addEventListener('visibilitychange', () => {
-                if (!document.hidden) {
-                    refreshData();
-                }
-            });
-        }
-        
-        // Initialisation au chargement de la page
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('🏠 Imani - Interface Manager initialisée');
-            
-            // Initialiser les dropdowns
-            initializeDropdowns();
-            
-            // Initialiser la sidebar mobile
-            const sidebarToggle = document.getElementById('sidebar-toggle');
-            if (sidebarToggle) {
-                sidebarToggle.addEventListener('click', toggleMobileSidebar);
-            }
-            
-            // Auto-refresh des notifications (si l'utilisateur est connecté)
-            if (document.querySelector('#notifications-btn')) {
-                setupAutoRefresh(90000); // 1.5 minutes
-            }
-            
-            // Masquer automatiquement les messages Django
-            const messages = document.querySelectorAll('.fixed.top-24 > div');
-            messages.forEach((message, index) => {
-                setTimeout(() => {
-                    message.style.transition = 'all 0.5s ease-out';
-                    message.style.transform = 'translateX(100%)';
-                    message.style.opacity = '0';
-                    setTimeout(() => {
-                        message.remove();
-                    }, 500);
-                }, 5000 + (index * 500));
-            });
-            
-            // Gérer les liens externes
-            const externalLinks = document.querySelectorAll('a[href^="http"]');
-            externalLinks.forEach(link => {
-                if (!link.href.includes(window.location.hostname)) {
-                    link.setAttribute('target', '_blank');
-                    link.setAttribute('rel', 'noopener noreferrer');
-                }
-            });
-            
-            // Raccourcis clavier
-            document.addEventListener('keydown', function(e) {
-                // Échap pour fermer les modales/dropdowns
-                if (e.key === 'Escape') {
-                    document.querySelectorAll('.absolute.right-0').forEach(dropdown => {
-                        closeDropdown(dropdown);
-                    });
-                    closeMobileSidebar();
-                }
-            });
-            
-            console.log('✅ Imani Interface prête');
-        });
-        
-        // Gestion des erreurs JavaScript globales
-        window.addEventListener('error', function(e) {
-            console.error('Erreur JavaScript globale:', e.error);
-        });
-        
-        // Gestion des promesses rejetées
-        window.addEventListener('unhandledrejection', function(e) {
-            console.error('Promesse rejetée:', e.reason);
-        });
-        
-        // Exposer les fonctions utilitaires globalement avec namespace Imani
-        window.Imani = {
-            // Notifications et UI
-            showToast,
-            showLoader,
-            hideLoader,
-            confirmAction,
-            
-            // Requêtes et données
-            makeRequest,
-            submitForm,
-            updateNotificationBadge,
-            
-            // Formatage
-            formatNumber,
-            formatCurrency,
-            formatDate,
-            
-            // Utilitaires
-            debounce,
-            
-            // Couleurs et style
-            colors: SeyniColors,
-            
-            // Configuration
-            config: {
-                autoRefreshInterval: 90000,
-                version: '1.0.0',
-                theme: 'imani-properties'
-            }
+
+        document.body.appendChild(modal);
+
+        // Animation d'entrée
+        setTimeout(() => {
+          const content = document.getElementById("confirm-modal-content");
+          content.classList.remove("scale-95", "opacity-0");
+          content.classList.add("scale-100", "opacity-100");
+        }, 10);
+
+        // Fonctions globales pour la modale
+        window.executeConfirmCallback = callback;
+        window.closeConfirmModal = () => {
+          const content = document.getElementById("confirm-modal-content");
+          content.classList.add("scale-95", "opacity-0");
+          setTimeout(() => {
+            modal.remove();
+          }, 300);
         };
-        
-        // Message de bienvenue dans la console
-        console.log(`
+
+        // Fermer en cliquant sur l'overlay
+        modal.addEventListener("click", (e) => {
+          if (e.target === modal) {
+            window.closeConfirmModal();
+          }
+        });
+      }
+
+      // Fonctions utilitaires de formatage
+      function formatNumber(num) {
+        return new Intl.NumberFormat("fr-FR").format(num);
+      }
+
+      function formatCurrency(amount) {
+        return new Intl.NumberFormat("fr-FR", {
+          style: "currency",
+          currency: "XOF",
+          minimumFractionDigits: 0,
+        })
+          .format(amount)
+          .replace("XOF", "FCFA");
+      }
+
+      function formatDate(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleDateString("fr-FR", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        });
+      }
+
+      // Fonction pour gérer les requêtes AJAX avec gestion d'erreur avancée
+      async function makeRequest(url, options = {}) {
+        try {
+          const defaultOptions = {
+            headers: {
+              "X-CSRFToken": csrftoken,
+              "Content-Type": "application/json",
+              ...options.headers,
+            },
+          };
+
+          const response = await fetch(url, { ...defaultOptions, ...options });
+
+          if (!response.ok) {
+            let errorMessage = `Erreur HTTP ${response.status}`;
+
+            try {
+              const errorData = await response.json();
+              errorMessage =
+                errorData.error || errorData.message || errorMessage;
+            } catch (e) {
+              // Ignore l'erreur de parsing JSON
+            }
+
+            throw new Error(errorMessage);
+          }
+
+          return await response.json();
+        } catch (error) {
+          console.error("Erreur de requête:", error);
+          showToast(
+            error.message || "Une erreur est survenue. Veuillez réessayer.",
+            "error"
+          );
+          throw error;
+        }
+      }
+
+      // Fonction pour débouncer les événements
+      function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+          const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+          };
+          clearTimeout(timeout);
+          timeout = setTimeout(later, wait);
+        };
+      }
+
+      // Fonction pour gérer les formulaires avec AJAX et style Seyni
+      function submitForm(formElement, successCallback, options = {}) {
+        const formData = new FormData(formElement);
+        const loadingMessage = options.loadingMessage || "Envoi en cours...";
+
+        showLoader(loadingMessage);
+
+        makeRequest(formElement.action, {
+          method: formElement.method || "POST",
+          body: formData,
+          headers: {
+            "X-CSRFToken": csrftoken,
+          },
+        })
+          .then((data) => {
+            hideLoader();
+            if (data.success) {
+              showToast(data.message || "Opération réussie", "success");
+              if (successCallback) successCallback(data);
+            } else {
+              showToast(data.error || "Une erreur est survenue", "error");
+            }
+          })
+          .catch((error) => {
+            hideLoader();
+            showToast("Erreur lors de l'envoi du formulaire", "error");
+          });
+      }
+
+      // Fonction pour mettre à jour les badges de notification avec animation
+      function updateNotificationBadge(count) {
+        const badge = document.querySelector("#notifications-btn .absolute");
+
+        if (count > 0) {
+          if (!badge) {
+            const newBadge = document.createElement("span");
+            newBadge.className =
+              "absolute -top-1 -right-1 bg-gradient-to-r from-seyni-secondary to-seyni-secondary-dark text-white text-xs rounded-full w-5 h-5 flex items-center justify-center animate-pulse font-bold transform scale-0";
+            newBadge.textContent = count;
+            document.getElementById("notifications-btn").appendChild(newBadge);
+
+            // Animation d'apparition
+            setTimeout(() => {
+              newBadge.classList.remove("scale-0");
+              newBadge.classList.add("scale-100");
+            }, 100);
+          } else {
+            badge.textContent = count;
+            // Animation de mise à jour
+            badge.classList.add("scale-125");
+            setTimeout(() => {
+              badge.classList.remove("scale-125");
+            }, 200);
+          }
+        } else {
+          if (badge) {
+            badge.classList.add("scale-0");
+            setTimeout(() => {
+              badge.remove();
+            }, 200);
+          }
+        }
+      }
+
+      // Fonction pour auto-refresh des données avec optimisations
+      function setupAutoRefresh(interval = 60000) {
+        let isRefreshing = false;
+
+        const refreshData = async () => {
+          if (isRefreshing) return;
+          isRefreshing = true;
+
+          try {
+            // Simula un appel API - à remplacer par votre vraie API
+            // const data = await makeRequest('/api/notifications/count/');
+            // updateNotificationBadge(data.count);
+          } catch (error) {
+            console.error(
+              "Erreur lors de la vérification des notifications:",
+              error
+            );
+          } finally {
+            isRefreshing = false;
+          }
+        };
+
+        // Refresh périodique
+        setInterval(refreshData, interval);
+
+        // Refresh lors du focus de la fenêtre
+        document.addEventListener("visibilitychange", () => {
+          if (!document.hidden) {
+            refreshData();
+          }
+        });
+      }
+
+      // Initialisation au chargement de la page
+      document.addEventListener("DOMContentLoaded", function () {
+        console.log("🏠 Imani - Interface Manager initialisée");
+
+        // Initialiser les dropdowns
+        initializeDropdowns();
+
+        // Initialiser la sidebar mobile
+        const sidebarToggle = document.getElementById("sidebar-toggle");
+        if (sidebarToggle) {
+          sidebarToggle.addEventListener("click", toggleMobileSidebar);
+        }
+
+        // Auto-refresh des notifications (si l'utilisateur est connecté)
+        if (document.querySelector("#notifications-btn")) {
+          setupAutoRefresh(90000); // 1.5 minutes
+        }
+
+        // Masquer automatiquement les messages Django
+        const messages = document.querySelectorAll(".fixed.top-24 > div");
+        messages.forEach((message, index) => {
+          setTimeout(() => {
+            message.style.transition = "all 0.5s ease-out";
+            message.style.transform = "translateX(100%)";
+            message.style.opacity = "0";
+            setTimeout(() => {
+              message.remove();
+            }, 500);
+          }, 5000 + index * 500);
+        });
+
+        // Gérer les liens externes
+        const externalLinks = document.querySelectorAll('a[href^="http"]');
+        externalLinks.forEach((link) => {
+          if (!link.href.includes(window.location.hostname)) {
+            link.setAttribute("target", "_blank");
+            link.setAttribute("rel", "noopener noreferrer");
+          }
+        });
+
+        // Raccourcis clavier
+        document.addEventListener("keydown", function (e) {
+          // Échap pour fermer les modales/dropdowns
+          if (e.key === "Escape") {
+            document
+              .querySelectorAll(".absolute.right-0")
+              .forEach((dropdown) => {
+                closeDropdown(dropdown);
+              });
+            closeMobileSidebar();
+          }
+        });
+
+        console.log("✅ Imani Interface prête");
+      });
+
+      // Gestion des erreurs JavaScript globales
+      window.addEventListener("error", function (e) {
+        console.error("Erreur JavaScript globale:", e.error);
+      });
+
+      // Gestion des promesses rejetées
+      window.addEventListener("unhandledrejection", function (e) {
+        console.error("Promesse rejetée:", e.reason);
+      });
+
+      // Exposer les fonctions utilitaires globalement avec namespace Imani
+      window.Imani = {
+        // Notifications et UI
+        showToast,
+        showLoader,
+        hideLoader,
+        confirmAction,
+
+        // Requêtes et données
+        makeRequest,
+        submitForm,
+        updateNotificationBadge,
+
+        // Formatage
+        formatNumber,
+        formatCurrency,
+        formatDate,
+
+        // Utilitaires
+        debounce,
+
+        // Couleurs et style
+        colors: SeyniColors,
+
+        // Configuration
+        config: {
+          autoRefreshInterval: 90000,
+          version: "1.0.0",
+          theme: "imani-properties",
+        },
+      };
+
+      // Message de bienvenue dans la console
+      console.log(`
             🏠 Imani - Interface Manager
             ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
             Version: 1.0.0
@@ -1124,13 +1393,13 @@
             ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         `);
     </script>
-     <!-- Scripts JavaScript -->
+    <!-- Scripts JavaScript -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
-    
+
     <!-- Scripts personnalisés -->
     <script src="{% static 'js/base.js' %}"></script>
     <script src="{% static 'js/appartements.js' %}"></script>
-    
+
     {% block extra_js %}{% endblock %}
-</body>
+  </body>
 </html>
