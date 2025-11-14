@@ -128,7 +128,7 @@ class DashboardStats(BaseModel):
         from apps.properties.models import Property
         from apps.payments.models import Invoice
         from apps.maintenance.models import Intervention
-        from apps.employees.models import Task
+        from apps.employees.models.task import Task
         from apps.accounting.models.expenses import Expense
         from apps.payments.models import Payment
         
@@ -392,7 +392,7 @@ class DashboardWidget(BaseModel):
             from apps.maintenance.models import Intervention
             return self._get_interventions_data()
         elif self.source_donnees == 'tasks':
-            from apps.employees.models import Task
+            from apps.employees.models.task import Task
             return self._get_tasks_data()
         elif self.source_donnees == 'expenses':
             from apps.accounting.models.expenses import Expense
@@ -480,7 +480,7 @@ class DashboardWidget(BaseModel):
     
     def _get_tasks_data(self):
         """Génère les données pour les tâches"""
-        from apps.employees.models import Task
+        from apps.employees.models.task import Task
         from django.db.models import Count
         
         data = Task.objects.aggregate(

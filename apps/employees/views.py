@@ -12,10 +12,11 @@ from django.contrib.auth import get_user_model
 from datetime import timedelta, datetime, date
 import base64
 
+from apps.employees.models.employee import Employee
 from apps.notifications.utils import notify_task_assigned_with_email
 
 # ✅ IMPORTS CORRECTS SELON LES MODÈLES EXISTANTS
-from .models import Task, TaskMedia, Employee
+from .models.task import Task, TaskMedia
 from apps.maintenance.models import Intervention, InterventionMedia
 from django.views.decorators.csrf import csrf_exempt
 
@@ -109,7 +110,7 @@ def task_start(request, task_id):
         # Les employés ne peuvent démarrer que leurs propres tâches
         if task.assigne_a != request.user:
             return JsonResponse({'success': False, 'error': 'Non autorisé'}, status=403)
-    elif not request.user.user_type in ['manager', 'accountant']:
+    elif request.user.user_type not in ['manager', 'accountant']:
         return JsonResponse({'success': False, 'error': 'Non autorisé'}, status=403)
     
     if task.statut != 'planifie':
@@ -142,7 +143,7 @@ def task_complete(request, task_id):
         if task.assigne_a != request.user:
             messages.error(request, "Vous n'êtes pas autorisé à terminer cette tâche.")
             return redirect('employees_mobile:tasks')
-    elif not request.user.user_type in ['manager', 'accountant']:
+    elif request.user.user_type not in ['manager', 'accountant']:
         messages.error(request, "Vous n'avez pas l'autorisation de terminer cette tâche.")
         return redirect('dashboard:index')
     
@@ -242,7 +243,7 @@ def planning_view(request):
     if request.user.user_type in employee_types or request.user.username.startswith('tech_'):
         return redirect('employees_mobile:dashboard')
     
-    if not request.user.user_type in ['manager', 'accountant']:
+    if request.user.user_type not in ['manager', 'accountant']:
         messages.error(request, "Vous n'avez pas l'autorisation d'accéder à cette page.")
         return redirect('dashboard:index')
     
@@ -326,7 +327,7 @@ def tasks_calendar_api(request):
 @login_required
 def task_stats_api(request):
     """API pour les statistiques des tâches - VUE CORRIGÉE"""
-    if not request.user.user_type in ['manager', 'accountant']:
+    if request.user.user_type not in ['manager', 'accountant']:
         return JsonResponse({'error': 'Permission refusée'}, status=403)
     
     # Statistiques par employé
@@ -369,7 +370,7 @@ def employee_detail_view(request, employee_id):
     """Détail d'un employé - VUE CORRIGÉE"""
     employee = get_object_or_404(Employee, id=employee_id)
 
-    if not request.user.user_type in ['manager', 'accountant']:
+    if request.user.user_type not in ['manager', 'accountant']:
         messages.error(request, "Vous n'avez pas l'autorisation d'accéder à cette page.")
         return redirect('dashboard:index')
 
@@ -415,7 +416,7 @@ def employee_detail_view(request, employee_id):
 @login_required
 def employee_create_view(request):
     """Créer un nouvel employé"""
-    if not request.user.user_type in ['manager', 'accountant']:
+    if request.user.user_type not in ['manager', 'accountant']:
         messages.error(request, "Vous n'avez pas l'autorisation de créer des employés.")
         return redirect('dashboard:index')
 
@@ -472,7 +473,7 @@ class TaskUpdateView(LoginRequiredMixin, UpdateView):
 @login_required
 def task_delete_view(request, task_id):
     """DEPRECATED: Redirige vers le système Travaux unifié"""
-    if not request.user.user_type in ['manager', 'accountant']:
+    if request.user.user_type not in ['manager', 'accountant']:
         messages.error(request, "Vous n'avez pas l'autorisation de supprimer des travaux.")
         return redirect('dashboard:index')
 
@@ -1940,7 +1941,7 @@ def my_stats_api(request):
 @require_http_methods(["POST"])
 def task_assign_view(request, task_id):
     """Assigner une tâche à un employé (AJAX) - VERSION AVEC EMAIL"""
-    if not request.user.user_type in ['manager', 'accountant']:
+    if request.user.user_type not in ['manager', 'accountant']:
         return JsonResponse({'success': False, 'error': 'Permission refusée'})
     
     task = get_object_or_404(Task, id=task_id)
@@ -1984,7 +1985,7 @@ def task_assign_view(request, task_id):
 @login_required
 def employee_workload_api(request, employee_id):
     """API pour la charge de travail d'un employé - VUE CORRIGÉE"""
-    if not request.user.user_type in ['manager', 'accountant']:
+    if request.user.user_type not in ['manager', 'accountant']:
         return JsonResponse({'error': 'Permission refusée'}, status=403)
     
     try:
@@ -2033,7 +2034,7 @@ def employee_workload_api(request, employee_id):
 def get_employee_availability(request, employee_id):
     """API pour récupérer la disponibilité d'un employé"""
     try:
-        if not request.user.user_type in ['manager', 'accountant']:
+        if request.user.user_type not in ['manager', 'accountant']:
             return JsonResponse({
                 'success': False,
                 'error': 'Permission refusée'
@@ -2175,7 +2176,7 @@ def employee_profile_mobile(request):
     """
     Page de profil employé - Voir et modifier ses informations
     """
-    from apps.employees.models import Employee
+    from apps.employees.models.employee import Employee
     from django.contrib.auth.forms import PasswordChangeForm
     from django.contrib.auth import update_session_auth_hash
 

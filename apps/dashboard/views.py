@@ -23,7 +23,7 @@ from apps.tiers.models import Tiers, TiersBien
 
 # Import conditionnel pour Employee et Task
 try:
-    from apps.employees.models import Employee, Task
+    from apps.employees.models.models import Employee, Task
 except ImportError:
     # Modèles factices si les apps n'existent pas
     class Employee:
@@ -1348,7 +1348,7 @@ def nouvel_employe(request):
             
             # Créer le profil employé si le modèle existe
             try:
-                from apps.employees.models import Employee
+                from apps.employees.models.models import Employee
                 employe = Employee.objects.create(
                     user=user,
                     specialite=specialite,

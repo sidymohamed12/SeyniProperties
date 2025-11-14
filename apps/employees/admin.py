@@ -1,7 +1,7 @@
 # apps/employees/admin.py - Configuration admin pour mobile
 from django.contrib import admin
-from .models import Task, Employee
-from apps.maintenance.models import Intervention
+from apps.employees.models.employee import Employee
+from apps.employees.models.task import Task
 
 @admin.register(Employee)
 class EmployeeAdmin(admin.ModelAdmin):

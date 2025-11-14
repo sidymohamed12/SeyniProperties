@@ -2,7 +2,8 @@
 from django.db.models.signals import post_save, pre_delete
 from django.dispatch import receiver
 from django.core.cache import cache
-from .models import Task, Employee
+from apps.employees.models.employee import Employee
+from apps.employees.models.task import Task
 from apps.maintenance.models import Intervention
 
 @receiver(post_save, sender=Task)

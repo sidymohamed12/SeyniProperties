@@ -1,7 +1,8 @@
 # apps/employees/management/commands/setup_mobile.py
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
-from apps.employees.models import Employee, Task
+import apps.employees.models.employee as Employee
+from apps.employees.models.task import Task
 from apps.maintenance.models import Intervention
 import random
 from datetime import datetime, timedelta

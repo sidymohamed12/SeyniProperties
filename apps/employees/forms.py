@@ -4,7 +4,8 @@ from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
 from django.utils import timezone
-from .models import Task, Employee
+from apps.employees.models.employee import Employee
+from apps.employees.models.task import Task
 from apps.properties.models import Property
 from apps.maintenance.models import Intervention, InterventionMedia
 from datetime import datetime
