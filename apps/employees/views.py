@@ -17,7 +17,7 @@ from apps.notifications.utils import notify_task_assigned_with_email
 
 # ✅ IMPORTS CORRECTS SELON LES MODÈLES EXISTANTS
 from .models.task import Task, TaskMedia
-from apps.maintenance.models import Intervention, InterventionMedia
+from apps.maintenance.models.intervention import Intervention, InterventionMedia
 from django.views.decorators.csrf import csrf_exempt
 
 # ✅ FORMS CORRECTS
@@ -375,7 +375,7 @@ def employee_detail_view(request, employee_id):
         return redirect('dashboard:index')
 
     # Récupérer les travaux (interventions) assignés
-    from apps.maintenance.models import Intervention
+    from apps.maintenance.models.intervention import Intervention
     travaux_assignes = Intervention.objects.filter(
         technicien=employee.user
     ).select_related('appartement__residence').order_by('-date_signalement')
@@ -489,7 +489,7 @@ def employee_dashboard_mobile(request):
     from django.utils import timezone
     from django.urls import reverse
     from datetime import date, timedelta
-    from apps.maintenance.models import Travail
+    from apps.maintenance.models.travail import Travail
 
     today = date.today()
     now = timezone.now()
@@ -606,7 +606,7 @@ def employee_dashboard_mobile(request):
 @login_required
 def travail_detail_mobile(request, travail_id):
     """Vue détail d'un travail pour le portail mobile employé"""
-    from apps.maintenance.models import Travail, TravailMedia, TravailChecklist
+    from apps.maintenance.models.travail import Travail, TravailMedia, TravailChecklist
     from django.urls import reverse
 
     # Récupérer le travail
@@ -671,7 +671,7 @@ def travail_detail_mobile(request, travail_id):
 @login_required
 def travail_start_mobile(request, travail_id):
     """Démarrer un travail"""
-    from apps.maintenance.models import Travail
+    from apps.maintenance.models.travail import Travail
 
     travail = get_object_or_404(Travail, id=travail_id, assigne_a=request.user)
 
@@ -689,7 +689,7 @@ def travail_start_mobile(request, travail_id):
 @login_required
 def travail_complete_mobile(request, travail_id):
     """Terminer un travail avec rapport et photos"""
-    from apps.maintenance.models import Travail, TravailMedia
+    from apps.maintenance.models.travail import Travail, TravailMedia
 
     travail = get_object_or_404(Travail, id=travail_id, assigne_a=request.user)
 
@@ -744,7 +744,7 @@ def travail_complete_mobile(request, travail_id):
 @login_required
 def travail_checklist_toggle(request, travail_id, checklist_id):
     """Toggle une checklist item"""
-    from apps.maintenance.models import Travail, TravailChecklist
+    from apps.maintenance.models.travail import Travail, TravailChecklist
 
     if request.method == 'POST':
         travail = get_object_or_404(Travail, id=travail_id, assigne_a=request.user)
@@ -774,7 +774,7 @@ def travail_demande_materiel(request, travail_id):
     """
     Formulaire mobile simplifié pour qu'un employé demande du matériel pour un travail
     """
-    from apps.maintenance.models import Travail
+    from apps.maintenance.models.travail import Travail
     from apps.payments.models import Invoice, LigneDemandeAchat, HistoriqueValidation
     from decimal import Decimal
     import re
@@ -959,7 +959,7 @@ def my_tasks_mobile(request):
     """
     Vue unifiée des travaux mobile - UTILISE MODÈLE TRAVAIL UNIFIÉ
     """
-    from apps.maintenance.models import Travail
+    from apps.maintenance.models.travail import Travail
     from django.urls import reverse
 
     user = request.user
@@ -1287,7 +1287,7 @@ def get_employee_sync_data(request):
     if not (request.user.user_type in employee_types or request.user.username.startswith('tech_')):
         return JsonResponse({'error': 'Unauthorized'}, status=403)
     
-    from apps.maintenance.models import Intervention
+    from apps.maintenance.models.intervention import Intervention
     
     # Données essentielles pour fonctionnement offline
     today = timezone.now().date()
@@ -2062,7 +2062,7 @@ def get_employee_availability(request, employee_id):
         # Interventions assignées aujourd'hui (si c'est un technicien)
         interventions_today = 0
         if employee_user.user_type in ['technicien', 'technician'] or employee_user.username.startswith('tech_'):
-            from apps.maintenance.models import Intervention
+            from apps.maintenance.models.intervention import Intervention
             interventions_today = Intervention.objects.filter(
                 technicien=employee_user,
                 date_assignation__date=today,
@@ -2209,7 +2209,7 @@ def employee_profile_mobile(request):
             return redirect('employees_mobile:profil')
 
     # Statistiques de l'employé
-    from apps.maintenance.models import Travail
+    from apps.maintenance.models.travail import Travail
     from django.db.models import Avg, Count, Q
     from datetime import timedelta
 

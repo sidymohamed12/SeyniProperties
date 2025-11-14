@@ -7,7 +7,7 @@ from django.utils import timezone
 from apps.employees.models.employee import Employee
 from apps.employees.models.task import Task
 from apps.properties.models import Property
-from apps.maintenance.models import Intervention, InterventionMedia
+from apps.maintenance.models.intervention import Intervention, InterventionMedia
 from datetime import datetime
 import random
 import string

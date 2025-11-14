@@ -17,7 +17,8 @@ import json
 from apps.notifications.utils import notify_intervention_assigned_with_email
 
 # Imports des modèles
-from .models import Travail, Intervention, TravailMedia, InterventionMedia
+from .models.travail import Travail, TravailMedia
+from .models.intervention import Intervention, InterventionMedia
 from .forms import InterventionForm, TravailForm
 from django.views.decorators.csrf import csrf_exempt
 
@@ -1008,7 +1009,7 @@ def travail_upload_media_view(request, travail_id):
 @login_required
 def travaux_stats_api(request):
     """API pour les statistiques des interventions"""
-    if not request.user.user_type in ['manager', 'accountant']:
+    if request.user.user_type not in ['manager', 'accountant']:
         return JsonResponse({'error': 'Non autorisé'}, status=403)
     
     # Statistiques générales

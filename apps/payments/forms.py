@@ -356,7 +356,7 @@ class QuickPaymentForm(forms.ModelForm):
 
 from django.forms import inlineformset_factory
 from .models import LigneDemandeAchat
-from apps.maintenance.models import Travail
+from apps.maintenance.models.travail import Travail
 
 
 class DemandeAchatForm(forms.ModelForm):
@@ -398,7 +398,7 @@ class DemandeAchatForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Filtrer uniquement les travaux en attente de matériel ou non assignés
-        from apps.maintenance.models import Travail
+        from apps.maintenance.models.travail import Travail
         self.fields['travail_lie'].queryset = Travail.objects.filter(
             statut__in=['signale', 'assigne', 'en_cours', 'en_attente_materiel']
         ).select_related('appartement__residence').order_by('-created_at')

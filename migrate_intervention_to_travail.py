@@ -10,7 +10,8 @@ import django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'seyni_properties.settings')
 django.setup()
 
-from apps.maintenance.models import Intervention, Travail
+from apps.maintenance.models.intervention import Intervention
+from apps.maintenance.models.travail import Travail
 from django.db import transaction
 
 def migrate_interventions_to_travail():

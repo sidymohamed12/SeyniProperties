@@ -4,7 +4,7 @@ from django.dispatch import receiver
 from django.core.cache import cache
 from apps.employees.models.employee import Employee
 from apps.employees.models.task import Task
-from apps.maintenance.models import Intervention
+from apps.maintenance.models.intervention import Intervention
 
 @receiver(post_save, sender=Task)
 def invalidate_task_cache(sender, instance, **kwargs):

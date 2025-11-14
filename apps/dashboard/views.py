@@ -17,13 +17,14 @@ import json
 from apps.properties.models import Residence, Appartement
 from apps.contracts.models import RentalContract
 from apps.payments.models import Invoice, Payment
-from apps.maintenance.models import Intervention
+from apps.maintenance.models.intervention import Intervention
 from apps.accounts.models.custom_user import CustomUser
 from apps.tiers.models import Tiers, TiersBien
 
 # Import conditionnel pour Employee et Task
 try:
-    from apps.employees.models.models import Employee, Task
+    from apps.employees.models.employee import Employee
+    from apps.employees.models.task import Task
 except ImportError:
     # Modèles factices si les apps n'existent pas
     class Employee:
@@ -42,7 +43,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
     
     def dispatch(self, request, *args, **kwargs):
         # Vérifier les permissions utilisateur
-        if not request.user.user_type in ['manager', 'accountant']:
+        if request.user.user_type not in ['manager', 'accountant']:
             return redirect('admin:login')
         return super().dispatch(request, *args, **kwargs)
     
@@ -94,7 +95,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         ).aggregate(total=Sum('montant_ttc'))['total'] or 0
         
         # Travaux (unified model)
-        from apps.maintenance.models import Travail
+        from apps.maintenance.models.travail import Travail
         travaux_en_cours = Travail.objects.filter(
             statut__in=['signale', 'assigne', 'en_cours', 'en_attente_materiel']
         ).count()
@@ -799,7 +800,7 @@ def recent_activities_api(request):
 @login_required
 def enregistrements_view(request):
     """Vue page des enregistrements avec statistiques"""
-    from apps.maintenance.models import Travail
+    from apps.maintenance.models.travail import Travail
     from datetime import datetime
 
     # Date du mois en cours
@@ -1348,7 +1349,7 @@ def nouvel_employe(request):
             
             # Créer le profil employé si le modèle existe
             try:
-                from apps.employees.models.models import Employee
+                from apps.employees.models.employee import Employee
                 employe = Employee.objects.create(
                     user=user,
                     specialite=specialite,

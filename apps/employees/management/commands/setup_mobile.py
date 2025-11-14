@@ -3,7 +3,7 @@ from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 import apps.employees.models.employee as Employee
 from apps.employees.models.task import Task
-from apps.maintenance.models import Intervention
+from apps.maintenance.models.intervention import Intervention
 import random
 from datetime import datetime, timedelta
 from django.utils import timezone

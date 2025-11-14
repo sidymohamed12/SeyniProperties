@@ -127,7 +127,7 @@ class DashboardStats(BaseModel):
         from django.db.models import Count, Sum, Q
         from apps.properties.models import Property
         from apps.payments.models import Invoice
-        from apps.maintenance.models import Intervention
+        from apps.maintenance.models.intervention import Intervention
         from apps.employees.models.task import Task
         from apps.accounting.models.expenses import Expense
         from apps.payments.models import Payment
@@ -389,7 +389,7 @@ class DashboardWidget(BaseModel):
             from apps.payments.models import Payment, Invoice
             return self._get_payments_data()
         elif self.source_donnees == 'interventions':
-            from apps.maintenance.models import Intervention
+            from apps.maintenance.models.intervention import Intervention
             return self._get_interventions_data()
         elif self.source_donnees == 'tasks':
             from apps.employees.models.task import Task
@@ -458,7 +458,7 @@ class DashboardWidget(BaseModel):
     
     def _get_interventions_data(self):
         """Génère les données pour les interventions"""
-        from apps.maintenance.models import Intervention
+        from apps.maintenance.models.intervention import Intervention
         from django.db.models import Count
         
         data = Intervention.objects.aggregate(

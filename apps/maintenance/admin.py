@@ -1,14 +1,11 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from django.urls import reverse
-from .models import (
-    # Nouveaux modèles unifiés
-    Travail, TravailMedia, TravailChecklist,
-    # Anciens modèles (dépréciés)
-    Intervention, InterventionMedia, MaintenanceSchedule,
-    InterventionChecklistItem, InterventionTemplate, InterventionTemplateChecklistItem,
-    Tache
-)
+from apps.maintenance.models.intervention import Intervention, InterventionChecklistItem, InterventionMedia, InterventionTemplate, InterventionTemplateChecklistItem
+from apps.maintenance.models.maintenance import MaintenanceSchedule
+from apps.maintenance.models.tache import Tache
+from apps.maintenance.models.travail import Travail
+from apps.maintenance.models_unified import TravailChecklist, TravailMedia
 
 
 @admin.register(Intervention)

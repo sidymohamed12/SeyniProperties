@@ -2,7 +2,8 @@
 from django import forms
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
-from .models import Intervention, InterventionMedia, Travail, TravailMedia
+from .models.intervention import Intervention, InterventionMedia
+from .models.travail import Travail, TravailMedia
 from apps.properties.models import Property, Appartement, Residence
 from apps.tiers.models import Tiers
 from django.utils import timezone
